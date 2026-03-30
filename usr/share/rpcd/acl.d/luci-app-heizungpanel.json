@@ -1,0 +1,9 @@
+{
+  "luci-app-heizungpanel": {
+    "description": "Grant access to heizungpanel LuCI application",
+    "read": {
+      "cgi-io": [ "exec" ],
+      "file": { "/usr/libexec/heizungpanel/*": [ "exec" ] }
+    }
+  }
+}
