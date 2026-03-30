@@ -23,6 +23,7 @@ return view.extend({
   },
 
   render: function() {
+    var SEND_ENABLED = false;
     var style = el('style', { 'html': `
       .hp-wrap { max-width: 720px; }
       .hp-panel {
@@ -54,17 +55,25 @@ return view.extend({
       .hp-sub { opacity:.8; font-size:12px; margin-top:10px; }
       .hp-debug { margin-top:12px; font-family: ui-monospace, monospace; font-size:12px; opacity:.85; }
       .hp-row { display:flex; gap:10px; align-items:center; justify-content:space-between; }
+      .hp-status { margin-top:8px; font-size:12px; opacity:.9; }
+      .hp-status.ok { color:#97e493; }
+      .hp-status.warn { color:#ffd166; }
+      .hp-status.err { color:#ff8a80; }
     `});
 
     var line1 = el('div', { class: 'l' }, ['']);
     var line2 = el('div', { class: 'l' }, ['']);
     var flags = el('div', { class: 'hp-debug' }, ['flags16: ----  last_1f5: ----']);
+    var status = el('div', { class: 'hp-status warn' }, ['Status: warte auf Daten ...']);
+    var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
 
-    var display = el('div', { class: 'hp-display' }, [ line1, line2, flags ]);
+    var display = el('div', { class: 'hp-display' }, [ line1, line2, flags, status, lastUpdate ]);
 
     var btn = function(txt, code) {
       var b = el('button', { class: 'hp-key', type: 'button' }, [txt]);
+      b.disabled = !SEND_ENABLED;
       b.addEventListener('click', function() {
+        if (!SEND_ENABLED) return;
         fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
           if (res && res.code === 0) ui.addNotification(null, E('p', {}, _('OK: ' + code)));
           else ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
@@ -102,14 +111,16 @@ return view.extend({
       ]),
       keygrid,
       pwr,
-      el('div', { class:'hp-sub' }, ['Hinweis: CAN-Senden ist standardmäßig deaktiviert.'])
+      el('div', { class:'hp-sub' }, ['Hinweis: CAN-Senden ist derzeit deaktiviert (Safe Read-Only).'])
     ]);
 
     var mkMode = function(label, code) {
       var led = el('div', { class:'hp-led' }, []);
       var b = el('button', { class:'hp-key', type:'button', style:'width:120px; height:34px;' }, ['⟳']);
+      b.disabled = !SEND_ENABLED;
       b.title = 'Send: ' + code;
       b.addEventListener('click', function() {
+        if (!SEND_ENABLED) return;
         fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
           if (res && res.code === 0) ui.addNotification(null, E('p', {}, _('OK: ' + code)));
           else ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
@@ -153,21 +164,46 @@ return view.extend({
 
     var poll = function() {
       return fs.exec('/usr/libexec/heizungpanel/state.sh', []).then(function(res) {
-        if (!res || res.code !== 0) return;
+        if (!res || res.code !== 0) {
+          status.className = 'hp-status err';
+          status.textContent = 'Status: Fehler beim Abruf von state.sh';
+          return;
+        }
         var txt = (res.stdout || '').trim();
-        if (!txt) return;
+        if (!txt) {
+          status.className = 'hp-status warn';
+          status.textContent = 'Status: keine Daten verfügbar';
+          return;
+        }
         var st = null;
-        try { st = JSON.parse(txt); } catch(e) { return; }
+        try {
+          st = JSON.parse(txt);
+        } catch(e) {
+          status.className = 'hp-status err';
+          status.textContent = 'Status: ungültiges JSON im State';
+          return;
+        }
 
         line1.textContent = (st.line1 || '').padEnd(16, ' ');
         line2.textContent = (st.line2 || '').padEnd(16, ' ');
+        if (st.ts_ms)
+          lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date(st.ts_ms).toLocaleString();
+        else
+          lastUpdate.textContent = 'Letzte Aktualisierung: n/a';
 
         flags.textContent = 'flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
+        if (st.status === 'no_data') {
+          status.className = 'hp-status warn';
+          status.textContent = 'Status: keine Live-Daten (Cache/MQTT leer)';
+        } else {
+          status.className = 'hp-status ok';
+          status.textContent = 'Status: OK';
+        }
       });
     };
 
     poll();
-    window.setInterval(poll, 700);
+    window.setInterval(poll, 1000);
 
     return root;
   },

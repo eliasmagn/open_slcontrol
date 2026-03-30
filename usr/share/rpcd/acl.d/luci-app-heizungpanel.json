@@ -3,7 +3,10 @@
     "description": "Grant access to heizungpanel LuCI application",
     "read": {
       "cgi-io": [ "exec" ],
-      "file": { "/usr/libexec/heizungpanel/*": [ "exec" ] }
+      "file": {
+        "/usr/libexec/heizungpanel/state.sh": [ "exec" ],
+        "/usr/libexec/heizungpanel/press.sh": [ "exec" ]
+      }
     }
   }
 }

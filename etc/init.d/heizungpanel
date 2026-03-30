@@ -21,13 +21,29 @@ start_service() {
 
   local topic_raw="${mqtt_base}/raw"
   local topic_state="${mqtt_base}/state"
+  local runtime_dir="/tmp/heizungpanel"
+  local state_file="${runtime_dir}/state.json"
+
+  mkdir -p "$runtime_dir"
 
   if [ "$can_setup" = "1" ]; then
     local lo_arg=""
     [ "$listen_only" = "1" ] && lo_arg="listen-only on" || lo_arg=""
+
+    if ! ip link show "$can_if" >/dev/null 2>&1; then
+      logger -t heizungpanel "CAN interface not found: $can_if"
+      return 1
+    fi
+
     ip link set "$can_if" down >/dev/null 2>&1 || true
-    ip link set "$can_if" type can bitrate "$can_bitrate" $lo_arg >/dev/null 2>&1 || true
-    ip link set "$can_if" up >/dev/null 2>&1 || true
+    if ! ip link set "$can_if" type can bitrate "$can_bitrate" $lo_arg >/dev/null 2>&1; then
+      logger -t heizungpanel "CAN setup failed: $can_if bitrate $can_bitrate"
+      return 1
+    fi
+    if ! ip link set "$can_if" up >/dev/null 2>&1; then
+      logger -t heizungpanel "CAN bring-up failed: $can_if"
+      return 1
+    fi
     logger -t heizungpanel "CAN setup ok: $can_if bitrate $can_bitrate ${lo_arg:+($lo_arg)}"
   fi
 
@@ -42,7 +58,7 @@ start_service() {
   # STATE bridge: candump -> ucode parser -> MQTT retained state
   procd_open_instance state
   procd_set_param env CAN_IF="$can_if" CAN_BITRATE="$can_bitrate"
-  procd_set_param command /bin/sh -c "candump -L $can_if 2>/dev/null | /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc | mosquitto_pub -h $mqtt_host -p $mqtt_port -t $topic_state -r -l"
+  procd_set_param command /bin/sh -c "candump -L $can_if 2>/dev/null | /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc | tee $state_file | mosquitto_pub -h $mqtt_host -p $mqtt_port -t $topic_state -r -l"
   procd_set_param respawn 3600 5 5
   procd_set_param stdout 1
   procd_set_param stderr 1
