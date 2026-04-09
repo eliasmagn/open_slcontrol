@@ -19,9 +19,21 @@
 - **Status/Latch**: Bits mit längerer Aktivphase über Menüzustände (z. B. `7FFF`, `EFFF`, `BFFF`, `F7FF`, `FDFF`) werden v0 als `status_latch` klassifiziert.
 - Grenzfälle bleiben `unknown` bis zur echten Ein-Aktions-Aufnahme mit exakten Zeitstempeln.
 
-## Do this next today (kurz)
-1. Mapping v0 gegen frische Ein-Aktions-Dumps gegenprüfen.
-2. Mini-Captures: `+`, `-`, `Z`, `V`, Menü enter/exit einzeln.
-3. Bits von `likely` auf `confirmed` promoten (nur bei eindeutiger Reproduktion).
-4. JSON-Export mit `confidence` + `source_frame` aus Parser übernehmen (bereits v0 implementiert).
+## M2-v0.1 Durchführungsplan (strukturierte Einzelaktions-Captures)
 
+### Sequenz (auf Zielgerät)
+1. `mkdir -p /tmp/heizungpanel/m2`
+2. Idle baseline: `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 idle`
+3. Einzelaktionen (jeweils in separatem Lauf):
+   - `... m2_capture.sh /tmp/heizungpanel/m2 can0 8 plus`
+   - `... m2_capture.sh /tmp/heizungpanel/m2 can0 8 minus`
+   - `... m2_capture.sh /tmp/heizungpanel/m2 can0 8 z`
+   - `... m2_capture.sh /tmp/heizungpanel/m2 can0 8 v`
+   - `... m2_capture.sh /tmp/heizungpanel/m2 can0 8 mode_enter`
+   - `... m2_capture.sh /tmp/heizungpanel/m2 can0 8 mode_exit`
+4. Pro Lauf die erzeugte `*.summary.json` sichern und gegen `docs/mapping_v0.md` vergleichen.
+
+### Confidence-Promotion-Regel
+- `unknown -> likely`: 1 sauberer Einzellauf mit plausibler Korrelation.
+- `likely -> confirmed`: mindestens 3 reproduzierbare Einzelläufe ohne widersprüchliche Bit-/Indexsignatur.
+- Bei Konflikt: Confidence wieder absenken und in `anomalies` dokumentieren.

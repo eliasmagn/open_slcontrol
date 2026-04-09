@@ -16,18 +16,20 @@
 ## M1.5 – Runtime-Knobs in Config/UI (**abgeschlossen am 2026-04-09**)
 - Polling-Intervall in UCI modelliert (`poll_interval_ms`).
 - LuCI übernimmt Polling-Wert aus UCI statt Hardcode.
+- LuCI-Intervall-Validierung ist jetzt mit Backend-Clamp konsistent (`250..10000`).
 
 ## Security Gate vor Write-Pfad (**abgeschlossen am 2026-04-09**)
 - UCI-Write-Flag (`write_mode`, Default aus).
 - Strikte Command-Allowlist in `press.sh`.
 - UI bleibt default read-only, Write nur bei aktivem Flag.
 
-## M2 – Datenqualität & Mapping (**in Arbeit, Stand v0 am 2026-04-09**)
-### Erledigt in v0
+## M2 – Datenqualität & Mapping (**in Arbeit, Stand v0.1 am 2026-04-09**)
+### Erledigt in v0/v0.1
 - Versionierte Mapping-Doku `docs/mapping_v0.md` erstellt.
 - Parser umgestellt auf strukturierte LCD-Reassembly (`0x320`), Bitdekodierung (`0x321`) und `0x258/0x259` Pairing.
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
+- Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
 
 ### Offen für M2-Abschluss
 - Echte kontrollierte Ein-Aktions-Captures: Idle(60s), `+`, `-`, `Z`, `V`, Mode enter/exit.
@@ -41,4 +43,3 @@
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.
 - Optional: Audit-Logging für Write-Aktionen.
-

@@ -17,6 +17,14 @@ function el(tag, attrs, children) {
   return n;
 }
 
+function clampPollInterval(ms) {
+  var v = parseInt(ms, 10);
+  if (isNaN(v)) return 1000;
+  if (v < 250) return 250;
+  if (v > 10000) return 10000;
+  return v;
+}
+
 return view.extend({
   load: function() {
     return fs.exec('/usr/libexec/heizungpanel/config.sh', []).then(function(res) {
@@ -26,7 +34,7 @@ return view.extend({
       try {
         var cfg = JSON.parse((res.stdout || "").trim() || "{}");
         return {
-          poll_interval_ms: cfg.poll_interval_ms || 1000,
+          poll_interval_ms: clampPollInterval(cfg.poll_interval_ms),
           write_mode: cfg.write_mode || 0
         };
       } catch (e) {
@@ -39,8 +47,7 @@ return view.extend({
 
   render: function(cfg) {
     cfg = cfg || {};
-    var pollInterval = parseInt(cfg.poll_interval_ms, 10);
-    if (isNaN(pollInterval) || pollInterval < 250) pollInterval = 1000;
+    var pollInterval = clampPollInterval(cfg.poll_interval_ms);
     var SEND_ENABLED = String(cfg.write_mode || 0) === "1";
     var style = el('style', { 'html': `
       .hp-wrap { max-width: 720px; }
