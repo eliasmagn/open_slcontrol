@@ -51,7 +51,9 @@ build_ssh_cmd() {
 }
 
 build_scp_cmd() {
-  set -- scp -P "$SSH_PORT"
+  # Force legacy SCP protocol (-O) to support OpenWrt/Dropbear targets
+  # that do not provide an SFTP server binary/subsystem.
+  set -- scp -O -P "$SSH_PORT"
   if [ -n "$SSH_KEY" ]; then
     set -- "$@" -i "$SSH_KEY"
   fi
