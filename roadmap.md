@@ -18,6 +18,8 @@
 - Polling-Intervall in UCI modelliert (`poll_interval_ms`).
 - LuCI übernimmt Polling-Wert aus UCI statt Hardcode.
 - LuCI-Intervall-Validierung ist jetzt mit Backend-Clamp konsistent (`250..10000`).
+- LuCI-Konfigurations-Switch für `write_mode` (Send mode) im Panel integriert; Persistenz via UCI + Service-Neustart.
+- `listen_only` wird zur Laufzeit aus `write_mode` abgeleitet (kein redundanter separater Schalter mehr).
 
 ## Security Gate vor Write-Pfad (**abgeschlossen am 2026-04-09**)
 - UCI-Write-Flag (`write_mode`, Default aus).
@@ -30,8 +32,7 @@
 - Parser umgestellt auf strukturierte LCD-Reassembly (`0x320`), Bitdekodierung (`0x321`) und `0x258/0x259` Pairing.
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
-- UTF-8-Charakter-Mapping für beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`) im Parser ergänzt (höhere Nähe zu realem Panel in LuCI/CLI).
-- Hotfix aus Feldfeedback: `0xEF` vorläufig auf Leerzeichen gesetzt (statt `ö`), um „Phantom-Ö“ auf dem emulierten LCD zu vermeiden, bis Einzelaktions-Captures die Zuordnung bestätigen.
+- LCD-Zeichenrendering auf deutsches Panel-Mapping gesetzt: ASCII (`0x20..0x7E`) plus `0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`.
 - Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
 - Mapping-Validierungs-Helper (`usr/libexec/heizungpanel/mapping_validate.sh`) ergänzt (0x321-Ratio + 0x258/0x259-Pairing aus Candump-Logs).
 - 0x321-Isolations-Helper (`usr/libexec/heizungpanel/isolate_321.sh`) ergänzt (Unique-Flags + Kontextframes pro Wert), damit LED-/Modus-Hypothesen direkt aus Dumps gebildet werden können.
@@ -63,4 +64,6 @@
 - Stand 2026-04-09: LuCI-Statuslogik im Frontend gehärtet; bei leerem Payload trotz `status=ok` wird nun ein Warnstatus angezeigt ("verbunden, aber noch keine decodierbaren Paneldaten").
 - Stand 2026-04-09: LuCI-Zeitstempel-Anzeige gehärtet; bei unplausibler Parser-`ts_ms`-Abweichung (>5 Minuten) zeigt das Panel Browserzeit (`Letzte Aktualisierung ... (Browserzeit)`), damit die UI-Zeit konsistent mit der LuCI-Systemansicht bleibt.
 - Stand 2026-04-09: LuCI-Mode-LEDs und Modus-/Tastenhinweise werden jetzt live aus bekannten `0x321 flags16`-Werten gespeist (u.a. `7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`, Navigation `FFFB/FF7F`).
-
+- Stand 2026-04-09: Parser akzeptiert jetzt zusätzlich timestampbasierte Candump-Zeilen mit `[len] bytes` (can-utils-abhängig), wodurch 0x320-LCD-Texte wieder im LuCI-Panel erscheinen.
+- Stand 2026-04-09: Deploy-Tool-Fileliste erweitert; `set_mode.sh` und `isolate_321.sh` werden bei Install/Push mit übertragen.
+- Stand 2026-04-09: LuCI behandelt `press.sh`-Exitcode 4 jetzt als Hinweis „Mapping noch nicht hinterlegt“ statt als generischen Send-Fehler.

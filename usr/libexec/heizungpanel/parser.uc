@@ -172,16 +172,12 @@ function emit(force) {
 function hexbyte_to_char(h) {
     let v = int("0x" + h);
 
-    // observed special LCD charset bytes mapped to UTF-8 for readability
+    // Observed LCD charset mapping for German panel texts.
     if (h == "DF") return "°";
     if (h == "E2") return "ß";
     if (h == "F5") return "ü";
     if (h == "E1") return "ä";
-    // NOTE:
-    // 0xEF was previously mapped to "ö". Field feedback from real panels
-    // showed this creates a persistent phantom "ö" on mostly empty screens.
-    // Keep it blank until confirmed by controlled captures.
-    if (h == "EF") return " ";
+    if (h == "EF") return "ö";
 
     if (v >= 32 && v <= 126)
         return chr(v);
@@ -229,18 +225,23 @@ function parse_frame(line) {
         };
     }
 
-    // Format B: "can0  320   [4]  09 20 2E 20"
-    m = match(line, /^\s*\S+\s+([0-9A-Fa-f]+)\s+\[\s*(\d+)\s*\]\s+(.+)\s*$/);
+    // Format B1: "can0  320   [4]  09 20 2E 20"
+    // Format B2: "(ts) can0 RX - - 320 [4] 09 20 2E 20" (candump -a -t a -x)
+    m = match(line, /(?:^|\s)([0-9A-Fa-f]+)\s+\[\s*(\d+)\s*\]\s+(.+)\s*$/);
     if (!m)
         return null;
 
     let id = uc(m[1]);
+    let want = int(m[2]);
     let tail = m[3];
 
     // Extract hex bytes from tail
     let bytes = [];
-    for (let b in matchall(tail, /([0-9A-Fa-f]{2})/g))
+    for (let b in matchall(tail, /([0-9A-Fa-f]{2})/g)) {
         push(bytes, uc(b[1]));
+        if (want > 0 && length(bytes) >= want)
+            break;
+    }
 
     if (!length(bytes))
         return null;

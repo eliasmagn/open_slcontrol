@@ -18,12 +18,14 @@ Die App ist funktional im Read-only-Pfad:
 1. Erfassung: `candump` auf `can_if` (Raw/State jeweils mit CAN-Reinit bei Fehlern).
 2. Parsing: `parser.uc` erzeugt JSON-State.
 3. Verteilung: MQTT retain + lokaler Cache (`/tmp/heizungpanel/state.json`).
-4. UI: LuCI liest `state.sh`, zeigt Status/Fallback sauber an; LCD-Sonderbytes werden parserseitig auf UTF-8 gemappt (`°/ß/ü/ä`, `0xEF` aktuell bewusst als Leerzeichen bis Mapping bestätigt) für panelnahe Lesbarkeit und als klarer „LCD 2x16“-Emulationsblock dargestellt (Debug-Infos separat). Die „Letzte Aktualisierung“-Anzeige nutzt bei unplausibler Parser-`ts_ms`-Drift (>5 Minuten) Browserzeit als Fallback. 0x321-Flags werden zusätzlich live auf Mode-LEDs/Klartext gemappt.
-5. Runtime-Konfig: LuCI liest `poll_interval_ms`/`write_mode` über `config.sh` aus UCI.
+4. UI: LuCI liest `state.sh`, zeigt Status/Fallback sauber an; die LCD-Emulation rendert ASCII (`0x20..0x7E`) plus beobachtete deutsche Sonderzeichen des Panels (`0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`). Die „Letzte Aktualisierung“-Anzeige nutzt bei unplausibler Parser-`ts_ms`-Drift (>5 Minuten) Browserzeit als Fallback. 0x321-Flags werden zusätzlich live auf Mode-LEDs/Klartext gemappt.
+   Send-Kommandos ohne hinterlegtes CAN-Mapping werden im UI als Hinweis (statt „Send failed“) ausgewiesen.
+5. Runtime-Konfig: LuCI liest `poll_interval_ms`/`write_mode` über `config.sh` aus UCI und bietet im Panel einen Konfigurations-Switch für den Send-Mode (`write_mode`). `listen_only` wird im Dienst aus `write_mode` abgeleitet (read-only => listen-only an, write-mode => listen-only aus).
 6. Security-Gate: `press.sh` erzwingt `write_mode` + strikte Command-Allowlist.
 7. Display-Emulation: `display_emulator.sh` rendert die aus `0x320` rekonstruierten LCD-Zeilen live aus MQTT-Raw oder offline aus Candump/STDIN; fragmentierte Markerblöcke werden offset-basiert gemerged, optional mit 0x321-Markertrace (`--show-flags`).
 8. Mapping-Validierung: `mapping_validate.sh` prüft 0x321-Flags und 0x258/0x259-Index-Paare aus Candump-Dateien für reproduzierbare M2-Befunde.
 9. 0x321-Clusteranalyse: `isolate_321.sh` gruppiert Candump-Frames nach identischem `flags16` und zeigt Kontextframes, um LED-/Moduszuordnungen reproduzierbar abzuleiten.
+10. Parser-Robustheit: `parser.uc` akzeptiert neben `ID#HEX` auch timestampbasierte Candump-Varianten mit `[len] bytes` (je nach can-utils-Version), damit 0x320-Text zuverlässig in UI/State ankommt.
 
 ## Leitlinien
 - Bestehende Funktionalität erhalten.

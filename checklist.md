@@ -20,6 +20,11 @@
 - [x] **LuCI-Statuslogik bei leeren Nutzdaten verbessert** (`Status: verbunden, aber noch keine decodierbaren Paneldaten` statt irreführendem `OK` bei komplett leerem Payload).
 - [x] **LuCI-Zeitstempel gegen Parser-Drift gehärtet** (bei >5 Min Abweichung wird Browserzeit als „Letzte Aktualisierung“ genutzt).
 - [x] **0x321-LED/Modus-Mapping im LuCI aktiviert** (Mode-LEDs + Klartext-Hinweis je `flags16`).
+- [x] **Konfigurations-Switch im LuCI ergänzt** (unter dem Read-only-Hinweis: `Send mode`, persistiert via UCI + Service-Restart).
+- [x] **Parser-Inputformat erweitert** (zusätzliche timestampbasierte Candump-Variante mit `[len] bytes` wird korrekt geparst; Fix für fehlende LCD-Texte trotz sichtbarer 0x320-Frames).
+- [x] **LCD-Zeichenrendering für deutsches Panel gesetzt** (ASCII `0x20..0x7E` + `0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`).
+- [x] **UI-Fehlermeldung für noch offene Send-Mappings entschärft** (`press.sh` Exitcode 4 wird als Hinweis statt als „Send failed“ angezeigt).
+- [x] **Redundante `listen_only`-Konfig entfernt** (wird zur Laufzeit aus `write_mode` abgeleitet).
 
 ## C) Sicherheits-Gate (vor Write-Pfad)
 - [x] ACL von Wildcard auf explizite Skripte reduziert.
@@ -52,6 +57,7 @@
 - [x] **LuCI-Menü-Deployment ergänzt** (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`) damit der Menüpunkt unter `Services` nach Neuinstallation sichtbar ist.
 - [x] **LuCI-Dispatcher-Cache-Refresh beim Deploy ergänzt** (`/tmp/luci-indexcache`, `/tmp/luci-modulecache`).
 - [x] **First-Install-Start nach Device-Reset gehärtet** (Deploy nutzt jetzt `stop || true` + `start` statt `restart`, damit der Dienst nach frischem Flash nicht erst beim zweiten Push sauber anläuft).
+- [x] **Deploy-Fileliste ergänzt** (`set_mode.sh` und `isolate_321.sh` werden vom Install-Tool mit ausgerollt).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 
