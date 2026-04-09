@@ -3,16 +3,31 @@
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 ## Aktueller Stand (2026-04-09)
-Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate:
+Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
 - CAN-Raw- und State-Bridge laufen mit Retry-Schleifen.
 - State wird lokal gecacht (`/tmp/heizungpanel/state.json`) und per MQTT retained publiziert.
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
+- Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
+
+## Neue Telemetrie-Felder (Parser v0)
+Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
+- `source_frame`: laufende Parser-Frame-ID.
+- `active_bits`: aktive (low) Bits aus `0x321`.
+- `bit_roles`: pro Bit tentative Klassifikation (`event_button` / `status_latch` / `unknown`) inkl. Confidence.
+- `pairing_258_259`: `observed_indices` und `latest_pairs` mit Index-Pairing.
+- `confidence`: Confidence auf Block-Ebene (`lcd_320`, `flags_321`, `pairing_258_259`).
+- `invariants`: Laufzeit-Validierung (`flags_single_active_low_ratio`, `offsets_outside_expected`, `unmatched_258`).
+- `anomalies`: ringförmige Warnliste (Parser bleibt read-only und robust).
+
+## M2-Artefakte (v0)
+- `docs/mapping_v0.md` – eingefrorene Mapping-Tabelle mit Confidence.
+- `docs/campaign_v0.md` – v0 Session-Protokoll aus dem gelieferten Dump + klare Next-Steps für echte Einzelaktions-Captures.
 
 ## Priorisierung
-1. **M2 starten:** strukturierte Dumps, versioniertes Mapping, Hypothesenvalidierung.
+1. **M2 validieren:** echte Ein-Aktions-Dumps (Idle, +, -, Z, V, Mode enter/exit) und `likely -> confirmed`.
 2. **M3 vorbereiten:** Feed-Struktur und reproduzierbarer Install-/Upgradepfad.
 
 ## Betrieb
@@ -29,25 +44,9 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate:
 - Bei `write_mode=1` akzeptiert `press.sh` ausschließlich Befehle aus einer festen Allowlist.
 - Ein tatsächlicher CAN-Write erfolgt weiterhin erst nach implementierter Frame-Mapping-Logik.
 
-## Restart-/Long-run-Stresstest (M1 Gate)
-### 1) Restart-/Reconnect-Test (simuliert)
-- Datum: **2026-04-09**
-- Methode: `state_bridge.sh` mit Mock-Binaries (`ip`, `candump`, `mosquitto_pub`, `logger`) unter `timeout 8s`.
-- Ergebnis:
-  - `ip_calls=18`
-  - `log_lines=6`
-  - initiale Interface-Fehler wurden automatisch behandelt, anschließend fortlaufende Retry-Zyklen.
-
-### 2) Long-run-Stresstest (simuliert)
-- Datum: **2026-04-09**
-- Methode: `raw_bridge.sh` mit flappendem `candump`-Mock unter `timeout 12s`.
-- Ergebnis:
-  - `raw_cycles=12`
-  - `raw_retries_logged=12`
-  - kontinuierlicher Selbst-Recovery-Zyklus ohne manuellen Restart.
-
 ## Relevante Dateien
 - `concept.md` – Zielbild/Architektur + Umsetzungsreihenfolge.
 - `checklist.md` – operative Aufgaben und Status.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
+

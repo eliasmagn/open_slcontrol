@@ -22,10 +22,17 @@
 - Strikte Command-Allowlist in `press.sh`.
 - UI bleibt default read-only, Write nur bei aktivem Flag.
 
-## M2 – Datenqualität & Mapping (**nächster Fokus**)
-- Strukturierte Dump-Kampagne (Idle + kontrollierte Aktionen).
-- Versionierte Mappingtabellen für `0x320/0x321/0x258/0x259/0x1F5`.
-- Hypothesenvalidierung in Parser-Workflow integrieren.
+## M2 – Datenqualität & Mapping (**in Arbeit, Stand v0 am 2026-04-09**)
+### Erledigt in v0
+- Versionierte Mapping-Doku `docs/mapping_v0.md` erstellt.
+- Parser umgestellt auf strukturierte LCD-Reassembly (`0x320`), Bitdekodierung (`0x321`) und `0x258/0x259` Pairing.
+- Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
+- Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
+
+### Offen für M2-Abschluss
+- Echte kontrollierte Ein-Aktions-Captures: Idle(60s), `+`, `-`, `Z`, `V`, Mode enter/exit.
+- Pro Bit: Event-Puls vs Latch mit reproduzierbaren Zeitreihen final bestätigen.
+- `likely`-Zuordnungen auf `confirmed` heben.
 
 ## M3 – Packaging/Distribution
 - Feed/ImageBuilder-reife Paketstruktur.
@@ -34,3 +41,4 @@
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.
 - Optional: Audit-Logging für Write-Aktionen.
+
