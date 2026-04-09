@@ -11,6 +11,8 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
 - Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
+- Zusätzlicher Terminal-Emulator `usr/libexec/heizungpanel/display_emulator.sh` zeigt das rekonstruierte 2x16-LCD live aus MQTT-Raw (`0x320`) oder offline aus `candump`-Logs an.
+- Parser/Emulator mappen bekannte LCD-Sonderbytes jetzt auf UTF-8 (`°`, `ß`, `ü`, `ä`, `ö`) für eine Anzeige, die näher am realen Panel liegt.
 
 ## Neue Telemetrie-Felder (Parser v0)
 Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
@@ -38,6 +40,17 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
    - `option write_mode '0'`
 2. Service starten: `/etc/init.d/heizungpanel start`.
 3. LuCI öffnen und Status prüfen (Menü: **Services → Heizungpanel**).
+
+### Display emulieren (ohne physisches Panel)
+- Standard:
+  - `usr/libexec/heizungpanel/display_emulator.sh`
+- Mit explizitem Broker:
+  - `usr/libexec/heizungpanel/display_emulator.sh 192.168.1.10 1883 heizungpanel/raw`
+- Offline aus Logfile:
+  - `usr/libexec/heizungpanel/display_emulator.sh --file /pfad/zu/candump.txt`
+- Mit Marker/Flag-Trace:
+  - `usr/libexec/heizungpanel/display_emulator.sh --file /pfad/zu/candump.txt --show-flags`
+  - Fragmentierte Marker aus dem Terminaldump (z. B. `a` ... `r`) werden zu einem Event (`ar`) zusammengeführt und am nächsten `0x321`-Wechsel ausgegeben.
 
 ## Deploy auf Zielgerät via SSH/SCP
 - Install/Push:

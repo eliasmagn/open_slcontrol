@@ -20,6 +20,8 @@ Die App ist funktional im Read-only-Pfad:
 4. UI: LuCI liest `state.sh`, zeigt Status/Fallback sauber an.
 5. Runtime-Konfig: LuCI liest `poll_interval_ms`/`write_mode` über `config.sh` aus UCI.
 6. Security-Gate: `press.sh` erzwingt `write_mode` + strikte Command-Allowlist.
+7. Display-Emulation: `display_emulator.sh` rendert die aus `0x320` rekonstruierten LCD-Zeilen live aus MQTT **oder offline aus einem `candump`-Logfile/STDIN** und korreliert Marker-Eingaben (auch fragmentiert, z. B. `a` … `r`) mit nachfolgenden `0x321`-Statuswechseln.
+8. Anzeige-Fidelity: Parser/Emulator dekodieren neben ASCII auch beobachtete LCD-Sonderzeichen (`°`, `ß`, `ü`, `ä`, `ö`), damit die LuCI-Ansicht näher am realen Paneltext liegt.
 
 ## Leitlinien
 - Bestehende Funktionalität erhalten.

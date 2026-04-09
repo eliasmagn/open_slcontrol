@@ -30,6 +30,10 @@
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
 - Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
+- Terminal-Display-Emulation ergänzt (`usr/libexec/heizungpanel/display_emulator.sh`) für Live-Sicht auf gesendete LCD-Daten (`0x320`) ohne Originaldisplay.
+- Display-Emulation um Offline-Analyse erweitert (`--file`/`--stdin`) inkl. Unterstützung beider `candump`-Formate und optionaler `0x321`-Markeranzeige (`--show-flags`).
+- Marker-Korrelation in Offline-Dumps gehärtet: fragmentierte Markerfolgen werden über kurze CAN-Intervalle zusammengeführt (z. B. `a` + `r` => `ar`) und an den nächsten `0x321`-Event gekoppelt.
+- Zeichensatz-Fidelity erhöht: bekannte LCD-Sonderbytes werden in Parser/Emulator auf UTF-8-Zeichen gemappt (`ß`, `ü`, `ä`, `ö`, `°`) für eine realitätsnähere LuCI-Anzeige.
 
 ### Offen für M2-Abschluss
 - Echte kontrollierte Ein-Aktions-Captures: Idle(60s), `+`, `-`, `Z`, `V`, Mode enter/exit.

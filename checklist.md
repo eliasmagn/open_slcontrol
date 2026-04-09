@@ -31,6 +31,10 @@
   - strukturierter JSON-Output mit `confidence`, `source_frame`, `invariants`, `anomalies`.
 - [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
 - [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
+- [x] **Einfache Display-Emulation ergänzt** (`usr/libexec/heizungpanel/display_emulator.sh`, rekonstruiert 2x16 LCD aus Raw-`0x320` Frames via MQTT).
+- [x] **Display-Emulation für Offline-Dumps erweitert** (`--file`/`--stdin`, unterstützt `candump`-Formate mit und ohne `#`, inkl. optionalem Marker/`0x321`-Trace via `--show-flags`).
+- [x] **Marker-Korrelation verbessert**: fragmentierte Markerfolgen (z. B. `a` … `r`) werden über ein Frame-Fenster zusammengeführt und bei `0x321` als zusammenhängendes Event ausgegeben.
+- [x] **LCD-Sonderzeichen-Dekodierung ergänzt** (`E2→ß`, `F5→ü`, `E1→ä`, `EF→ö`, `DF→°`) in Parser + Emulator für realitätsnähere LuCI-Panelanzeige.
 - [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
 - [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
 
@@ -49,6 +53,10 @@
 ## Testnotizen
 ### Parser-Syntaxcheck (2026-04-09)
 - `ucode -c usr/libexec/heizungpanel/parser.uc` nicht ausführbar in dieser Container-Umgebung (`ucode` fehlt).
+
+### Display-Emulator-Syntaxcheck (2026-04-09)
+- [x] `sh -n usr/libexec/heizungpanel/display_emulator.sh` (ok).
+- [x] `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags` (liefert rekonstruierte LCD-Ausgabe + `flags321` Marker-Trace).
 
 ### Restart-/Long-run-Stresstest (2026-04-09)
 - Zielsystem (OpenWrt mit CAN-Hardware):

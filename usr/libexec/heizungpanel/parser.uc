@@ -176,6 +176,16 @@ function hexbyte_to_char(h) {
     if (h == "DF")
         return "°";
 
+    // observed LCD charset extensions in field dumps
+    if (h == "E2")
+        return "ß";
+    if (h == "F5")
+        return "ü";
+    if (h == "E1")
+        return "ä";
+    if (h == "EF")
+        return "ö";
+
     if (v >= 32 && v <= 126)
         return chr(v);
 
