@@ -22,27 +22,23 @@
 - [x] **Strikte Command-Allowlist für Write-Operationen** in `press.sh`.
 
 ## D) M2 Protokoll-Engineering
-- [ ] **Strukturierte Referenzdumps erfassen** (Idle + kontrollierte Aktionen).
-- [ ] **Mapping-Tabelle versionieren** für `0x320/0x321/0x258/0x259/0x1F5`.
-- [ ] **Hypothesen-Validierung in Parser-Workflow einbauen**.
+- [x] **Mapping-Tabelle v0 versioniert** (`docs/mapping_v0.md`).
+- [x] **Parser read-only erweitert**:
+  - 0x320 LCD-Reassembly (Offsets + Sonderzeichen `DF`).
+  - 0x321 `flags16` + `active_bits[]` + `bit_roles`.
+  - 0x258/0x259 Index-Pairing im Zeitfenster.
+  - strukturierter JSON-Output mit `confidence`, `source_frame`, `invariants`, `anomalies`.
+- [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
+- [ ] **Kontrollierte Einzelaktions-Dumps** (v0 aus vorhandenem Dump extrahiert, echte Kampagne noch offen).
+- [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
 
 ## E) M3 Packaging/Distribution
 - [ ] **Feed-Paketstruktur vervollständigen**.
 - [ ] **Reproduzierbaren Install-/Upgradepfad dokumentieren**.
 - [x] README/readme um aktuellen Stand ergänzt.
-- [x] Roadmap mit M1-Progress gepflegt.
+- [x] Roadmap mit M1/M2-Progress gepflegt.
 
-## Testnotizen (M1 Gate)
-### Restart-/Reconnect-Test (simuliert, 2026-04-09)
-- Setup: `state_bridge.sh` mit Mock-`ip`/`candump`/`mosquitto_pub`/`logger` unter Timeout 8s.
-- Messwerte:
-  - `ip_calls=18` in 8s.
-  - `log_lines=6`.
-  - erste 2 Zyklen: „CAN interface missing“, danach automatische Reconnect-/Retry-Zyklen.
+## Testnotizen
+### Parser-Syntaxcheck (2026-04-09)
+- `ucode -c usr/libexec/heizungpanel/parser.uc` nicht ausführbar in dieser Container-Umgebung (`ucode` fehlt).
 
-### Long-run-Stresstest (simuliert, 2026-04-09)
-- Setup: `raw_bridge.sh` mit flappendem Mock-`candump` unter Timeout 12s.
-- Messwerte:
-  - `raw_cycles=12` in 12s.
-  - `raw_retries_logged=12`.
-- Ergebnis: kontinuierliche Wiederanläufe ohne manuellen Eingriff.
