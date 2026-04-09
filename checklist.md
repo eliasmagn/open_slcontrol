@@ -51,6 +51,7 @@
 - [x] **Deploy-Helper fragt Passwort pro Lauf nur einmal ab** (SSH-Multiplexing via `ControlMaster/ControlPersist`, optional deaktivierbar mit `--no-mux`).
 - [x] **LuCI-Menü-Deployment ergänzt** (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`) damit der Menüpunkt unter `Services` nach Neuinstallation sichtbar ist.
 - [x] **LuCI-Dispatcher-Cache-Refresh beim Deploy ergänzt** (`/tmp/luci-indexcache`, `/tmp/luci-modulecache`).
+- [x] **First-Install-Start nach Device-Reset gehärtet** (Deploy nutzt jetzt `stop || true` + `start` statt `restart`, damit der Dienst nach frischem Flash nicht erst beim zweiten Push sauber anläuft).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 

@@ -174,7 +174,12 @@ run_install() {
   if [ "$NO_RESTART" -eq 0 ]; then
     echo "[4/4] Reload services"
     # shellcheck disable=SC2086
-    $SSH_CMD "/etc/init.d/rpcd reload >/dev/null 2>&1 || true; /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true; /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; /etc/init.d/heizungpanel restart"
+    $SSH_CMD "/etc/init.d/rpcd reload >/dev/null 2>&1 || true; \
+      /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; \
+      rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true; \
+      /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; \
+      /etc/init.d/heizungpanel stop >/dev/null 2>&1 || true; \
+      /etc/init.d/heizungpanel start"
   else
     echo "[4/4] Skipping restart (--no-restart set)"
   fi
