@@ -23,6 +23,8 @@
 - [x] **Konfigurations-Switch im LuCI ergänzt** (unter dem Read-only-Hinweis: `Send mode`, persistiert via UCI + Service-Restart).
 - [x] **Parser-Inputformat erweitert** (zusätzliche timestampbasierte Candump-Variante mit `[len] bytes` wird korrekt geparst; Fix für fehlende LCD-Texte trotz sichtbarer 0x320-Frames).
 - [x] **LCD-Zeichenrendering für deutsches Panel gesetzt** (ASCII `0x20..0x7E` + `0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`).
+- [x] **UI-Fehlermeldung für noch offene Send-Mappings entschärft** (`press.sh` Exitcode 4 wird als Hinweis statt als „Send failed“ angezeigt).
+- [x] **Redundante `listen_only`-Konfig entfernt** (wird zur Laufzeit aus `write_mode` abgeleitet).
 
 ## C) Sicherheits-Gate (vor Write-Pfad)
 - [x] ACL von Wildcard auf explizite Skripte reduziert.
@@ -39,7 +41,7 @@
 - [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
 - [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
 - [x] **Display-Emulation erweitert** (`usr/libexec/heizungpanel/display_emulator.sh`: MQTT live + offline via `--file`/`--stdin`, optional `--show-flags` inkl. 0x321-Markertrace, offset-basiertes Merging fragmentierter 0x320-Blöcke).
-- [x] **Sonderzeichen-Mapping korrigiert** (`0xEF` vorläufig auf Leerzeichen statt `ö`), um Phantom-`ö` auf dem emulierten LCD zu vermeiden, bis kontrollierte Captures vorliegen.
+- [x] **Sonderzeichen-Mapping auf deutsches Panel gesetzt** (`0xDF/0xE2/0xF5/0xE1/0xEF -> °/ß/ü/ä/ö`), damit LuCI/Emulator Feldtexte inklusive Umlaute darstellen.
 - [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
 - [x] **Mapping-Validierungs-Helper ergänzt** (`usr/libexec/heizungpanel/mapping_validate.sh`) für 0x321-Ratio und 0x258/0x259-Pairing-Checks aus Candump-Logs.
 - [x] **0x321-Isolations-Helper ergänzt** (`usr/libexec/heizungpanel/isolate_321.sh`) zur Auswertung „welche Flags16-Werte treten auf“ inkl. Kontextframes pro Wert.
@@ -103,8 +105,8 @@
 ### LuCI-Panel-Syntaxcheck (2026-04-09)
 - [x] `node --check www/luci-static/resources/view/heizungpanel/panel.js` (ok).
 
-### Phantom-Ö/Zeitanzeige-Hotfix (2026-04-09)
-- [x] Parser/Display-Emulator: `0xEF` wird vorläufig als Leerzeichen behandelt.
+### Zeichensatz-/Zeitanzeige-Hotfix (2026-04-09)
+- [x] Parser/Display-Emulator: deutsches Panel-Mapping aktiv (`0xDF/0xE2/0xF5/0xE1/0xEF -> °/ß/ü/ä/ö`).
 - [x] LuCI-Panel: „Letzte Aktualisierung“ fällt bei unplausibler `ts_ms`-Abweichung (>5 Min) auf Browserzeit zurück (`... (Browserzeit)`).
 
 ### 0x321-Clusteranalyse (2026-04-09)

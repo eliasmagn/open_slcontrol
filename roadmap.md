@@ -19,6 +19,7 @@
 - LuCI übernimmt Polling-Wert aus UCI statt Hardcode.
 - LuCI-Intervall-Validierung ist jetzt mit Backend-Clamp konsistent (`250..10000`).
 - LuCI-Konfigurations-Switch für `write_mode` (Send mode) im Panel integriert; Persistenz via UCI + Service-Neustart.
+- `listen_only` wird zur Laufzeit aus `write_mode` abgeleitet (kein redundanter separater Schalter mehr).
 
 ## Security Gate vor Write-Pfad (**abgeschlossen am 2026-04-09**)
 - UCI-Write-Flag (`write_mode`, Default aus).
@@ -65,3 +66,4 @@
 - Stand 2026-04-09: LuCI-Mode-LEDs und Modus-/Tastenhinweise werden jetzt live aus bekannten `0x321 flags16`-Werten gespeist (u.a. `7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`, Navigation `FFFB/FF7F`).
 - Stand 2026-04-09: Parser akzeptiert jetzt zusätzlich timestampbasierte Candump-Zeilen mit `[len] bytes` (can-utils-abhängig), wodurch 0x320-LCD-Texte wieder im LuCI-Panel erscheinen.
 - Stand 2026-04-09: Deploy-Tool-Fileliste erweitert; `set_mode.sh` und `isolate_321.sh` werden bei Install/Push mit übertragen.
+- Stand 2026-04-09: LuCI behandelt `press.sh`-Exitcode 4 jetzt als Hinweis „Mapping noch nicht hinterlegt“ statt als generischen Send-Fehler.

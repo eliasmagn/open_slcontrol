@@ -116,7 +116,7 @@ function push_trace(entry) {
   }
 }
 
-function parse_frame(line,    a, n, id, data, i) {
+function parse_frame(line,    a, n, id, data, i, m, want, token_count) {
   id = ""
   data = ""
 
@@ -126,15 +126,21 @@ function parse_frame(line,    a, n, id, data, i) {
     return id " " data
   }
 
-  n = split(line, a, /[[:space:]]+/)
-  if (n < 5) return ""
+  if (!match(line, /(^|[[:space:]])([0-9A-Fa-f]+)[[:space:]]+\[[[:space:]]*([0-9]+)[[:space:]]*\][[:space:]]+(.+)$/, m))
+    return ""
 
-  id = toupper(a[2])
-  if (a[3] !~ /^\[[0-9]+\]$/) return ""
-
-  for (i = 4; i <= n; i++)
-    if (a[i] ~ /^[0-9A-Fa-f]{2}$/)
+  id = toupper(m[2])
+  want = m[3] + 0
+  n = split(m[4], a, /[[:space:]]+/)
+  token_count = 0
+  for (i = 1; i <= n; i++) {
+    if (a[i] ~ /^[0-9A-Fa-f]{2}$/) {
       data = data toupper(a[i])
+      token_count++
+      if (want > 0 && token_count >= want)
+        break
+    }
+  }
 
   if (!length(data)) return ""
   return id " " data

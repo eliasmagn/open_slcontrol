@@ -35,20 +35,19 @@ return view.extend({
   load: function() {
     return fs.exec('/usr/libexec/heizungpanel/config.sh', []).then(function(res) {
       if (!res || res.code !== 0)
-        return { poll_interval_ms: 1000, write_mode: 0, listen_only: 1 };
+        return { poll_interval_ms: 1000, write_mode: 0 };
 
       try {
         var cfg = JSON.parse((res.stdout || "").trim() || "{}");
         return {
           poll_interval_ms: clampPollInterval(cfg.poll_interval_ms),
-          write_mode: cfg.write_mode || 0,
-          listen_only: cfg.listen_only || 0
+          write_mode: cfg.write_mode || 0
         };
       } catch (e) {
-        return { poll_interval_ms: 1000, write_mode: 0, listen_only: 1 };
+        return { poll_interval_ms: 1000, write_mode: 0 };
       }
     }).catch(function() {
-      return { poll_interval_ms: 1000, write_mode: 0, listen_only: 1 };
+      return { poll_interval_ms: 1000, write_mode: 0 };
     });
   },
 
@@ -112,17 +111,30 @@ return view.extend({
       flags, status, lastUpdate
     ]);
 
+    var runSend = function(code) {
+      return fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
+        if (res && res.code === 0) {
+          ui.addNotification(null, E('p', {}, _('OK: ' + code)));
+          return;
+        }
+
+        if (res && res.code === 4) {
+          ui.addNotification(null, E('p', {}, _('Hinweis: Send-Mapping für "' + code + '" ist noch nicht hinterlegt.')));
+          return;
+        }
+
+        ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
+      }).catch(function(err) {
+        ui.addNotification(null, E('p', {}, _('Send error: ' + err)));
+      });
+    };
+
     var btn = function(txt, code) {
       var b = el('button', { class: 'hp-key', type: 'button' }, [txt]);
       b.disabled = !sendEnabled;
       b.addEventListener('click', function() {
         if (!sendEnabled) return;
-        fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
-          if (res && res.code === 0) ui.addNotification(null, E('p', {}, _('OK: ' + code)));
-          else ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
-        }).catch(function(err) {
-          ui.addNotification(null, E('p', {}, _('Send error: ' + err)));
-        });
+        runSend(code);
       });
       return b;
     };
@@ -148,7 +160,7 @@ return view.extend({
     pwr.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
 
     var modeHintText = el('div', { class:'hp-sub' }, [sendEnabled
-      ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle).'
+      ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle, Mapping teils noch offen).'
       : 'Hinweis: CAN-Senden ist deaktiviert (Safe Read-Only).']);
     var switchStatus = el('div', { class:'hp-status warn' }, ['Konfiguration: unverändert']);
     var sendSwitch = el('input', { type:'checkbox' }, []);
@@ -172,7 +184,7 @@ return view.extend({
         if (key === 'write_mode') {
           sendEnabled = enabled;
           modeHintText.textContent = sendEnabled
-            ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle).'
+            ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle, Mapping teils noch offen).'
             : 'Hinweis: CAN-Senden ist deaktiviert (Safe Read-Only).';
           window.setTimeout(function() { window.location.reload(); }, 600);
         }
@@ -217,12 +229,7 @@ return view.extend({
       b.title = 'Send: ' + code;
       b.addEventListener('click', function() {
         if (!sendEnabled) return;
-        fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
-          if (res && res.code === 0) ui.addNotification(null, E('p', {}, _('OK: ' + code)));
-          else ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
-        }).catch(function(err) {
-          ui.addNotification(null, E('p', {}, _('Send error: ' + err)));
-        });
+        runSend(code);
       });
 
       return { node: el('div', { class:'hp-mode' }, [

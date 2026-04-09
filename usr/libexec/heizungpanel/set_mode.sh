@@ -4,7 +4,7 @@ KEY="$1"
 VALUE="$2"
 
 case "$KEY" in
-  write_mode|listen_only) ;;
+  write_mode) ;;
   *)
     echo "Unsupported key: $KEY" >&2
     exit 2

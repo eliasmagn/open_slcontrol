@@ -7,13 +7,14 @@ start_service() {
   . /lib/functions.sh
   config_load heizungpanel
 
-  local can_if can_bitrate can_setup listen_only
+  local can_if can_bitrate can_setup listen_only write_mode
   local mqtt_host mqtt_port mqtt_base
 
   config_get can_if      main can_if      "can0"
   config_get can_bitrate main can_bitrate "69144"
   config_get can_setup   main can_setup   "1"
-  config_get listen_only main listen_only "1"
+  config_get write_mode  main write_mode  "0"
+  [ "$write_mode" = "1" ] && listen_only="0" || listen_only="1"
 
   config_get mqtt_host   main mqtt_host   "127.0.0.1"
   config_get mqtt_port   main mqtt_port   "1883"
