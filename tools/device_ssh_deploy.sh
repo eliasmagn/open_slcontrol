@@ -103,6 +103,7 @@ usr/libexec/heizungpanel/parser.uc
 usr/libexec/heizungpanel/press.sh
 usr/libexec/heizungpanel/config.sh
 usr/libexec/heizungpanel/m2_capture.sh
+usr/libexec/heizungpanel/display_emulator.sh
 usr/share/rpcd/acl.d/luci-app-heizungpanel.json
 usr/share/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
