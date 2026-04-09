@@ -19,11 +19,29 @@ function el(tag, attrs, children) {
 
 return view.extend({
   load: function() {
-    return Promise.resolve();
+    return fs.exec('/usr/libexec/heizungpanel/config.sh', []).then(function(res) {
+      if (!res || res.code !== 0)
+        return { poll_interval_ms: 1000, write_mode: 0 };
+
+      try {
+        var cfg = JSON.parse((res.stdout || "").trim() || "{}");
+        return {
+          poll_interval_ms: cfg.poll_interval_ms || 1000,
+          write_mode: cfg.write_mode || 0
+        };
+      } catch (e) {
+        return { poll_interval_ms: 1000, write_mode: 0 };
+      }
+    }).catch(function() {
+      return { poll_interval_ms: 1000, write_mode: 0 };
+    });
   },
 
-  render: function() {
-    var SEND_ENABLED = false;
+  render: function(cfg) {
+    cfg = cfg || {};
+    var pollInterval = parseInt(cfg.poll_interval_ms, 10);
+    if (isNaN(pollInterval) || pollInterval < 250) pollInterval = 1000;
+    var SEND_ENABLED = String(cfg.write_mode || 0) === "1";
     var style = el('style', { 'html': `
       .hp-wrap { max-width: 720px; }
       .hp-panel {
@@ -111,7 +129,9 @@ return view.extend({
       ]),
       keygrid,
       pwr,
-      el('div', { class:'hp-sub' }, ['Hinweis: CAN-Senden ist derzeit deaktiviert (Safe Read-Only).'])
+      el('div', { class:'hp-sub' }, [SEND_ENABLED
+        ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle).'
+        : 'Hinweis: CAN-Senden ist deaktiviert (Safe Read-Only).'])
     ]);
 
     var mkMode = function(label, code) {
@@ -203,7 +223,7 @@ return view.extend({
     };
 
     poll();
-    window.setInterval(poll, 1000);
+    window.setInterval(poll, pollInterval);
 
     return root;
   },
