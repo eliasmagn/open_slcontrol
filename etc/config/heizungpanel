@@ -1,4 +1,3 @@
-
 config heizungpanel 'main'
 	option can_if 'can0'
 	option can_bitrate '69144'
@@ -8,4 +7,6 @@ config heizungpanel 'main'
 	option mqtt_port '1883'
 	option mqtt_base 'heizungpanel'
 	option state_max_age '15'
+	option poll_interval_ms '1000'
+	option write_mode '0'
 	option stream_token '9b3b34735e25e48f2f07d95d309f5893'

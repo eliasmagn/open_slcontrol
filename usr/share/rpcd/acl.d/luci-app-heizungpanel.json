@@ -5,7 +5,8 @@
       "cgi-io": [ "exec" ],
       "file": {
         "/usr/libexec/heizungpanel/state.sh": [ "exec" ],
-        "/usr/libexec/heizungpanel/press.sh": [ "exec" ]
+        "/usr/libexec/heizungpanel/press.sh": [ "exec" ],
+        "/usr/libexec/heizungpanel/config.sh": [ "exec" ]
       }
     }
   }
