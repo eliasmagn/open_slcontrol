@@ -84,3 +84,5 @@ Optionen:
 - `checklist.md` – operative Aufgaben und Status.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
+
+- Hotfix 2026-04-09: `www/luci-static/resources/view/heizungpanel/panel.js` auf ES5-kompatible String-Erzeugung umgestellt (kein Template-Literal mehr), um den Browserfehler `SyntaxError: unexpected token: identifier` beim Laden der LuCI-Seite zu eliminieren.
