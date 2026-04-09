@@ -233,6 +233,10 @@ return view.extend({
 
         var l1 = (st.line1 || '').padEnd(16, ' ');
         var l2 = (st.line2 || '').padEnd(16, ' ');
+        var hasLcdText = !!(l1.trim() || l2.trim());
+        var hasFlags = !!(st.flags16 && st.flags16 !== '----');
+        var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
+
         line1.textContent = l1;
         line2.textContent = l2;
         line1.className = 'l' + (l1.trim() ? '' : ' dim');
@@ -246,6 +250,9 @@ return view.extend({
         if (st.status === 'no_data') {
           status.className = 'hp-status warn';
           status.textContent = 'Status: keine Live-Daten (Cache/MQTT leer)';
+        } else if (!hasAnyPayload) {
+          status.className = 'hp-status warn';
+          status.textContent = 'Status: verbunden, aber noch keine decodierbaren Paneldaten';
         } else {
           status.className = 'hp-status ok';
           status.textContent = 'Status: OK';

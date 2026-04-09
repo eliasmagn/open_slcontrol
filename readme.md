@@ -11,6 +11,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - LuCI pollt mit dem aus UCI geladenen Intervall (inkl. Clamp 250..10000).
 - LuCI zeigt den rekonstruierten LCD-Inhalt jetzt explizit als „LCD 2x16 (emuliert aus CAN 0x320)“ mit gedimmtem Fallback bei No-Data/Fehlern, sodass die Panel-Emulation klar vom Debug-Block getrennt ist.
+- LuCI meldet bei formal `status=ok`, aber komplett leerem Payload (`line1/line2` leer, `flags16=----`) nun explizit einen Warnzustand („verbunden, aber noch keine decodierbaren Paneldaten“) statt irreführendem `Status: OK`.
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
 - Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten inkl. UTF-8-Mapping für beobachtete Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`).
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
@@ -134,3 +135,5 @@ Lokal wurde ein Stubbed-Harness (`tools/bridge_stability_harness.sh`) gegen beid
 - Ergebnis: `pass`
 
 Hinweis: Das ist ein lokaler Reconnect-Loop-Test (ohne echte CAN-Hardware). Der 1h-Run auf Zielgerät bleibt weiterhin der Abnahmetest.
+
+- Hotfix 2026-04-09: `www/luci-static/resources/view/heizungpanel/panel.js` ergänzt Plausibilitätsprüfung für leere Nutzdaten; Warnstatus wird angezeigt, wenn zwar Polling läuft, aber noch keine decodierbaren LCD-/Flag-Daten vorliegen.

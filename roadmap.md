@@ -57,3 +57,4 @@
 - Stand 2026-04-09: LuCI-Frontend-Syntax auf ES5-Kompatibilität korrigiert (`panel.js` ohne Template-Literal), wodurch der `compileClass`-Syntaxfehler beim Laden der Ansicht behoben ist.
 
 - Stand 2026-04-09: lokaler Reconnect-/Stabilitäts-Harness (`tools/bridge_stability_harness.sh`) zeigt wiederholte Exit/Retry-Zyklen inkl. erneuter CAN-Initialisierung für beide Bridges.
+- Stand 2026-04-09: LuCI-Statuslogik im Frontend gehärtet; bei leerem Payload trotz `status=ok` wird nun ein Warnstatus angezeigt ("verbunden, aber noch keine decodierbaren Paneldaten").
