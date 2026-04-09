@@ -3,14 +3,16 @@
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 ## Aktueller Stand (2026-04-09)
-Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0 Parser/Mappings**:
+Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0.1 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
 - CAN-Raw- und State-Bridge laufen mit Retry-Schleifen.
 - State wird lokal gecacht (`/tmp/heizungpanel/state.json`) und per MQTT retained publiziert.
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
+- LuCI pollt mit dem aus UCI geladenen Intervall (inkl. Clamp 250..10000).
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
-- Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
+- Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
+- Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 
 ## Neue Telemetrie-Felder (Parser v0)
 Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
@@ -22,9 +24,23 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 - `invariants`: Laufzeit-Validierung (`flags_single_active_low_ratio`, `offsets_outside_expected`, `unmatched_258`).
 - `anomalies`: ringförmige Warnliste (Parser bleibt read-only und robust).
 
-## M2-Artefakte (v0)
+## M2-Artefakte (v0/v0.1)
 - `docs/mapping_v0.md` – eingefrorene Mapping-Tabelle mit Confidence.
-- `docs/campaign_v0.md` – v0 Session-Protokoll aus dem gelieferten Dump + klare Next-Steps für echte Einzelaktions-Captures.
+- `docs/campaign_v0.md` – Session-Protokoll aus vorhandenem Dump + Next-Steps.
+- `usr/libexec/heizungpanel/m2_capture.sh` – helper für reproduzierbare Einzelaktions-Dumps inkl. Kurzsummary.
+
+## Strukturierte M2-Captures ausführen (Zielgerät)
+1. Zielordner vorbereiten:
+   - `mkdir -p /tmp/heizungpanel/m2`
+2. Je Aktion **einzeln** aufnehmen (8s Fenster, Aktion nach ~2s genau einmal drücken):
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 idle`
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 plus`
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 minus`
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 z`
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 v`
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 mode_enter`
+   - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 mode_exit`
+3. Danach `*.summary.json` vergleichen und `docs/mapping_v0.md` von `likely` auf `confirmed` heben, sobald reproduzierbar.
 
 ## Priorisierung
 1. **M2 validieren:** echte Ein-Aktions-Dumps (Idle, +, -, Z, V, Mode enter/exit) und `likely -> confirmed`.
@@ -49,4 +65,3 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 - `checklist.md` – operative Aufgaben und Status.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
-

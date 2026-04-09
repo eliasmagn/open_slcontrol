@@ -15,6 +15,7 @@
 - [x] Anzeige „letzte Aktualisierung“ ergänzt.
 - [x] **Polling-Intervall per UCI konfigurierbar gemacht** (`poll_interval_ms`, Fallback 1000ms, Clamp 250..10000).
 - [x] **LuCI liest Polling-Wert aus UCI** (via `config.sh`, statt Hardcode).
+- [x] **LuCI-Polling konsistent mit UCI-Clamp** (untere Grenze jetzt 250ms statt Rückfall auf 1000ms).
 
 ## C) Sicherheits-Gate (vor Write-Pfad)
 - [x] ACL von Wildcard auf explizite Skripte reduziert.
@@ -29,7 +30,8 @@
   - 0x258/0x259 Index-Pairing im Zeitfenster.
   - strukturierter JSON-Output mit `confidence`, `source_frame`, `invariants`, `anomalies`.
 - [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
-- [ ] **Kontrollierte Einzelaktions-Dumps** (v0 aus vorhandenem Dump extrahiert, echte Kampagne noch offen).
+- [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
+- [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
 - [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
 
 ## E) M3 Packaging/Distribution
@@ -42,3 +44,12 @@
 ### Parser-Syntaxcheck (2026-04-09)
 - `ucode -c usr/libexec/heizungpanel/parser.uc` nicht ausführbar in dieser Container-Umgebung (`ucode` fehlt).
 
+### Restart-/Long-run-Stresstest (2026-04-09)
+- Zielsystem (OpenWrt mit CAN-Hardware):
+  1. `for i in $(seq 1 20); do /etc/init.d/heizungpanel restart; sleep 2; done`
+  2. `logread -e heizungpanel | tail -n 200`
+  3. `sleep 3600; logread -e 'bridge exited' | tail -n 50`
+- Erwartung/akzeptiert:
+  - keine dauerhafte Service-Unterbrechung,
+  - bei CAN-Fehlern automatische Reinitialisierung + Retry,
+  - `state.sh` liefert während Störungen entweder frischen Cache oder `status=no_data`.

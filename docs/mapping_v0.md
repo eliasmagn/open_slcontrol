@@ -53,6 +53,25 @@ Active-low gelesen als 16-bit Word: Bit=0 => „aktiv“.
 | `04..0A` | gemischt 5-/7-Byte `0x259`, wirkt wie Parameterblöcke | likely |
 | `0B..0C` | konstante Zusatz-/Meta-Werte | likely |
 
+
+## 0x258 / 0x259 – tentative index mapping (v0)
+
+| Index | Vermutete Klasse | Confidence |
+|---|---|---|
+| `00` | Header/Hauptstatus | likely |
+| `01` | Header/Hauptstatus | likely |
+| `02` | Header/Hauptstatus | likely |
+| `03` | Header/Hauptstatus | likely |
+| `04` | Parameterblock | likely |
+| `05` | Parameterblock | likely |
+| `06` | Parameterblock | likely |
+| `07` | Parameterblock | likely |
+| `08` | Parameterblock | likely |
+| `09` | Parameterblock | likely |
+| `0A` | Parameterblock | likely |
+| `0B` | Zusatz/Meta | likely |
+| `0C` | Zusatz/Meta | likely |
+
 ## Invariants v0 (nur Warnung, kein Crash)
 - `0x321`: „mostly one bit low“ (Single-active-low dominiert).
 - `0x320`: Offsets primär in erwarteten Bereichen (`00..0F`, `40..4F`, plus tolerierte Chunks).
