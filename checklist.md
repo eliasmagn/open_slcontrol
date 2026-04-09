@@ -41,6 +41,8 @@
 - [x] **Deploy-Helper Stage-Lifetime-Bug behoben** (temporärer Upload-Baum bleibt bis nach `scp` erhalten; Fix für `scp: .../etc: No such file or directory`).
 - [x] **Deploy-Helper für Dropbear/OpenWrt ohne SFTP-Subsystem gehärtet** (`scp -O`; Fix für `ash: /usr/libexec/sftp-server: not found`).
 - [x] **Deploy-Helper fragt Passwort pro Lauf nur einmal ab** (SSH-Multiplexing via `ControlMaster/ControlPersist`, optional deaktivierbar mit `--no-mux`).
+- [x] **LuCI-Menü-Deployment ergänzt** (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`) damit der Menüpunkt unter `Services` nach Neuinstallation sichtbar ist.
+- [x] **LuCI-Dispatcher-Cache-Refresh beim Deploy ergänzt** (`/tmp/luci-indexcache`, `/tmp/luci-modulecache`).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 

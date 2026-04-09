@@ -104,6 +104,7 @@ usr/libexec/heizungpanel/press.sh
 usr/libexec/heizungpanel/config.sh
 usr/libexec/heizungpanel/m2_capture.sh
 usr/share/rpcd/acl.d/luci-app-heizungpanel.json
+usr/share/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
 "
 
@@ -161,16 +162,17 @@ run_install() {
   # shellcheck disable=SC2086
   $SSH_CMD "cp '$REMOTE_STAGE/etc/init.d/heizungpanel' /etc/init.d/heizungpanel && \
     cp '$REMOTE_STAGE/etc/config/heizungpanel' /etc/config/heizungpanel && \
-    mkdir -p /usr/libexec/heizungpanel /usr/share/rpcd/acl.d /www/luci-static/resources/view/heizungpanel && \
+    mkdir -p /usr/libexec/heizungpanel /usr/share/rpcd/acl.d /usr/share/luci/menu.d /www/luci-static/resources/view/heizungpanel && \
     cp '$REMOTE_STAGE'/usr/libexec/heizungpanel/* /usr/libexec/heizungpanel/ && \
     cp '$REMOTE_STAGE/usr/share/rpcd/acl.d/luci-app-heizungpanel.json' /usr/share/rpcd/acl.d/luci-app-heizungpanel.json && \
+    cp '$REMOTE_STAGE/usr/share/luci-app-heizungpanel.json' /usr/share/luci/menu.d/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/panel.js' /www/luci-static/resources/view/heizungpanel/panel.js && \
     chmod 755 /etc/init.d/heizungpanel /usr/libexec/heizungpanel/*.sh"
 
   if [ "$NO_RESTART" -eq 0 ]; then
     echo "[4/4] Reload services"
     # shellcheck disable=SC2086
-    $SSH_CMD "/etc/init.d/rpcd reload >/dev/null 2>&1 || true; /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; /etc/init.d/heizungpanel restart"
+    $SSH_CMD "/etc/init.d/rpcd reload >/dev/null 2>&1 || true; /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true; /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; /etc/init.d/heizungpanel restart"
   else
     echo "[4/4] Skipping restart (--no-restart set)"
   fi
@@ -188,6 +190,7 @@ run_uninstall() {
   $SSH_CMD "rm -f /etc/init.d/heizungpanel \
     /etc/config/heizungpanel \
     /usr/share/rpcd/acl.d/luci-app-heizungpanel.json \
+    /usr/share/luci/menu.d/luci-app-heizungpanel.json \
     /www/luci-static/resources/view/heizungpanel/panel.js && \
     rm -rf /usr/libexec/heizungpanel"
 

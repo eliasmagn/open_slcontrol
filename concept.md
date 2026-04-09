@@ -11,6 +11,7 @@ Die App ist funktional im Read-only-Pfad:
 - Der SSH/SCP-Deploy-Weg ist vorhanden; ein Stage-Lifetime-Bug im Deploy-Skript wurde am 2026-04-09 behoben, damit Uploads zuverlässig laufen.
 - Der SSH/SCP-Deploy-Weg ist auf OpenWrt/Dropbear-Ziele ohne SFTP-Server angepasst (`scp -O`), damit Deployments nicht an `ash: /usr/libexec/sftp-server: not found` scheitern (2026-04-09).
 - Der SSH/SCP-Deploy-Weg nutzt jetzt standardmäßig SSH-Multiplexing (`ControlMaster/ControlPersist`), damit ein Deploy-Lauf nur eine Passwortabfrage benötigt (2026-04-09).
+- Der SSH/SCP-Deploy-Weg liefert die LuCI-Menüdatei (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`) mit aus und leert LuCI-Caches, damit der Menüpunkt unter `Services` nach Neuinstallation sofort sichtbar ist (2026-04-09).
 
 ## Architektur (Soll)
 1. Erfassung: `candump` auf `can_if`.
