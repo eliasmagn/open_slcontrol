@@ -49,42 +49,42 @@ return view.extend({
     cfg = cfg || {};
     var pollInterval = clampPollInterval(cfg.poll_interval_ms);
     var SEND_ENABLED = String(cfg.write_mode || 0) === "1";
-    var style = el('style', { 'html': `
-      .hp-wrap { max-width: 720px; }
-      .hp-panel {
-        background:#3b3b3b; border-radius:10px; padding:18px;
-        color:#eee; box-shadow:0 2px 8px rgba(0,0,0,.25);
-      }
-      .hp-display {
-        background:#0b0f16; border:2px solid #cfcfcf; border-radius:8px;
-        padding:10px 12px; margin:0 auto 18px auto; width: 88%;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-        color:#39a9ff; letter-spacing:1px;
-      }
-      .hp-display .l { white-space:pre; line-height:1.2; font-size:18px; }
-      .hp-grid { display:grid; grid-template-columns: 1fr 1.2fr; gap:14px; }
-      .hp-left, .hp-right { background: rgba(255,255,255,.04); border-radius:10px; padding:12px; }
-      .hp-keygrid { display:grid; grid-template-columns: 70px 70px 70px; grid-template-rows: 44px 44px 44px; gap:10px; justify-content:center; }
-      .hp-key { background:#d9d9d9; color:#222; border-radius:6px; border:1px solid #bfbfbf; cursor:pointer; font-weight:700; }
-      .hp-key:active { transform: translateY(1px); }
-      .hp-wide { grid-column: 1 / span 3; display:flex; justify-content:space-between; gap:10px; }
-      .hp-power { display:flex; gap:12px; justify-content:center; margin-top:12px; }
-      .hp-pwrbtn { width:120px; height:48px; border-radius:8px; font-weight:800; cursor:pointer; border:1px solid #bfbfbf; }
-      .hp-pwrbtn.on { background:#d9d9d9; }
-      .hp-pwrbtn.off { background:#d9d9d9; }
-      .hp-modes { display:flex; flex-direction:column; gap:10px; }
-      .hp-mode { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border-radius:8px; background: rgba(255,255,255,.06); }
-      .hp-mode .lbl { font-weight:700; }
-      .hp-led { width:12px; height:12px; border-radius:50%; background:#555; border:1px solid #999; flex:0 0 auto; }
-      .hp-led.on { background:#ffd54a; }
-      .hp-sub { opacity:.8; font-size:12px; margin-top:10px; }
-      .hp-debug { margin-top:12px; font-family: ui-monospace, monospace; font-size:12px; opacity:.85; }
-      .hp-row { display:flex; gap:10px; align-items:center; justify-content:space-between; }
-      .hp-status { margin-top:8px; font-size:12px; opacity:.9; }
-      .hp-status.ok { color:#97e493; }
-      .hp-status.warn { color:#ffd166; }
-      .hp-status.err { color:#ff8a80; }
-    `});
+    var style = el('style', { 'html': [
+      '.hp-wrap { max-width: 720px; }',
+      '.hp-panel {',
+      '  background:#3b3b3b; border-radius:10px; padding:18px;',
+      '  color:#eee; box-shadow:0 2px 8px rgba(0,0,0,.25);',
+      '}',
+      '.hp-display {',
+      '  background:#0b0f16; border:2px solid #cfcfcf; border-radius:8px;',
+      '  padding:10px 12px; margin:0 auto 18px auto; width: 88%;',
+      '  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
+      '  color:#39a9ff; letter-spacing:1px;',
+      '}',
+      '.hp-display .l { white-space:pre; line-height:1.2; font-size:18px; }',
+      '.hp-grid { display:grid; grid-template-columns: 1fr 1.2fr; gap:14px; }',
+      '.hp-left, .hp-right { background: rgba(255,255,255,.04); border-radius:10px; padding:12px; }',
+      '.hp-keygrid { display:grid; grid-template-columns: 70px 70px 70px; grid-template-rows: 44px 44px 44px; gap:10px; justify-content:center; }',
+      '.hp-key { background:#d9d9d9; color:#222; border-radius:6px; border:1px solid #bfbfbf; cursor:pointer; font-weight:700; }',
+      '.hp-key:active { transform: translateY(1px); }',
+      '.hp-wide { grid-column: 1 / span 3; display:flex; justify-content:space-between; gap:10px; }',
+      '.hp-power { display:flex; gap:12px; justify-content:center; margin-top:12px; }',
+      '.hp-pwrbtn { width:120px; height:48px; border-radius:8px; font-weight:800; cursor:pointer; border:1px solid #bfbfbf; }',
+      '.hp-pwrbtn.on { background:#d9d9d9; }',
+      '.hp-pwrbtn.off { background:#d9d9d9; }',
+      '.hp-modes { display:flex; flex-direction:column; gap:10px; }',
+      '.hp-mode { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border-radius:8px; background: rgba(255,255,255,.06); }',
+      '.hp-mode .lbl { font-weight:700; }',
+      '.hp-led { width:12px; height:12px; border-radius:50%; background:#555; border:1px solid #999; flex:0 0 auto; }',
+      '.hp-led.on { background:#ffd54a; }',
+      '.hp-sub { opacity:.8; font-size:12px; margin-top:10px; }',
+      '.hp-debug { margin-top:12px; font-family: ui-monospace, monospace; font-size:12px; opacity:.85; }',
+      '.hp-row { display:flex; gap:10px; align-items:center; justify-content:space-between; }',
+      '.hp-status { margin-top:8px; font-size:12px; opacity:.9; }',
+      '.hp-status.ok { color:#97e493; }',
+      '.hp-status.warn { color:#ffd166; }',
+      '.hp-status.err { color:#ff8a80; }'
+    ].join('\n') });
 
     var line1 = el('div', { class: 'l' }, ['']);
     var line2 = el('div', { class: 'l' }, ['']);

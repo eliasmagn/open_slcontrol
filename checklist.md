@@ -56,3 +56,6 @@
   - keine dauerhafte Service-Unterbrechung,
   - bei CAN-Fehlern automatische Reinitialisierung + Retry,
   - `state.sh` liefert während Störungen entweder frischen Cache oder `status=no_data`.
+
+### LuCI-Syntaxfix (2026-04-09)
+- [x] `panel.js` ES6-Template-String durch ES5-kompatiblen String-Join ersetzt, um `SyntaxError: unexpected token: identifier` im LuCI-`compileClass` zu beheben.
