@@ -28,6 +28,7 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 - `docs/mapping_v0.md` – eingefrorene Mapping-Tabelle mit Confidence.
 - `docs/campaign_v0.md` – Session-Protokoll aus vorhandenem Dump + Next-Steps.
 - `usr/libexec/heizungpanel/m2_capture.sh` – helper für reproduzierbare Einzelaktions-Dumps inkl. Kurzsummary.
+- `tools/device_ssh_deploy.sh` – SSH/SCP-Helper für Push/Install und Remove/Uninstall auf einem laufenden OpenWrt-Zielgerät.
 
 ## Strukturierte M2-Captures ausführen (Zielgerät)
 1. Zielordner vorbereiten:
@@ -53,6 +54,22 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
    - `option write_mode '0'`
 2. Service starten: `/etc/init.d/heizungpanel start`.
 3. LuCI öffnen und Status prüfen.
+
+## Deploy auf Zielgerät via SSH/SCP
+Voraussetzungen lokal: `ssh`, `scp`.
+
+- Install/Push:
+  - `tools/device_ssh_deploy.sh install root@192.168.1.10`
+  - Alias: `tools/device_ssh_deploy.sh push root@192.168.1.10`
+- Remove/Uninstall:
+  - `tools/device_ssh_deploy.sh uninstall root@192.168.1.10`
+  - Alias: `tools/device_ssh_deploy.sh remove root@192.168.1.10`
+
+Optionen:
+- `-p, --port <port>` SSH-Port.
+- `-i, --identity <key>` SSH-Key.
+- `-s, --stage <path>` Remote-Temp-Verzeichnis (Default `/tmp/open_slcontrol_deploy`).
+- `--no-restart` kopiert/löscht Dateien ohne Service-Neustart.
 
 ## Security
 - Standard: Safe Read-only.

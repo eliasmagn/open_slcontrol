@@ -37,6 +37,7 @@
 ## E) M3 Packaging/Distribution
 - [ ] **Feed-Paketstruktur vervollständigen**.
 - [ ] **Reproduzierbaren Install-/Upgradepfad dokumentieren**.
+- [x] **SSH/SCP Deploy-Helper erstellt** (`tools/device_ssh_deploy.sh`, Actions: `install|push` und `uninstall|remove`).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 
