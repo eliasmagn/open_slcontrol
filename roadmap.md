@@ -31,8 +31,10 @@
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
 - UTF-8-Charakter-Mapping für beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`) im Parser ergänzt (höhere Nähe zu realem Panel in LuCI/CLI).
+- Hotfix aus Feldfeedback: `0xEF` vorläufig auf Leerzeichen gesetzt (statt `ö`), um „Phantom-Ö“ auf dem emulierten LCD zu vermeiden, bis Einzelaktions-Captures die Zuordnung bestätigen.
 - Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
 - Mapping-Validierungs-Helper (`usr/libexec/heizungpanel/mapping_validate.sh`) ergänzt (0x321-Ratio + 0x258/0x259-Pairing aus Candump-Logs).
+- 0x321-Isolations-Helper (`usr/libexec/heizungpanel/isolate_321.sh`) ergänzt (Unique-Flags + Kontextframes pro Wert), damit LED-/Modus-Hypothesen direkt aus Dumps gebildet werden können.
 - Terminal-Display-Emulation erweitert (`usr/libexec/heizungpanel/display_emulator.sh`) für Live-MQTT und Offline-Candump/STDIN-Sicht auf rekonstruierte LCD-Daten (`0x320`) inkl. optionaler 0x321-Markertrace (`--show-flags`).
 
 ### Offen für M2-Abschluss
@@ -59,3 +61,6 @@
 
 - Stand 2026-04-09: lokaler Reconnect-/Stabilitäts-Harness (`tools/bridge_stability_harness.sh`) zeigt wiederholte Exit/Retry-Zyklen inkl. erneuter CAN-Initialisierung für beide Bridges.
 - Stand 2026-04-09: LuCI-Statuslogik im Frontend gehärtet; bei leerem Payload trotz `status=ok` wird nun ein Warnstatus angezeigt ("verbunden, aber noch keine decodierbaren Paneldaten").
+- Stand 2026-04-09: LuCI-Zeitstempel-Anzeige gehärtet; bei unplausibler Parser-`ts_ms`-Abweichung (>5 Minuten) zeigt das Panel Browserzeit (`Letzte Aktualisierung ... (Browserzeit)`), damit die UI-Zeit konsistent mit der LuCI-Systemansicht bleibt.
+- Stand 2026-04-09: LuCI-Mode-LEDs und Modus-/Tastenhinweise werden jetzt live aus bekannten `0x321 flags16`-Werten gespeist (u.a. `7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`, Navigation `FFFB/FF7F`).
+

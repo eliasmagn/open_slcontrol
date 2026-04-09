@@ -17,6 +17,7 @@
 | Offsets `0x10..0x1F`, `0x50..0x5F` | Zusätzliche Chunks (Boundary/weitergeschriebene Teilblöcke), tolerant behandeln | likely |
 | Bytes 1..N | ASCII-Zeichenpayload | confirmed |
 | `0xDF` im Payload | Grad-/Sonderzeichen (`°`) | likely |
+| `0xEF` im Payload | **derzeit unbestätigt** (Parser/Emulator behandeln es vorläufig als Leerzeichen, um Phantom-`ö` zu vermeiden) | unknown |
 
 Parser v0 reassembliert beide LCD-Zeilen über den Offset + Payload.
 
@@ -37,6 +38,22 @@ Active-low gelesen als 16-bit Word: Bit=0 => „aktiv“.
 | `FBFF` | `0x0400` | Mode-Bit (Prüf/Putz-ähnlicher Kontext) | eher Event | likely |
 | `F7FF` | `0x0800` | Mode-Bit (Außentemp.-Menü/Regelung) | eher Latch | likely |
 | `FDFF` | `0x0200` | Mode-Bit (Handbetrieb) | eher Latch | likely |
+
+### Validierte Zuordnung aus Feld-Dumps (2026-04-09, aktualisiert)
+
+| flags16 | Funktion | Vertrauen |
+|---|---|---|
+| `FFFB` | weiter / nächste Seite | hoch |
+| `FF7F` | zurück / vorige Seite | hoch |
+| `DFFF` | Boilerbetrieb | hoch |
+| `BFFF` | Uhrenbetrieb | hoch |
+| `7FFF` | Dauerbetrieb | hoch |
+| `EFFF` | Uhren & Boilerbetrieb | hoch |
+| `FDFF` | Handbetrieb | hoch |
+| `F7FF` | Außentemp./Reglerbereich | hoch |
+| `FFBF` | Sonderfunktion / Putzprogramm | mittel-hoch |
+| `FBFF` | weitere Navigation/Funktion (Reglerbereich) | mittel |
+| `FFDF` | vermutlich `+` | mittel |
 
 ## 0x258 / 0x259 – Pairing-Regel
 
@@ -76,4 +93,3 @@ Active-low gelesen als 16-bit Word: Bit=0 => „aktiv“.
 - `0x321`: „mostly one bit low“ (Single-active-low dominiert).
 - `0x320`: Offsets primär in erwarteten Bereichen (`00..0F`, `40..4F`, plus tolerierte Chunks).
 - `0x258/0x259`: jedes `0x258(index)` soll innerhalb des Fensters ein `0x259(index)` finden.
-

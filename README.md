@@ -11,8 +11,12 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
 - LuCI spiegelt den rekonstruierten Display-Zustand als klaren „LCD 2x16 (emuliert aus CAN 0x320)“-Block; Debugdaten bleiben zusätzlich sichtbar.
-- Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten; beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF`) werden für UI/Parser auf UTF-8 (`°/ß/ü/ä/ö`) gemappt.
+- Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten; beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF`) werden für UI/Parser auf UTF-8 gemappt.
+- Hotfix Feldfeedback: `0xEF` wird aktuell bewusst als Leerzeichen behandelt (statt `ö`), um ein persistentes Phantom-`ö` in der Panel-Emulation zu vermeiden, bis kontrollierte Einzelaktions-Captures die Zuordnung bestätigen.
+- LuCI-Zeitstempel-Härtung: Wenn `ts_ms` aus dem State unplausibel von der Browserzeit abweicht (>5 Minuten), zeigt „Letzte Aktualisierung“ automatisch Browserzeit mit Suffix `(Browserzeit)`.
+- LuCI zeigt bekannte `0x321 flags16` jetzt direkt als Mode-LED/Klartext-Hinweis (u.a. Boiler/Uhr/Dauer/Hand sowie Navigation via `FFFB`/`FF7F`).
 - Zusätzlicher Terminal-Emulator `usr/libexec/heizungpanel/display_emulator.sh` zeigt das rekonstruierte 2x16-LCD live aus MQTT-Raw oder offline aus Candump-Dateien/STDIN (`--file`/`--stdin`) an; optional mit `--show-flags` für 0x321-Markertrace.
+- Für gezielte 0x321-Analyse gibt es `usr/libexec/heizungpanel/isolate_321.sh` (unique `flags16` + Kontextframes je Wert).
 
 ## Neue Telemetrie-Felder (Parser v0)
 Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:

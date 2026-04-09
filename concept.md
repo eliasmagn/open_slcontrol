@@ -18,11 +18,12 @@ Die App ist funktional im Read-only-Pfad:
 1. Erfassung: `candump` auf `can_if` (Raw/State jeweils mit CAN-Reinit bei Fehlern).
 2. Parsing: `parser.uc` erzeugt JSON-State.
 3. Verteilung: MQTT retain + lokaler Cache (`/tmp/heizungpanel/state.json`).
-4. UI: LuCI liest `state.sh`, zeigt Status/Fallback sauber an; LCD-Sonderbytes werden parserseitig auf UTF-8 gemappt (`°/ß/ü/ä/ö`) für panelnahe Lesbarkeit und als klarer „LCD 2x16“-Emulationsblock dargestellt (Debug-Infos separat).
+4. UI: LuCI liest `state.sh`, zeigt Status/Fallback sauber an; LCD-Sonderbytes werden parserseitig auf UTF-8 gemappt (`°/ß/ü/ä`, `0xEF` aktuell bewusst als Leerzeichen bis Mapping bestätigt) für panelnahe Lesbarkeit und als klarer „LCD 2x16“-Emulationsblock dargestellt (Debug-Infos separat). Die „Letzte Aktualisierung“-Anzeige nutzt bei unplausibler Parser-`ts_ms`-Drift (>5 Minuten) Browserzeit als Fallback. 0x321-Flags werden zusätzlich live auf Mode-LEDs/Klartext gemappt.
 5. Runtime-Konfig: LuCI liest `poll_interval_ms`/`write_mode` über `config.sh` aus UCI.
 6. Security-Gate: `press.sh` erzwingt `write_mode` + strikte Command-Allowlist.
 7. Display-Emulation: `display_emulator.sh` rendert die aus `0x320` rekonstruierten LCD-Zeilen live aus MQTT-Raw oder offline aus Candump/STDIN; fragmentierte Markerblöcke werden offset-basiert gemerged, optional mit 0x321-Markertrace (`--show-flags`).
 8. Mapping-Validierung: `mapping_validate.sh` prüft 0x321-Flags und 0x258/0x259-Index-Paare aus Candump-Dateien für reproduzierbare M2-Befunde.
+9. 0x321-Clusteranalyse: `isolate_321.sh` gruppiert Candump-Frames nach identischem `flags16` und zeigt Kontextframes, um LED-/Moduszuordnungen reproduzierbar abzuleiten.
 
 ## Leitlinien
 - Bestehende Funktionalität erhalten.
