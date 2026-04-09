@@ -10,8 +10,9 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
-- Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
-- Zusätzlicher Terminal-Emulator `usr/libexec/heizungpanel/display_emulator.sh` zeigt das rekonstruierte 2x16-LCD live aus MQTT-Raw (`0x320`) an.
+- LuCI spiegelt den rekonstruierten Display-Zustand als klaren „LCD 2x16 (emuliert aus CAN 0x320)“-Block; Debugdaten bleiben zusätzlich sichtbar.
+- Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten; beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF`) werden für UI/Parser auf UTF-8 (`°/ß/ü/ä/ö`) gemappt.
+- Zusätzlicher Terminal-Emulator `usr/libexec/heizungpanel/display_emulator.sh` zeigt das rekonstruierte 2x16-LCD live aus MQTT-Raw oder offline aus Candump-Dateien/STDIN (`--file`/`--stdin`) an; optional mit `--show-flags` für 0x321-Markertrace.
 
 ## Neue Telemetrie-Felder (Parser v0)
 Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
@@ -41,10 +42,18 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 3. LuCI öffnen und Status prüfen (Menü: **Services → Heizungpanel**).
 
 ### Display emulieren (ohne physisches Panel)
-- Standard:
+- Standard (MQTT live):
   - `usr/libexec/heizungpanel/display_emulator.sh`
-- Mit explizitem Broker:
-  - `usr/libexec/heizungpanel/display_emulator.sh 192.168.1.10 1883 heizungpanel/raw`
+- Mit explizitem Broker/Topic:
+  - `usr/libexec/heizungpanel/display_emulator.sh --host 192.168.1.10 --port 1883 --topic heizungpanel/raw`
+- Offline aus Candump-Datei:
+  - `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt`
+- Offline via STDIN:
+  - `cat /tmp/candump_sample.txt | usr/libexec/heizungpanel/display_emulator.sh --stdin`
+- Mit 0x321-Flags-/Markertrace:
+  - `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags`
+
+Hinweis: Fragmentierte `0x320`-Markerblöcke werden offset-basiert zusammengesetzt, bis ein vollständiger 2x16-Zustand vorliegt.
 
 ## Deploy auf Zielgerät via SSH/SCP
 - Install/Push:

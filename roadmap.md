@@ -4,6 +4,7 @@
 **Ziel:** Solider 24/7-Read-only-Betrieb als Freigabe-Gate für Folgephasen.
 
 ### Erledigt
+- LuCI-Panel-Emulation im UI klar als 2x16-LCD-Spiegel markiert (inkl. No-Data/Fehler-Leerzustand), damit die Ansicht als Gerätepanel-Emulation erkennbar ist.
 - CAN-Start prüft Interface und loggt Fehler.
 - State-Cache via `/tmp/heizungpanel/state.json` aktiv.
 - Frischeprüfung für Cache (`state_max_age`) aktiv.
@@ -29,9 +30,10 @@
 - Parser umgestellt auf strukturierte LCD-Reassembly (`0x320`), Bitdekodierung (`0x321`) und `0x258/0x259` Pairing.
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
+- UTF-8-Charakter-Mapping für beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`) im Parser ergänzt (höhere Nähe zu realem Panel in LuCI/CLI).
 - Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
 - Mapping-Validierungs-Helper (`usr/libexec/heizungpanel/mapping_validate.sh`) ergänzt (0x321-Ratio + 0x258/0x259-Pairing aus Candump-Logs).
-- Terminal-Display-Emulation ergänzt (`usr/libexec/heizungpanel/display_emulator.sh`) für Live-Sicht auf gesendete LCD-Daten (`0x320`) ohne Originaldisplay.
+- Terminal-Display-Emulation erweitert (`usr/libexec/heizungpanel/display_emulator.sh`) für Live-MQTT und Offline-Candump/STDIN-Sicht auf rekonstruierte LCD-Daten (`0x320`) inkl. optionaler 0x321-Markertrace (`--show-flags`).
 
 ### Offen für M2-Abschluss
 - Echte kontrollierte Ein-Aktions-Captures: Idle(60s), `+`, `-`, `Z`, `V`, Mode enter/exit.

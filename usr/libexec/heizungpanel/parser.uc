@@ -172,9 +172,12 @@ function emit(force) {
 function hexbyte_to_char(h) {
     let v = int("0x" + h);
 
-    // seen in dumps as degree/special char
-    if (h == "DF")
-        return "°";
+    // observed special LCD charset bytes mapped to UTF-8 for readability
+    if (h == "DF") return "°";
+    if (h == "E2") return "ß";
+    if (h == "F5") return "ü";
+    if (h == "E1") return "ä";
+    if (h == "EF") return "ö";
 
     if (v >= 32 && v <= 126)
         return chr(v);

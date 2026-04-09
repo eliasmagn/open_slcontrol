@@ -56,12 +56,16 @@ return view.extend({
       '  color:#eee; box-shadow:0 2px 8px rgba(0,0,0,.25);',
       '}',
       '.hp-display {',
+      '  margin-top:6px;',
       '  background:#0b0f16; border:2px solid #cfcfcf; border-radius:8px;',
       '  padding:10px 12px; margin:0 auto 18px auto; width: 88%;',
       '  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
       '  color:#39a9ff; letter-spacing:1px;',
       '}',
-      '.hp-display .l { white-space:pre; line-height:1.2; font-size:18px; }',
+      '.hp-display .lcd-title { font-size:12px; opacity:.9; margin-bottom:6px; color:#9fc8ff; letter-spacing:.4px; }',
+      '.hp-display .lcd-frame { border:1px solid #35526e; border-radius:6px; padding:8px; background:#050b14; }',
+      '.hp-display .l { white-space:pre; line-height:1.2; font-size:18px; color:#74d3ff; }',
+      '.hp-display .l.dim { color:#2f4b5f; }',
       '.hp-grid { display:grid; grid-template-columns: 1fr 1.2fr; gap:14px; }',
       '.hp-left, .hp-right { background: rgba(255,255,255,.04); border-radius:10px; padding:12px; }',
       '.hp-keygrid { display:grid; grid-template-columns: 70px 70px 70px; grid-template-rows: 44px 44px 44px; gap:10px; justify-content:center; }',
@@ -86,13 +90,17 @@ return view.extend({
       '.hp-status.err { color:#ff8a80; }'
     ].join('\n') });
 
-    var line1 = el('div', { class: 'l' }, ['']);
-    var line2 = el('div', { class: 'l' }, ['']);
+    var line1 = el('div', { class: 'l dim' }, ['                ']);
+    var line2 = el('div', { class: 'l dim' }, ['                ']);
     var flags = el('div', { class: 'hp-debug' }, ['flags16: ----  last_1f5: ----']);
     var status = el('div', { class: 'hp-status warn' }, ['Status: warte auf Daten ...']);
     var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
 
-    var display = el('div', { class: 'hp-display' }, [ line1, line2, flags, status, lastUpdate ]);
+    var display = el('div', { class: 'hp-display' }, [
+      el('div', { class: 'lcd-title' }, ['LCD 2x16 (emuliert aus CAN 0x320)']),
+      el('div', { class: 'lcd-frame' }, [line1, line2]),
+      flags, status, lastUpdate
+    ]);
 
     var btn = function(txt, code) {
       var b = el('button', { class: 'hp-key', type: 'button' }, [txt]);
@@ -194,12 +202,20 @@ return view.extend({
         if (!res || res.code !== 0) {
           status.className = 'hp-status err';
           status.textContent = 'Status: Fehler beim Abruf von state.sh';
+          line1.textContent = '                ';
+          line2.textContent = '                ';
+          line1.className = 'l dim';
+          line2.className = 'l dim';
           return;
         }
         var txt = (res.stdout || '').trim();
         if (!txt) {
           status.className = 'hp-status warn';
           status.textContent = 'Status: keine Daten verfügbar';
+          line1.textContent = '                ';
+          line2.textContent = '                ';
+          line1.className = 'l dim';
+          line2.className = 'l dim';
           return;
         }
         var st = null;
@@ -208,11 +224,19 @@ return view.extend({
         } catch(e) {
           status.className = 'hp-status err';
           status.textContent = 'Status: ungültiges JSON im State';
+          line1.textContent = '                ';
+          line2.textContent = '                ';
+          line1.className = 'l dim';
+          line2.className = 'l dim';
           return;
         }
 
-        line1.textContent = (st.line1 || '').padEnd(16, ' ');
-        line2.textContent = (st.line2 || '').padEnd(16, ' ');
+        var l1 = (st.line1 || '').padEnd(16, ' ');
+        var l2 = (st.line2 || '').padEnd(16, ' ');
+        line1.textContent = l1;
+        line2.textContent = l2;
+        line1.className = 'l' + (l1.trim() ? '' : ' dim');
+        line2.className = 'l' + (l2.trim() ? '' : ' dim');
         if (st.ts_ms)
           lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date(st.ts_ms).toLocaleString();
         else

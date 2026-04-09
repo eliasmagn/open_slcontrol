@@ -10,11 +10,12 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - LuCI pollt mit dem aus UCI geladenen Intervall (inkl. Clamp 250..10000).
+- LuCI zeigt den rekonstruierten LCD-Inhalt jetzt explizit als „LCD 2x16 (emuliert aus CAN 0x320)“ mit gedimmtem Fallback bei No-Data/Fehlern, sodass die Panel-Emulation klar vom Debug-Block getrennt ist.
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
-- Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
+- Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten inkl. UTF-8-Mapping für beobachtete Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`).
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 - Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
-- Für eine schnelle Terminal-Sicht auf das emulierte 2x16-Display steht `usr/libexec/heizungpanel/display_emulator.sh` bereit (liest MQTT-Raw und rendert `0x320` LCD-Daten live).
+- Für eine schnelle Terminal-/Offline-Sicht auf das emulierte 2x16-Display steht `usr/libexec/heizungpanel/display_emulator.sh` bereit (liest MQTT-Raw, Candump-Dateien oder STDIN; optional mit `--show-flags` für 0x321-Markertrace).
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` hält den lokalen Stage-Ordner jetzt korrekt bis nach dem Upload (Fix für `scp .../etc: No such file or directory`).
 - Deploy-Helper-Fix: Upload nutzt erzwungen den klassischen SCP-Modus (`scp -O`) für OpenWrt/Dropbear-Ziele ohne SFTP-Server (Fix für `ash: /usr/libexec/sftp-server: not found`).
 - Deploy-Helper-Fix: LuCI-Menüeintrag wird jetzt mit ausgerollt (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`), damit die Ansicht nach Router-Reset/Neuinstallation wieder unter **Services** erscheint.
@@ -68,11 +69,17 @@ Auf dem Zielgerät oder einem Host mit MQTT-Zugriff:
 - Standard (lokaler Broker, Standardtopic):
   - `usr/libexec/heizungpanel/display_emulator.sh`
 - Mit explizitem Broker/Topic:
-  - `usr/libexec/heizungpanel/display_emulator.sh 192.168.1.10 1883 heizungpanel/raw`
+  - `usr/libexec/heizungpanel/display_emulator.sh --host 192.168.1.10 --port 1883 --topic heizungpanel/raw`
+- Offline aus Candump-Datei:
+  - `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt`
+- Offline via Pipe/STDIN:
+  - `cat /tmp/candump_sample.txt | usr/libexec/heizungpanel/display_emulator.sh --stdin`
+- Mit 0x321-Flags-/Markertrace:
+  - `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags`
 
-Die Ausgabe wird bei jedem `0x320`-Frame aktualisiert und zeigt:
-- `line1` und `line2` als rekonstruiertes 2x16-LCD,
-- den letzten gesehenen `0x320`-Payload (`last frame`).
+Hinweise:
+- Die Emulatoranzeige merged fragmentierte `0x320`-Blöcke über LCD-Offsets, bis beide 16er Zeilen konsistent aufgebaut sind.
+- `--show-flags` blendet den letzten `flags16`-Wert und eine kurze `0x321`-Historie (aktive low-Bits) ein.
 
 ## Priorisierung
 1. **M2 validieren:** echte Ein-Aktions-Dumps (Idle, +, -, Z, V, Mode enter/exit) und `likely -> confirmed`.
