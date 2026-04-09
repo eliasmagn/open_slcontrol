@@ -38,6 +38,7 @@
 - [ ] **Feed-Paketstruktur vervollständigen**.
 - [ ] **Reproduzierbaren Install-/Upgradepfad dokumentieren**.
 - [x] **SSH/SCP Deploy-Helper erstellt** (`tools/device_ssh_deploy.sh`, Actions: `install|push` und `uninstall|remove`).
+- [x] **Deploy-Helper Stage-Lifetime-Bug behoben** (temporärer Upload-Baum bleibt bis nach `scp` erhalten; Fix für `scp: .../etc: No such file or directory`).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 

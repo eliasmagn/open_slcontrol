@@ -40,6 +40,7 @@
 - Feed/ImageBuilder-reife Paketstruktur.
 - Reproduzierbare Installation und definierter Upgradepfad.
 - SSH/SCP-Deploy-Helper vorhanden (`tools/device_ssh_deploy.sh`) für Push/Install sowie Remove/Uninstall auf laufenden Geräten.
+- Stand 2026-04-09: Stage-Lifetime-Fix im Deploy-Helper umgesetzt (verhindert fehlende lokale Stage-Pfade während `scp`).
 
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.

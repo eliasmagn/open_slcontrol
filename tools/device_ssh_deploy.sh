@@ -87,7 +87,6 @@ www/luci-static/resources/view/heizungpanel/panel.js
     cp "$src" "$dst"
   done
 
-  printf '%s\n' "$STAGE_LOCAL"
 }
 
 run_install() {
@@ -95,7 +94,7 @@ run_install() {
   require_cmd scp
   require_cmd mktemp
 
-  STAGE_LOCAL="$(create_stage_tree)"
+  create_stage_tree
   SSH_CMD="$(build_ssh_cmd)"
   SCP_CMD="$(build_scp_cmd)"
 
