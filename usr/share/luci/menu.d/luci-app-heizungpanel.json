@@ -1,0 +1,13 @@
+{
+  "admin/services/heizungpanel": {
+    "title": "Heizungpanel",
+    "order": 60,
+    "action": {
+      "type": "view",
+      "path": "heizungpanel/panel"
+    },
+    "depends": {
+      "acl": [ "luci-app-heizungpanel" ]
+    }
+  }
+}

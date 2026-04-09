@@ -5,7 +5,7 @@
 - [x] Fehlerlogging bei CAN-Setup/Bitrate/Bring-Up.
 - [x] Lokale State-Datei `/tmp/heizungpanel/state.json` einführen.
 - [x] State-Cache nur frisch verwenden (`state_max_age` via UCI, Default 15s).
-- [x] **Reconnect-Strategie bei CAN-Ausfall ergänzt** (interne Retry-Loops + CAN-Reinit im State-Bridge-Prozess).
+- [x] **Reconnect-Strategie bei CAN-Ausfall ergänzt** (interne Retry-Loops + CAN-Reinit jetzt in **State- und Raw-Bridge**).
 - [x] **Restart-/Long-run-Stresstest dokumentiert** (Ablauf + Messwerte unter „Testnotizen“).
 
 ## B) Runtime-Knobs / LuCI-UI
@@ -33,11 +33,12 @@
 - [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
 - [x] **Einfache Display-Emulation ergänzt** (`usr/libexec/heizungpanel/display_emulator.sh`, rekonstruiert 2x16 LCD aus Raw-`0x320` Frames via MQTT).
 - [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
+- [x] **Mapping-Validierungs-Helper ergänzt** (`usr/libexec/heizungpanel/mapping_validate.sh`) für 0x321-Ratio und 0x258/0x259-Pairing-Checks aus Candump-Logs.
 - [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
 
 ## E) M3 Packaging/Distribution
-- [ ] **Feed-Paketstruktur vervollständigen**.
-- [ ] **Reproduzierbaren Install-/Upgradepfad dokumentieren**.
+- [x] **Feed-Paketstruktur begonnen** (`package/luci-app-heizungpanel/Makefile` als Buildroot-Feed-Stub).
+- [x] **Install-/Upgradepfad dokumentiert** (`docs/packaging_install.md`).
 - [x] **SSH/SCP Deploy-Helper erstellt** (`tools/device_ssh_deploy.sh`, Actions: `install|push` und `uninstall|remove`).
 - [x] **Deploy-Helper Stage-Lifetime-Bug behoben** (temporärer Upload-Baum bleibt bis nach `scp` erhalten; Fix für `scp: .../etc: No such file or directory`).
 - [x] **Deploy-Helper für Dropbear/OpenWrt ohne SFTP-Subsystem gehärtet** (`scp -O`; Fix für `ash: /usr/libexec/sftp-server: not found`).
@@ -66,3 +67,16 @@
 
 ### LuCI-Syntaxfix (2026-04-09)
 - [x] `panel.js` ES6-Template-String durch ES5-kompatiblen String-Join ersetzt, um `SyntaxError: unexpected token: identifier` im LuCI-`compileClass` zu beheben.
+
+
+### Reconnect-/Stabilitäts-Harness (2026-04-09)
+- [x] `tools/bridge_stability_harness.sh` lokal ausgeführt (Stubbed-Integrationstest):
+  - `raw_bridge_exit_events`: 3
+  - `state_bridge_exit_events`: 3
+  - `can_setup_calls`: 6
+  - Ergebnis: `pass`
+
+### Mapping-Validierung (2026-04-09)
+- [x] `usr/libexec/heizungpanel/mapping_validate.sh /tmp/mapping_sample.log`
+  - `single_active_ratio`: `1.000000` (Sample)
+  - `paired`: `1`, `unmatched_259`: `0`

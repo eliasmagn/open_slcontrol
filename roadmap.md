@@ -10,7 +10,7 @@
 - UI-Status für `OK` / `keine Daten` / `Fehler` vorhanden.
 - „Letzte Aktualisierung“ im UI sichtbar.
 - ACL auf notwendige Skripte eingeschränkt.
-- Reconnect bei CAN-Ausfall (Retry-Loops + CAN-Reinit im State-Bridge-Prozess).
+- Reconnect bei CAN-Ausfall (Retry-Loops + CAN-Reinit in State- und Raw-Bridge).
 - Restart-/Long-run-Stresstest durchgeführt und dokumentiert.
 
 ## M1.5 – Runtime-Knobs in Config/UI (**abgeschlossen am 2026-04-09**)
@@ -30,6 +30,7 @@
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
 - Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
+- Mapping-Validierungs-Helper (`usr/libexec/heizungpanel/mapping_validate.sh`) ergänzt (0x321-Ratio + 0x258/0x259-Pairing aus Candump-Logs).
 - Terminal-Display-Emulation ergänzt (`usr/libexec/heizungpanel/display_emulator.sh`) für Live-Sicht auf gesendete LCD-Daten (`0x320`) ohne Originaldisplay.
 
 ### Offen für M2-Abschluss
@@ -38,8 +39,8 @@
 - `likely`-Zuordnungen auf `confirmed` heben.
 
 ## M3 – Packaging/Distribution
-- Feed/ImageBuilder-reife Paketstruktur.
-- Reproduzierbare Installation und definierter Upgradepfad.
+- Feed/ImageBuilder-reife Paketstruktur (gestartet mit `package/luci-app-heizungpanel/Makefile`).
+- Reproduzierbare Installation und definierter Upgradepfad (`docs/packaging_install.md`).
 - SSH/SCP-Deploy-Helper vorhanden (`tools/device_ssh_deploy.sh`) für Push/Install sowie Remove/Uninstall auf laufenden Geräten.
 - Stand 2026-04-09: Stage-Lifetime-Fix im Deploy-Helper umgesetzt (verhindert fehlende lokale Stage-Pfade während `scp`).
 - Stand 2026-04-09: SCP-Protokollfix im Deploy-Helper umgesetzt (`scp -O`), damit Deploy auf OpenWrt/Dropbear ohne SFTP-Subsystem funktioniert.
@@ -52,3 +53,5 @@
 - Optional: Audit-Logging für Write-Aktionen.
 
 - Stand 2026-04-09: LuCI-Frontend-Syntax auf ES5-Kompatibilität korrigiert (`panel.js` ohne Template-Literal), wodurch der `compileClass`-Syntaxfehler beim Laden der Ansicht behoben ist.
+
+- Stand 2026-04-09: lokaler Reconnect-/Stabilitäts-Harness (`tools/bridge_stability_harness.sh`) zeigt wiederholte Exit/Retry-Zyklen inkl. erneuter CAN-Initialisierung für beide Bridges.

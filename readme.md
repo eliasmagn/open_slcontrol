@@ -5,7 +5,7 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 ## Aktueller Stand (2026-04-09)
 Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0.1 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
-- CAN-Raw- und State-Bridge laufen mit Retry-Schleifen.
+- CAN-Raw- und State-Bridge laufen mit Retry-Schleifen inkl. CAN-Reinitialisierung nach Bridge-Exit.
 - State wird lokal gecacht (`/tmp/heizungpanel/state.json`) und per MQTT retained publiziert.
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
@@ -13,6 +13,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
 - Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten.
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
+- Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
 - Für eine schnelle Terminal-Sicht auf das emulierte 2x16-Display steht `usr/libexec/heizungpanel/display_emulator.sh` bereit (liest MQTT-Raw und rendert `0x320` LCD-Daten live).
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` hält den lokalen Stage-Ordner jetzt korrekt bis nach dem Upload (Fix für `scp .../etc: No such file or directory`).
 - Deploy-Helper-Fix: Upload nutzt erzwungen den klassischen SCP-Modus (`scp -O`) für OpenWrt/Dropbear-Ziele ohne SFTP-Server (Fix für `ash: /usr/libexec/sftp-server: not found`).
@@ -34,6 +35,7 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 - `docs/campaign_v0.md` – Session-Protokoll aus vorhandenem Dump + Next-Steps.
 - `usr/libexec/heizungpanel/m2_capture.sh` – helper für reproduzierbare Einzelaktions-Dumps inkl. Kurzsummary.
 - `tools/device_ssh_deploy.sh` – SSH/SCP-Helper für Push/Install und Remove/Uninstall auf einem laufenden OpenWrt-Zielgerät.
+- `docs/packaging_install.md` – aktueller Install-/Upgradepfad und Packaging-Struktur.
 
 ## Strukturierte M2-Captures ausführen (Zielgerät)
 1. Zielordner vorbereiten:
@@ -47,6 +49,18 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
    - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 mode_enter`
    - `usr/libexec/heizungpanel/m2_capture.sh /tmp/heizungpanel/m2 can0 8 mode_exit`
 3. Danach `*.summary.json` vergleichen und `docs/mapping_v0.md` von `likely` auf `confirmed` heben, sobald reproduzierbar.
+
+
+## Mapping validieren (0x321 + 0x258/0x259)
+- Zusammenfassung aus Candump-Log erzeugen:
+  - `usr/libexec/heizungpanel/mapping_validate.sh /tmp/heizungpanel/m2/plus.log`
+- Optionales Pairing-Fenster (Frames):
+  - `usr/libexec/heizungpanel/mapping_validate.sh /tmp/heizungpanel/m2/plus.log 120`
+
+Ausgabe enthält:
+- `flags_321.single_active_ratio`
+- `pairing_258_259.paired`, `unmatched_259`, `avg_delta_frames`
+- `observed_indices`
 
 ## Display emulieren (ohne physisches Panel)
 Auf dem Zielgerät oder einem Host mit MQTT-Zugriff:
@@ -100,5 +114,16 @@ Optionen:
 - `checklist.md` – operative Aufgaben und Status.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
+- `docs/packaging_install.md` – Paket-/Installationsstruktur und Upgradepfad.
 
 - Hotfix 2026-04-09: `www/luci-static/resources/view/heizungpanel/panel.js` auf ES5-kompatible String-Erzeugung umgestellt (kein Template-Literal mehr), um den Browserfehler `SyntaxError: unexpected token: identifier` beim Laden der LuCI-Seite zu eliminieren.
+
+
+## Restart- und Long-run-Stabilitätstest (2026-04-09)
+Lokal wurde ein Stubbed-Harness (`tools/bridge_stability_harness.sh`) gegen beide Bridges ausgeführt:
+- `raw_bridge_exit_events`: 3
+- `state_bridge_exit_events`: 3
+- `can_setup_calls`: 6
+- Ergebnis: `pass`
+
+Hinweis: Das ist ein lokaler Reconnect-Loop-Test (ohne echte CAN-Hardware). Der 1h-Run auf Zielgerät bleibt weiterhin der Abnahmetest.
