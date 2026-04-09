@@ -30,6 +30,7 @@
 - Confidence-/Invariant-Metadaten im JSON-Output eingeführt.
 - Session-Extrakt aus vorhandenem Dump als `docs/campaign_v0.md` dokumentiert.
 - Capture-Helper für Ein-Aktions-Sequenzen (`usr/libexec/heizungpanel/m2_capture.sh`) ergänzt.
+- Terminal-Display-Emulation ergänzt (`usr/libexec/heizungpanel/display_emulator.sh`) für Live-Sicht auf gesendete LCD-Daten (`0x320`) ohne Originaldisplay.
 
 ### Offen für M2-Abschluss
 - Echte kontrollierte Ein-Aktions-Captures: Idle(60s), `+`, `-`, `Z`, `V`, Mode enter/exit.

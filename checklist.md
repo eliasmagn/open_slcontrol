@@ -31,6 +31,7 @@
   - strukturierter JSON-Output mit `confidence`, `source_frame`, `invariants`, `anomalies`.
 - [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
 - [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
+- [x] **Einfache Display-Emulation ergänzt** (`usr/libexec/heizungpanel/display_emulator.sh`, rekonstruiert 2x16 LCD aus Raw-`0x320` Frames via MQTT).
 - [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
 - [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
 
@@ -49,6 +50,9 @@
 ## Testnotizen
 ### Parser-Syntaxcheck (2026-04-09)
 - `ucode -c usr/libexec/heizungpanel/parser.uc` nicht ausführbar in dieser Container-Umgebung (`ucode` fehlt).
+
+### Display-Emulator-Syntaxcheck (2026-04-09)
+- [x] `sh -n usr/libexec/heizungpanel/display_emulator.sh` (ok).
 
 ### Restart-/Long-run-Stresstest (2026-04-09)
 - Zielsystem (OpenWrt mit CAN-Hardware):
