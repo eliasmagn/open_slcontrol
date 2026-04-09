@@ -49,6 +49,7 @@
 - Stand 2026-04-09: SSH-Verbindungs-Multiplexing im Deploy-Helper aktiviert, damit Passwortabfragen pro Lauf auf eine Abfrage reduziert werden (abschaltbar via `--no-mux`).
 - Stand 2026-04-09: Deploy liefert jetzt zusätzlich die LuCI-Menüdatei nach `/usr/share/luci/menu.d/luci-app-heizungpanel.json`, damit der Eintrag unter `Services` nach Reset/Neuinstallation sichtbar ist.
 - Stand 2026-04-09: Deploy löscht LuCI-Index-/Modulcache, damit Menüänderungen ohne manuellen Reboot übernommen werden.
+- Stand 2026-04-09: Deploy startet den Dienst auf frischen Geräten robust mit `stop || true` + `start` (statt `restart`), damit nach Device-Reset kein zweiter Push nötig ist.
 
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.
