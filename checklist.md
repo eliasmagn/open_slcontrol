@@ -13,6 +13,7 @@
 - [x] Statusanzeige für Fehler/No-Data/OK ergänzt.
 - [x] Sendebuttons im Safe-Mode deaktiviert.
 - [x] Anzeige „letzte Aktualisierung“ ergänzt.
+- [x] LuCI-Panel-Emulation visuell geschärft (klarer LCD-2x16-Block + gedimmter Leerzustand, Debug separat).
 - [x] **Polling-Intervall per UCI konfigurierbar gemacht** (`poll_interval_ms`, Fallback 1000ms, Clamp 250..10000).
 - [x] **LuCI liest Polling-Wert aus UCI** (via `config.sh`, statt Hardcode).
 - [x] **LuCI-Polling konsistent mit UCI-Clamp** (untere Grenze jetzt 250ms statt Rückfall auf 1000ms).
@@ -25,13 +26,13 @@
 ## D) M2 Protokoll-Engineering
 - [x] **Mapping-Tabelle v0 versioniert** (`docs/mapping_v0.md`).
 - [x] **Parser read-only erweitert**:
-  - 0x320 LCD-Reassembly (Offsets + Sonderzeichen `DF`).
+  - 0x320 LCD-Reassembly (Offsets + beobachtete Sonderzeichen `DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`).
   - 0x321 `flags16` + `active_bits[]` + `bit_roles`.
   - 0x258/0x259 Index-Pairing im Zeitfenster.
   - strukturierter JSON-Output mit `confidence`, `source_frame`, `invariants`, `anomalies`.
 - [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
 - [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
-- [x] **Einfache Display-Emulation ergänzt** (`usr/libexec/heizungpanel/display_emulator.sh`, rekonstruiert 2x16 LCD aus Raw-`0x320` Frames via MQTT).
+- [x] **Display-Emulation erweitert** (`usr/libexec/heizungpanel/display_emulator.sh`: MQTT live + offline via `--file`/`--stdin`, optional `--show-flags` inkl. 0x321-Markertrace, offset-basiertes Merging fragmentierter 0x320-Blöcke).
 - [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
 - [x] **Mapping-Validierungs-Helper ergänzt** (`usr/libexec/heizungpanel/mapping_validate.sh`) für 0x321-Ratio und 0x258/0x259-Pairing-Checks aus Candump-Logs.
 - [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
@@ -80,3 +81,10 @@
 - [x] `usr/libexec/heizungpanel/mapping_validate.sh /tmp/mapping_sample.log`
   - `single_active_ratio`: `1.000000` (Sample)
   - `paired`: `1`, `unmatched_259`: `0`
+
+
+### Display-Emulator Funktionstest (2026-04-09)
+- [x] `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags` erzeugte rekonstruiertes 2x16-LCD inkl. Flags/Markertrace.
+
+### LuCI-Panel-Syntaxcheck (2026-04-09)
+- [x] `node --check www/luci-static/resources/view/heizungpanel/panel.js` (ok).

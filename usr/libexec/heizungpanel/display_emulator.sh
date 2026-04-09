@@ -1,15 +1,65 @@
 #!/bin/sh
+set -eu
 
-MQTT_HOST="$1"
-MQTT_PORT="$2"
-TOPIC_RAW="$3"
+HOST="127.0.0.1"
+PORT="1883"
+TOPIC="heizungpanel/raw"
+INPUT_MODE="mqtt"
+INPUT_FILE=""
+SHOW_FLAGS=0
 
-[ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
-[ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
-[ -n "$TOPIC_RAW" ] || TOPIC_RAW="heizungpanel/raw"
+usage() {
+  cat <<USAGE
+Usage:
+  $0 [--host <host>] [--port <port>] [--topic <topic>] [--show-flags]
+  $0 --file <candump.log> [--show-flags]
+  $0 --stdin [--show-flags]
 
-exec mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_RAW" 2>/dev/null | awk '
-function hex2dec(h,  i, c, v, out) {
+Modes:
+  --file <path>   Read offline candump log file.
+  --stdin         Read candump lines from STDIN.
+  (default)       Subscribe to MQTT topic (heizungpanel/raw).
+
+Notes:
+  - Reconstructs a 2x16 LCD from 0x320 frames (offset-based merge).
+  - With --show-flags, prints latest 0x321 flags and a short marker trace.
+USAGE
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --host)
+      [ "$#" -ge 2 ] || { echo "Missing value for --host" >&2; exit 2; }
+      HOST="$2"; shift 2 ;;
+    --port)
+      [ "$#" -ge 2 ] || { echo "Missing value for --port" >&2; exit 2; }
+      PORT="$2"; shift 2 ;;
+    --topic)
+      [ "$#" -ge 2 ] || { echo "Missing value for --topic" >&2; exit 2; }
+      TOPIC="$2"; shift 2 ;;
+    --file)
+      [ "$#" -ge 2 ] || { echo "Missing value for --file" >&2; exit 2; }
+      INPUT_MODE="file"; INPUT_FILE="$2"; shift 2 ;;
+    --stdin)
+      INPUT_MODE="stdin"; shift ;;
+    --show-flags)
+      SHOW_FLAGS=1; shift ;;
+    -h|--help)
+      usage; exit 0 ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 2 ;;
+  esac
+done
+
+if [ "$INPUT_MODE" = "file" ] && [ ! -f "$INPUT_FILE" ]; then
+  echo "Input file not found: $INPUT_FILE" >&2
+  exit 2
+fi
+
+AWK_PROG='
+function hex2dec(h, i, c, v, out) {
   h = toupper(h)
   out = 0
   for (i = 1; i <= length(h); i++) {
@@ -32,8 +82,11 @@ function lcd_index(off) {
 
 function byte_to_char(h, v) {
   h = toupper(h)
-  if (h == "DF")
-    return "°"
+  if (h == "DF") return "°"
+  if (h == "E2") return "ß"
+  if (h == "F5") return "ü"
+  if (h == "E1") return "ä"
+  if (h == "EF") return "ö"
 
   v = hex2dec(h)
   if (v >= 32 && v <= 126)
@@ -42,7 +95,53 @@ function byte_to_char(h, v) {
   return " "
 }
 
-function render( i, line1, line2) {
+function active_bits_from_flags(hex16, v, b, out) {
+  v = hex2dec(hex16)
+  out = ""
+  for (b = 0; b < 16; b++) {
+    if (int(v / (2 ^ b)) % 2 == 0) {
+      if (length(out)) out = out ","
+      out = out b
+    }
+  }
+  return out
+}
+
+function push_trace(entry) {
+  trace_count++
+  trace[trace_count] = entry
+  if (trace_count > 8) {
+    for (i = 1; i < trace_count; i++) trace[i] = trace[i + 1]
+    delete trace[trace_count]
+    trace_count--
+  }
+}
+
+function parse_frame(line,    a, n, id, data, i) {
+  id = ""
+  data = ""
+
+  if (match(line, /([0-9A-Fa-f]+)#([0-9A-Fa-f]+)/, a)) {
+    id = toupper(a[1])
+    data = toupper(a[2])
+    return id " " data
+  }
+
+  n = split(line, a, /[[:space:]]+/)
+  if (n < 5) return ""
+
+  id = toupper(a[2])
+  if (a[3] !~ /^\[[0-9]+\]$/) return ""
+
+  for (i = 4; i <= n; i++)
+    if (a[i] ~ /^[0-9A-Fa-f]{2}$/)
+      data = data toupper(a[i])
+
+  if (!length(data)) return ""
+  return id " " data
+}
+
+function render(    i, line1, line2) {
   line1 = ""
   line2 = ""
 
@@ -50,24 +149,49 @@ function render( i, line1, line2) {
   for (i = 16; i < 32; i++) line2 = line2 lcd[i]
 
   printf("\033[H\033[J")
-  print "Heizungpanel LCD Emulator (from MQTT raw 0x320)"
+  print "Heizungpanel LCD Emulator"
   print "line1: [" line1 "]"
   print "line2: [" line2 "]"
-  print "last frame: " last_frame
+  print "last_320: " last_320
+
+  if (show_flags == 1) {
+    print "flags16: " flags16 "  active_low_bits: [" active_bits "]"
+    if (trace_count > 0) {
+      print "flags321_trace (newest last):"
+      for (i = 1; i <= trace_count; i++) print "  " trace[i]
+    }
+  }
+
   fflush()
 }
 
 BEGIN {
   for (i = 0; i < 32; i++) lcd[i] = " "
-  last_frame = "-"
+  frame_no = 0
+  last_320 = "-"
+  flags16 = "----"
+  active_bits = ""
+  trace_count = 0
 }
 
 {
-  if (match($0, /([0-9A-Fa-f]+)#([0-9A-Fa-f]+)/, m) == 0)
-    next
+  parsed = parse_frame($0)
+  if (parsed == "") next
 
-  id = toupper(m[1])
-  data = toupper(m[2])
+  split(parsed, parts, " ")
+  id = parts[1]
+  data = parts[2]
+  frame_no++
+
+  if (id == "321" && length(data) >= 4) {
+    flags16 = substr(data, 1, 4)
+    active_bits = active_bits_from_flags(flags16)
+    if (show_flags == 1) {
+      push_trace(sprintf("f=%d flags=%s bits=[%s]", frame_no, flags16, active_bits))
+      render()
+    }
+  }
+
   if (id != "320" || length(data) < 4)
     next
 
@@ -81,13 +205,23 @@ BEGIN {
     next
 
   pos = base
-  for (p = 3; (p + 1) <= length(data) && pos < 32; p += 2) {
-    b = substr(data, p, 2)
+  for (idx = 3; (idx + 1) <= length(data) && pos < 32; idx += 2) {
+    b = substr(data, idx, 2)
     lcd[pos] = byte_to_char(b)
     pos++
   }
 
-  last_frame = data
+  last_320 = data
   render()
 }
 '
+
+if [ "$INPUT_MODE" = "mqtt" ]; then
+  exec mosquitto_sub -h "$HOST" -p "$PORT" -t "$TOPIC" 2>/dev/null | awk -v show_flags="$SHOW_FLAGS" "$AWK_PROG"
+fi
+
+if [ "$INPUT_MODE" = "file" ]; then
+  exec awk -v show_flags="$SHOW_FLAGS" "$AWK_PROG" "$INPUT_FILE"
+fi
+
+exec awk -v show_flags="$SHOW_FLAGS" "$AWK_PROG"
