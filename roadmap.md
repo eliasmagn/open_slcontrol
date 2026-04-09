@@ -39,6 +39,7 @@
 ## M3 – Packaging/Distribution
 - Feed/ImageBuilder-reife Paketstruktur.
 - Reproduzierbare Installation und definierter Upgradepfad.
+- SSH/SCP-Deploy-Helper vorhanden (`tools/device_ssh_deploy.sh`) für Push/Install sowie Remove/Uninstall auf laufenden Geräten.
 
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.
