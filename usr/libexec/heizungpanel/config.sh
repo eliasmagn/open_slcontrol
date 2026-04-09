@@ -2,6 +2,7 @@
 
 POLL_MS="$(uci -q get heizungpanel.main.poll_interval_ms)"
 WRITE_MODE="$(uci -q get heizungpanel.main.write_mode)"
+LISTEN_ONLY="$(uci -q get heizungpanel.main.listen_only)"
 
 case "$POLL_MS" in
   ''|*[!0-9]*) POLL_MS=1000 ;;
@@ -14,5 +15,6 @@ elif [ "$POLL_MS" -gt 10000 ]; then
 fi
 
 [ "$WRITE_MODE" = "1" ] || WRITE_MODE=0
+[ "$LISTEN_ONLY" = "1" ] || LISTEN_ONLY=0
 
-printf '{"poll_interval_ms":%s,"write_mode":%s}\n' "$POLL_MS" "$WRITE_MODE"
+printf '{"poll_interval_ms":%s,"write_mode":%s,"listen_only":%s}\n' "$POLL_MS" "$WRITE_MODE" "$LISTEN_ONLY"

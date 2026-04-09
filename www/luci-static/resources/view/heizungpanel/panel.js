@@ -35,26 +35,27 @@ return view.extend({
   load: function() {
     return fs.exec('/usr/libexec/heizungpanel/config.sh', []).then(function(res) {
       if (!res || res.code !== 0)
-        return { poll_interval_ms: 1000, write_mode: 0 };
+        return { poll_interval_ms: 1000, write_mode: 0, listen_only: 1 };
 
       try {
         var cfg = JSON.parse((res.stdout || "").trim() || "{}");
         return {
           poll_interval_ms: clampPollInterval(cfg.poll_interval_ms),
-          write_mode: cfg.write_mode || 0
+          write_mode: cfg.write_mode || 0,
+          listen_only: cfg.listen_only || 0
         };
       } catch (e) {
-        return { poll_interval_ms: 1000, write_mode: 0 };
+        return { poll_interval_ms: 1000, write_mode: 0, listen_only: 1 };
       }
     }).catch(function() {
-      return { poll_interval_ms: 1000, write_mode: 0 };
+      return { poll_interval_ms: 1000, write_mode: 0, listen_only: 1 };
     });
   },
 
   render: function(cfg) {
     cfg = cfg || {};
     var pollInterval = clampPollInterval(cfg.poll_interval_ms);
-    var SEND_ENABLED = String(cfg.write_mode || 0) === "1";
+    var sendEnabled = String(cfg.write_mode || 0) === "1";
     var style = el('style', { 'html': [
       '.hp-wrap { max-width: 720px; }',
       '.hp-panel {',
@@ -93,7 +94,10 @@ return view.extend({
       '.hp-status { margin-top:8px; font-size:12px; opacity:.9; }',
       '.hp-status.ok { color:#97e493; }',
       '.hp-status.warn { color:#ffd166; }',
-      '.hp-status.err { color:#ff8a80; }'
+      '.hp-status.err { color:#ff8a80; }',
+      '.hp-switches { margin-top:10px; display:flex; flex-direction:column; gap:8px; }',
+      '.hp-switch { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; }',
+      '.hp-switch input { width:18px; height:18px; }'
     ].join('\n') });
 
     var line1 = el('div', { class: 'l dim' }, ['                ']);
@@ -110,9 +114,9 @@ return view.extend({
 
     var btn = function(txt, code) {
       var b = el('button', { class: 'hp-key', type: 'button' }, [txt]);
-      b.disabled = !SEND_ENABLED;
+      b.disabled = !sendEnabled;
       b.addEventListener('click', function() {
-        if (!SEND_ENABLED) return;
+        if (!sendEnabled) return;
         fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
           if (res && res.code === 0) ui.addNotification(null, E('p', {}, _('OK: ' + code)));
           else ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
@@ -143,6 +147,52 @@ return view.extend({
     ]);
     pwr.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
 
+    var modeHintText = el('div', { class:'hp-sub' }, [sendEnabled
+      ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle).'
+      : 'Hinweis: CAN-Senden ist deaktiviert (Safe Read-Only).']);
+    var switchStatus = el('div', { class:'hp-status warn' }, ['Konfiguration: unverändert']);
+    var sendSwitch = el('input', { type:'checkbox' }, []);
+    sendSwitch.checked = sendEnabled;
+
+    var setMode = function(key, enabled, inputEl) {
+      var unlock = function() { inputEl.disabled = false; };
+      inputEl.disabled = true;
+      switchStatus.className = 'hp-status warn';
+      switchStatus.textContent = 'Konfiguration: speichere ' + key + '...';
+      fs.exec('/usr/libexec/heizungpanel/set_mode.sh', [key, enabled ? '1' : '0']).then(function(res) {
+        if (!res || res.code !== 0) {
+          inputEl.checked = !enabled;
+          switchStatus.className = 'hp-status err';
+          switchStatus.textContent = 'Konfiguration: Fehler bei ' + key;
+          ui.addNotification(null, E('p', {}, _('Set failed: ' + (res ? res.stdout || res.stderr || res.code : 'n/a'))));
+          unlock();
+          return;
+        }
+
+        if (key === 'write_mode') {
+          sendEnabled = enabled;
+          modeHintText.textContent = sendEnabled
+            ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle).'
+            : 'Hinweis: CAN-Senden ist deaktiviert (Safe Read-Only).';
+          window.setTimeout(function() { window.location.reload(); }, 600);
+        }
+
+        switchStatus.className = 'hp-status ok';
+        switchStatus.textContent = 'Konfiguration: gespeichert (' + key + '=' + (enabled ? '1' : '0') + ').';
+        unlock();
+      }).catch(function(err) {
+        inputEl.checked = !enabled;
+        switchStatus.className = 'hp-status err';
+        switchStatus.textContent = 'Konfiguration: Fehler bei ' + key;
+        ui.addNotification(null, E('p', {}, _('Set error: ' + err)));
+        unlock();
+      });
+    };
+
+    sendSwitch.addEventListener('change', function() {
+      setMode('write_mode', sendSwitch.checked, sendSwitch);
+    });
+
     var left = el('div', { class:'hp-left' }, [
       el('div', { class:'hp-row' }, [
         el('div', { class:'lbl' }, ['Tasten']),
@@ -150,18 +200,23 @@ return view.extend({
       ]),
       keygrid,
       pwr,
-      el('div', { class:'hp-sub' }, [SEND_ENABLED
-        ? 'Hinweis: Write-Mode aktiv (nur erlaubte Befehle).'
-        : 'Hinweis: CAN-Senden ist deaktiviert (Safe Read-Only).'])
+      modeHintText,
+      el('div', { class:'hp-switches' }, [
+        el('label', { class:'hp-switch' }, [
+          el('span', {}, ['Send mode']),
+          sendSwitch
+        ])
+      ]),
+      switchStatus
     ]);
 
     var mkMode = function(label, code) {
       var led = el('div', { class:'hp-led' }, []);
       var b = el('button', { class:'hp-key', type:'button', style:'width:120px; height:34px;' }, ['⟳']);
-      b.disabled = !SEND_ENABLED;
+      b.disabled = !sendEnabled;
       b.title = 'Send: ' + code;
       b.addEventListener('click', function() {
-        if (!SEND_ENABLED) return;
+        if (!sendEnabled) return;
         fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
           if (res && res.code === 0) ui.addNotification(null, E('p', {}, _('OK: ' + code)));
           else ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
