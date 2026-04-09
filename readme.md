@@ -10,13 +10,14 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - LuCI pollt mit dem aus UCI geladenen Intervall (inkl. Clamp 250..10000).
+- LuCI zeigt unter dem Hinweisbereich einen Konfigurations-Switch für `Send mode` (`write_mode`); Änderungen werden in UCI gespeichert und der Dienst wird neu gestartet.
 - LuCI zeigt den rekonstruierten LCD-Inhalt jetzt explizit als „LCD 2x16 (emuliert aus CAN 0x320)“ mit gedimmtem Fallback bei No-Data/Fehlern, sodass die Panel-Emulation klar vom Debug-Block getrennt ist.
 - LuCI meldet bei formal `status=ok`, aber komplett leerem Payload (`line1/line2` leer, `flags16=----`) nun explizit einen Warnzustand („verbunden, aber noch keine decodierbaren Paneldaten“) statt irreführendem `Status: OK`.
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
-- Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten inkl. UTF-8-Mapping für beobachtete Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`).
-- Hotfix Feldfeedback: Byte `0xEF` wird aktuell als Leerzeichen behandelt (statt `ö`), um ein persistentes Phantom-`ö` auf der LuCI-Panel-Emulation zu vermeiden, bis die Zuordnung per Einzelaktions-Captures bestätigt ist.
+- Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten. Das Rendering nutzt ASCII (`0x20..0x7E`) plus Panel-Sonderzeichen (`0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`).
 - LuCI-Zeitstempel-Härtung: Wenn `ts_ms` aus dem State unplausibel von der Browserzeit abweicht (>5 Minuten), zeigt „Letzte Aktualisierung“ automatisch Browserzeit mit Suffix `(Browserzeit)`.
 - LuCI-Mapping-Härtung: bekannte `0x321 flags16` werden live als Mode-LED und Klartext-Hinweis dargestellt (z. B. `DFFF=Boilerbetrieb`, `BFFF=Uhrzeitbetrieb`, `7FFF=Dauerbetrieb`, `FFFB/FF7F` als Navigation).
+- Parser-Input-Härtung: Neben `ID#HEX` verarbeitet der Parser jetzt auch timestampbasierte Candump-Zeilen mit `[len] bytes` (can-utils-abhängig); dadurch landen 0x320-Textframes wie `Kesseltemp...` zuverlässig im State/UI.
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 - Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
 - Für die Frage „welche 0x321-Werte gibt es und welche Frames gehören dazu?“ steht `usr/libexec/heizungpanel/isolate_321.sh` bereit (Unique-Flags + Kontext pro `flags16`).
@@ -26,6 +27,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Deploy-Helper-Fix: LuCI-Menüeintrag wird jetzt mit ausgerollt (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`), damit die Ansicht nach Router-Reset/Neuinstallation wieder unter **Services** erscheint.
 - Deploy-Helper-Fix: LuCI-Caches (`/tmp/luci-indexcache`, `/tmp/luci-modulecache`) werden beim Deploy bereinigt, damit neue Menüeinträge sofort sichtbar sind.
 - Deploy-Helper-Fix: Service-Start nach frischem Reset/Erstinstallation gehärtet (`stop || true` + `start` statt `restart`), damit kein zweiter Push mehr nötig ist, wenn `ubus service delete ... (Not found)` beim ersten Lauf auftritt.
+- Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` rollt jetzt zusätzlich `usr/libexec/heizungpanel/set_mode.sh` und `usr/libexec/heizungpanel/isolate_321.sh` mit aus.
 
 ## Neue Telemetrie-Felder (Parser v0)
 Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
@@ -102,6 +104,7 @@ Hinweise:
    - `option state_max_age '15'`
    - `option poll_interval_ms '1000'`
    - `option write_mode '0'`
+   - `option listen_only '1'`
 2. Service starten: `/etc/init.d/heizungpanel start`.
 3. LuCI öffnen und Status prüfen.
 
@@ -127,6 +130,7 @@ Optionen:
 - Sendefunktionen bleiben deaktiviert, solange `write_mode=0`.
 - Bei `write_mode=1` akzeptiert `press.sh` ausschließlich Befehle aus einer festen Allowlist.
 - Ein tatsächlicher CAN-Write erfolgt weiterhin erst nach implementierter Frame-Mapping-Logik.
+- `listen_only=1` hält das CAN-Interface im passiven Listen-Betrieb; ein Wechsel über den LuCI-Switch triggert einen Service-Neustart.
 
 ## Relevante Dateien
 - `concept.md` – Zielbild/Architektur + Umsetzungsreihenfolge.
