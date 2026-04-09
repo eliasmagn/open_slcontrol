@@ -232,12 +232,16 @@ function parse_frame(line) {
         return null;
 
     let id = uc(m[1]);
+    let want = int(m[2]);
     let tail = m[3];
 
     // Extract hex bytes from tail
     let bytes = [];
-    for (let b in matchall(tail, /([0-9A-Fa-f]{2})/g))
+    for (let b in matchall(tail, /([0-9A-Fa-f]{2})/g)) {
         push(bytes, uc(b[1]));
+        if (want > 0 && length(bytes) >= want)
+            break;
+    }
 
     if (!length(bytes))
         return null;

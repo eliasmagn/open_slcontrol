@@ -18,6 +18,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - LuCI-Zeitstempel-Härtung: Wenn `ts_ms` aus dem State unplausibel von der Browserzeit abweicht (>5 Minuten), zeigt „Letzte Aktualisierung“ automatisch Browserzeit mit Suffix `(Browserzeit)`.
 - LuCI-Mapping-Härtung: bekannte `0x321 flags16` werden live als Mode-LED und Klartext-Hinweis dargestellt (z. B. `DFFF=Boilerbetrieb`, `BFFF=Uhrzeitbetrieb`, `7FFF=Dauerbetrieb`, `FFFB/FF7F` als Navigation).
 - Parser-Input-Härtung: Neben `ID#HEX` verarbeitet der Parser jetzt auch timestampbasierte Candump-Zeilen mit `[len] bytes` (can-utils-abhängig); dadurch landen 0x320-Textframes wie `Kesseltemp...` zuverlässig im State/UI.
+- UI-Sendehinweise: Wenn Write-Mode aktiv ist, aber für ein Kommando noch kein CAN-Send-Mapping existiert, zeigt LuCI einen Hinweis statt einer generischen „Send failed“-Meldung.
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 - Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
 - Für die Frage „welche 0x321-Werte gibt es und welche Frames gehören dazu?“ steht `usr/libexec/heizungpanel/isolate_321.sh` bereit (Unique-Flags + Kontext pro `flags16`).
@@ -104,7 +105,6 @@ Hinweise:
    - `option state_max_age '15'`
    - `option poll_interval_ms '1000'`
    - `option write_mode '0'`
-   - `option listen_only '1'`
 2. Service starten: `/etc/init.d/heizungpanel start`.
 3. LuCI öffnen und Status prüfen.
 
@@ -130,7 +130,7 @@ Optionen:
 - Sendefunktionen bleiben deaktiviert, solange `write_mode=0`.
 - Bei `write_mode=1` akzeptiert `press.sh` ausschließlich Befehle aus einer festen Allowlist.
 - Ein tatsächlicher CAN-Write erfolgt weiterhin erst nach implementierter Frame-Mapping-Logik.
-- `listen_only=1` hält das CAN-Interface im passiven Listen-Betrieb; ein Wechsel über den LuCI-Switch triggert einen Service-Neustart.
+- `listen_only` wird intern aus `write_mode` abgeleitet (`write_mode=0` => listen-only an, `write_mode=1` => listen-only aus), um redundante Konfiguration zu vermeiden.
 
 ## Relevante Dateien
 - `concept.md` – Zielbild/Architektur + Umsetzungsreihenfolge.
