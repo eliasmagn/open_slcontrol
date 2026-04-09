@@ -86,7 +86,8 @@ function byte_to_char(h, v) {
   if (h == "E2") return "ß"
   if (h == "F5") return "ü"
   if (h == "E1") return "ä"
-  if (h == "EF") return "ö"
+  # Keep 0xEF blank for now (real-device feedback: avoids phantom "ö")
+  if (h == "EF") return " "
 
   v = hex2dec(h)
   if (v >= 32 && v <= 126)

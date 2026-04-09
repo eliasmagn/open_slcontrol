@@ -14,8 +14,12 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - LuCI meldet bei formal `status=ok`, aber komplett leerem Payload (`line1/line2` leer, `flags16=----`) nun explizit einen Warnzustand („verbunden, aber noch keine decodierbaren Paneldaten“) statt irreführendem `Status: OK`.
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
 - Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten inkl. UTF-8-Mapping für beobachtete Sonderbytes (`DF/E2/F5/E1/EF -> °/ß/ü/ä/ö`).
+- Hotfix Feldfeedback: Byte `0xEF` wird aktuell als Leerzeichen behandelt (statt `ö`), um ein persistentes Phantom-`ö` auf der LuCI-Panel-Emulation zu vermeiden, bis die Zuordnung per Einzelaktions-Captures bestätigt ist.
+- LuCI-Zeitstempel-Härtung: Wenn `ts_ms` aus dem State unplausibel von der Browserzeit abweicht (>5 Minuten), zeigt „Letzte Aktualisierung“ automatisch Browserzeit mit Suffix `(Browserzeit)`.
+- LuCI-Mapping-Härtung: bekannte `0x321 flags16` werden live als Mode-LED und Klartext-Hinweis dargestellt (z. B. `DFFF=Boilerbetrieb`, `BFFF=Uhrzeitbetrieb`, `7FFF=Dauerbetrieb`, `FFFB/FF7F` als Navigation).
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 - Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
+- Für die Frage „welche 0x321-Werte gibt es und welche Frames gehören dazu?“ steht `usr/libexec/heizungpanel/isolate_321.sh` bereit (Unique-Flags + Kontext pro `flags16`).
 - Für eine schnelle Terminal-/Offline-Sicht auf das emulierte 2x16-Display steht `usr/libexec/heizungpanel/display_emulator.sh` bereit (liest MQTT-Raw, Candump-Dateien oder STDIN; optional mit `--show-flags` für 0x321-Markertrace).
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` hält den lokalen Stage-Ordner jetzt korrekt bis nach dem Upload (Fix für `scp .../etc: No such file or directory`).
 - Deploy-Helper-Fix: Upload nutzt erzwungen den klassischen SCP-Modus (`scp -O`) für OpenWrt/Dropbear-Ziele ohne SFTP-Server (Fix für `ash: /usr/libexec/sftp-server: not found`).
@@ -63,6 +67,12 @@ Ausgabe enthält:
 - `flags_321.single_active_ratio`
 - `pairing_258_259.paired`, `unmatched_259`, `avg_delta_frames`
 - `observed_indices`
+
+## 0x321-Frames isolieren (gleiche Flags gruppieren)
+- Summary + Kontext pro 0x321-Wert:
+  - `usr/libexec/heizungpanel/isolate_321.sh /tmp/heizungpanel/m2/plus.log`
+- Mit engerem Kontext und weniger Treffern pro Wert:
+  - `usr/libexec/heizungpanel/isolate_321.sh /tmp/heizungpanel/m2/plus.log 10 3`
 
 ## Display emulieren (ohne physisches Panel)
 Auf dem Zielgerät oder einem Host mit MQTT-Zugriff:

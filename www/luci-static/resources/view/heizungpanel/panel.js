@@ -25,6 +25,12 @@ function clampPollInterval(ms) {
   return v;
 }
 
+function parseEpochMs(raw) {
+  var n = parseInt(raw, 10);
+  if (isNaN(n) || n <= 0) return null;
+  return n;
+}
+
 return view.extend({
   load: function() {
     return fs.exec('/usr/libexec/heizungpanel/config.sh', []).then(function(res) {
@@ -177,16 +183,40 @@ return view.extend({
     var mAR    = mkMode('Außentemp. Reg.', 'aussen_reg');
     var mPr    = mkMode('Prüfbetrieb', 'pruef');
     var mHand  = mkMode('Handbetrieb', 'hand');
+    var modeHint = el('div', { class:'hp-sub' }, ['Modus aus 0x321: n/a']);
+
+    var modeByFlags = {
+      '7FFF': { name: 'Dauerbetrieb', led: mDauer.led },
+      'BFFF': { name: 'Uhrzeitbetrieb', led: mUhr.led },
+      'DFFF': { name: 'Boilerbetrieb', led: mBoil.led },
+      'EFFF': { name: 'Uhr+Boilerbetrieb', led: mUB.led },
+      'F7FF': { name: 'Außentemperatur-Regelung', led: mAR.led },
+      'FBFF': { name: 'Prüfbetrieb', led: mPr.led },
+      'FDFF': { name: 'Handbetrieb', led: mHand.led }
+    };
+
+    var keyByFlags = {
+      'FF7F': 'Z / zurück',
+      'FFFB': 'V / weiter',
+      'FFDF': '+',
+      'FFBF': 'Quit / Sonderfunktion'
+    };
+
+    function clearLeds() {
+      [mDauer, mUhr, mBoil, mUB, mAR, mPr, mHand].forEach(function(m) {
+        m.led.className = 'hp-led';
+      });
+    }
 
     var right = el('div', { class:'hp-right' }, [
       el('div', { class:'hp-row' }, [
         el('div', { class:'lbl' }, ['Betriebsarten']),
-        el('div', { class:'hp-sub' }, ['LEDs: später per Bit-Mapping'])
+        el('div', { class:'hp-sub' }, ['LEDs: live aus 0x321'])
       ]),
       el('div', { class:'hp-modes' }, [
         mDauer.node, mUhr.node, mBoil.node, mUB.node, mAR.node, mPr.node, mHand.node
       ]),
-      el('div', { class:'hp-sub' }, ['Tipp: Wenn du die 0x321 Bits zuordnest, kann ich dir das LED-Mapping einbauen.'])
+      modeHint
     ]);
 
     var root = el('div', { class:'hp-wrap' }, [
@@ -236,17 +266,40 @@ return view.extend({
         var hasLcdText = !!(l1.trim() || l2.trim());
         var hasFlags = !!(st.flags16 && st.flags16 !== '----');
         var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
+        var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+        var modeInfo = modeByFlags[flagsNorm];
+        var keyInfo = keyByFlags[flagsNorm];
 
         line1.textContent = l1;
         line2.textContent = l2;
         line1.className = 'l' + (l1.trim() ? '' : ' dim');
         line2.className = 'l' + (l2.trim() ? '' : ' dim');
-        if (st.ts_ms)
-          lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date(st.ts_ms).toLocaleString();
-        else
-          lastUpdate.textContent = 'Letzte Aktualisierung: n/a';
+        var parserTs = parseEpochMs(st.ts_ms);
+        var nowTs = Date.now();
+        var displayTs = parserTs;
+        var suffix = '';
+
+        // Guard against malformed/drifting parser timestamps from target systems.
+        if (!displayTs || Math.abs(nowTs - displayTs) > (5 * 60 * 1000)) {
+          displayTs = nowTs;
+          suffix = ' (Browserzeit)';
+        }
+
+        lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date(displayTs).toLocaleString() + suffix;
 
         flags.textContent = 'flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
+        clearLeds();
+        if (modeInfo) {
+          modeInfo.led.className = 'hp-led on';
+          modeHint.textContent = 'Modus aus 0x321: ' + modeInfo.name + ' (' + flagsNorm + ')';
+        } else if (keyInfo) {
+          modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
+        } else if (flagsNorm) {
+          modeHint.textContent = '0x321 aktiv, noch nicht zugeordnet: ' + flagsNorm;
+        } else {
+          modeHint.textContent = 'Modus aus 0x321: n/a';
+        }
+
         if (st.status === 'no_data') {
           status.className = 'hp-status warn';
           status.textContent = 'Status: keine Live-Daten (Cache/MQTT leer)';

@@ -177,7 +177,11 @@ function hexbyte_to_char(h) {
     if (h == "E2") return "ß";
     if (h == "F5") return "ü";
     if (h == "E1") return "ä";
-    if (h == "EF") return "ö";
+    // NOTE:
+    // 0xEF was previously mapped to "ö". Field feedback from real panels
+    // showed this creates a persistent phantom "ö" on mostly empty screens.
+    // Keep it blank until confirmed by controlled captures.
+    if (h == "EF") return " ";
 
     if (v >= 32 && v <= 126)
         return chr(v);

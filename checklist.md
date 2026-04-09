@@ -18,6 +18,8 @@
 - [x] **LuCI liest Polling-Wert aus UCI** (via `config.sh`, statt Hardcode).
 - [x] **LuCI-Polling konsistent mit UCI-Clamp** (untere Grenze jetzt 250ms statt Rückfall auf 1000ms).
 - [x] **LuCI-Statuslogik bei leeren Nutzdaten verbessert** (`Status: verbunden, aber noch keine decodierbaren Paneldaten` statt irreführendem `OK` bei komplett leerem Payload).
+- [x] **LuCI-Zeitstempel gegen Parser-Drift gehärtet** (bei >5 Min Abweichung wird Browserzeit als „Letzte Aktualisierung“ genutzt).
+- [x] **0x321-LED/Modus-Mapping im LuCI aktiviert** (Mode-LEDs + Klartext-Hinweis je `flags16`).
 
 ## C) Sicherheits-Gate (vor Write-Pfad)
 - [x] ACL von Wildcard auf explizite Skripte reduziert.
@@ -34,8 +36,10 @@
 - [x] **Invariants/Validation ergänzt** (Warnungen statt Parser-Abbruch).
 - [x] **Strukturierter Capture-Helper für Einzelaktionen ergänzt** (`usr/libexec/heizungpanel/m2_capture.sh`).
 - [x] **Display-Emulation erweitert** (`usr/libexec/heizungpanel/display_emulator.sh`: MQTT live + offline via `--file`/`--stdin`, optional `--show-flags` inkl. 0x321-Markertrace, offset-basiertes Merging fragmentierter 0x320-Blöcke).
+- [x] **Sonderzeichen-Mapping korrigiert** (`0xEF` vorläufig auf Leerzeichen statt `ö`), um Phantom-`ö` auf dem emulierten LCD zu vermeiden, bis kontrollierte Captures vorliegen.
 - [ ] **Kontrollierte Einzelaktions-Dumps auf Zielgerät ausführen** (`+`, `-`, `Z`, `V`, mode enter/exit).
 - [x] **Mapping-Validierungs-Helper ergänzt** (`usr/libexec/heizungpanel/mapping_validate.sh`) für 0x321-Ratio und 0x258/0x259-Pairing-Checks aus Candump-Logs.
+- [x] **0x321-Isolations-Helper ergänzt** (`usr/libexec/heizungpanel/isolate_321.sh`) zur Auswertung „welche Flags16-Werte treten auf“ inkl. Kontextframes pro Wert.
 - [ ] **Likely -> Confirmed Promotion** nach reproduzierbaren Mini-Captures.
 
 ## E) M3 Packaging/Distribution
@@ -93,3 +97,11 @@
 
 ### LuCI-Panel-Syntaxcheck (2026-04-09)
 - [x] `node --check www/luci-static/resources/view/heizungpanel/panel.js` (ok).
+
+### Phantom-Ö/Zeitanzeige-Hotfix (2026-04-09)
+- [x] Parser/Display-Emulator: `0xEF` wird vorläufig als Leerzeichen behandelt.
+- [x] LuCI-Panel: „Letzte Aktualisierung“ fällt bei unplausibler `ts_ms`-Abweichung (>5 Min) auf Browserzeit zurück (`... (Browserzeit)`).
+
+### 0x321-Clusteranalyse (2026-04-09)
+- [x] `usr/libexec/heizungpanel/isolate_321.sh` hinzugefügt (Summary + Kontextblöcke pro `flags16`-Wert aus Candump-Logs).
+- [x] Mapping aus Feldzuordnung in LuCI eingehängt (`FFFB/FF7F` Navigation, `7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF` Mode-/Funktionshinweise).
