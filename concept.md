@@ -36,3 +36,4 @@ Die App ist funktional im Read-only-Pfad:
 5. **M3 Packaging/Distribution:** Feed-Struktur und reproduzierbarer Install-/Upgradepfad inkl. SSH/SCP-Deploy-Helper (`tools/device_ssh_deploy.sh`) für Install/Uninstall auf Zielgeräten; Feed-Stub vorhanden (`package/luci-app-heizungpanel/Makefile`), Installpfad dokumentiert (`docs/packaging_install.md`).
 
 - LuCI-Frontend wird bewusst ES5-kompatibel gehalten (insbesondere in View-Skripten), da der LuCI-Loader auf Zielsystemen sonst mit `compileClass`-Syntaxfehlern ausfallen kann.
+- UI-Statuslogik wurde gehärtet: Ein formales `status=ok` ohne decodierbare LCD-/Flag-Nutzdaten wird als Warnzustand dargestellt, um Scheinsicherheit im LuCI-Panel zu vermeiden (2026-04-09).

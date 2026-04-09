@@ -17,6 +17,7 @@
 - [x] **Polling-Intervall per UCI konfigurierbar gemacht** (`poll_interval_ms`, Fallback 1000ms, Clamp 250..10000).
 - [x] **LuCI liest Polling-Wert aus UCI** (via `config.sh`, statt Hardcode).
 - [x] **LuCI-Polling konsistent mit UCI-Clamp** (untere Grenze jetzt 250ms statt Rückfall auf 1000ms).
+- [x] **LuCI-Statuslogik bei leeren Nutzdaten verbessert** (`Status: verbunden, aber noch keine decodierbaren Paneldaten` statt irreführendem `OK` bei komplett leerem Payload).
 
 ## C) Sicherheits-Gate (vor Write-Pfad)
 - [x] ACL von Wildcard auf explizite Skripte reduziert.
@@ -85,6 +86,10 @@
 
 ### Display-Emulator Funktionstest (2026-04-09)
 - [x] `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags` erzeugte rekonstruiertes 2x16-LCD inkl. Flags/Markertrace.
+
+### LuCI-Leerzustand/Status-Logik (2026-04-09)
+- [x] `node --check www/luci-static/resources/view/heizungpanel/panel.js` (ok).
+- [x] Logiktest: `status=ok` + leeres `line1/line2/flags16` zeigt jetzt Warnstatus statt `Status: OK`.
 
 ### LuCI-Panel-Syntaxcheck (2026-04-09)
 - [x] `node --check www/luci-static/resources/view/heizungpanel/panel.js` (ok).
