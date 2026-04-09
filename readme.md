@@ -7,8 +7,15 @@ Teilweise funktional und im Einsatz:
 - LuCI-Seite ist sichtbar.
 - CAN + `candump` funktionieren.
 - Parser erzeugt State.
-- State wird jetzt zusätzlich lokal gecacht (`/tmp/heizungpanel/state.json`).
+- State wird lokal gecacht (`/tmp/heizungpanel/state.json`).
 - Cache wird nur bis zur konfigurierten Maximaldauer genutzt (`state_max_age`, Default 15s).
+
+## Aktuelle Priorisierung
+1. **M1 Stabilität finalisieren:** CAN-Reconnect + dokumentierter Restart/Long-run-Stresstest.
+2. **Runtime-Knobs schließen:** Polling-Intervall per UCI/LuCI konfigurierbar machen.
+3. **Sicherheits-Gate vor Write:** UCI-Write-Flag (default off) + strikte Write-Allowlist.
+4. **M2 starten:** strukturierte Dumps, versioniertes Mapping, Hypothesenvalidierung.
+5. **M3 vorbereiten:** Feed-Struktur und reproduzierbarer Install-/Upgradepfad.
 
 ## Betrieb
 1. UCI prüfen (`/etc/config/heizungpanel`).
@@ -20,9 +27,10 @@ Teilweise funktional und im Einsatz:
 - Standard: Safe Read-only.
 - Sendefunktionen in UI deaktiviert.
 - ACL nur für benötigte Skripte (`state.sh`, `press.sh`).
+- Write-Pfad bleibt gesperrt, bis UCI-Write-Flag + Allowlist umgesetzt sind.
 
 ## Relevante Dateien
-- `concept.md` – Zielbild/Architektur.
-- `checklist.md` – operative Aufgaben.
+- `concept.md` – Zielbild/Architektur + Umsetzungsreihenfolge.
+- `checklist.md` – operative Aufgaben und Status.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
