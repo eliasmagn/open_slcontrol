@@ -42,6 +42,7 @@
 - SSH/SCP-Deploy-Helper vorhanden (`tools/device_ssh_deploy.sh`) für Push/Install sowie Remove/Uninstall auf laufenden Geräten.
 - Stand 2026-04-09: Stage-Lifetime-Fix im Deploy-Helper umgesetzt (verhindert fehlende lokale Stage-Pfade während `scp`).
 - Stand 2026-04-09: SCP-Protokollfix im Deploy-Helper umgesetzt (`scp -O`), damit Deploy auf OpenWrt/Dropbear ohne SFTP-Subsystem funktioniert.
+- Stand 2026-04-09: SSH-Verbindungs-Multiplexing im Deploy-Helper aktiviert, damit Passwortabfragen pro Lauf auf eine Abfrage reduziert werden (abschaltbar via `--no-mux`).
 
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.

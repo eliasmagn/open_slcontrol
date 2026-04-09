@@ -46,6 +46,10 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 - Uninstall/Remove:
   - `tools/device_ssh_deploy.sh uninstall root@192.168.1.10`
   - `tools/device_ssh_deploy.sh remove root@192.168.1.10 -p 2222`
+- Passwortabfrage-Verhalten:
+  - Standardmäßig nutzt das Deploy-Skript jetzt SSH-Multiplexing (`ControlMaster/ControlPersist`) und fragt das Passwort pro Lauf nur **einmal** ab.
+  - Mit `--no-mux` kann das alte Verhalten (mehrfache Passwortabfragen) erzwungen werden.
+  - Für komplett passwortlosen Betrieb wird weiterhin SSH-Key-Login empfohlen (`-i ~/.ssh/id_ed25519` oder Key in `~/.ssh/config`).
 
 ## Security
 - Standard: Safe Read-only.

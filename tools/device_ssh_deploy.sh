@@ -10,6 +10,29 @@ SSH_KEY=""
 REMOTE_STAGE="/tmp/open_slcontrol_deploy"
 ACTION=""
 NO_RESTART=0
+USE_MUX=1
+STAGE_LOCAL=""
+MUX_DIR=""
+MUX_ACTIVE=0
+SSH_MUX_OPTS=""
+
+cleanup() {
+  if [ "$MUX_ACTIVE" -eq 1 ] && [ -n "$REMOTE" ]; then
+    set -- ssh -p "$SSH_PORT"
+    if [ -n "$SSH_KEY" ]; then
+      set -- "$@" -i "$SSH_KEY"
+    fi
+    if [ -n "$SSH_MUX_OPTS" ]; then
+      set -- "$@" $SSH_MUX_OPTS
+    fi
+    # shellcheck disable=SC2086
+    "$@" -O exit "$REMOTE" >/dev/null 2>&1 || true
+  fi
+  [ -n "$STAGE_LOCAL" ] && rm -rf "$STAGE_LOCAL"
+  [ -n "$MUX_DIR" ] && rm -rf "$MUX_DIR"
+}
+
+trap cleanup EXIT INT TERM
 
 usage() {
   cat <<USAGE
@@ -24,6 +47,7 @@ Options:
   -p, --port <port>      SSH port (default: 22)
   -i, --identity <file>  SSH private key
   -s, --stage <path>     Remote staging directory (default: /tmp/open_slcontrol_deploy)
+      --no-mux           Disable SSH connection multiplexing (prompts password each call)
       --no-restart       Do not restart/disable service after action
   -h, --help             Show this help
 
@@ -46,6 +70,9 @@ build_ssh_cmd() {
   if [ -n "$SSH_KEY" ]; then
     set -- "$@" -i "$SSH_KEY"
   fi
+  if [ -n "$SSH_MUX_OPTS" ]; then
+    set -- "$@" $SSH_MUX_OPTS
+  fi
   set -- "$@" "$REMOTE"
   printf '%s\n' "$*"
 }
@@ -57,12 +84,14 @@ build_scp_cmd() {
   if [ -n "$SSH_KEY" ]; then
     set -- "$@" -i "$SSH_KEY"
   fi
+  if [ -n "$SSH_MUX_OPTS" ]; then
+    set -- "$@" $SSH_MUX_OPTS
+  fi
   printf '%s\n' "$*"
 }
 
 create_stage_tree() {
   STAGE_LOCAL="$(mktemp -d)"
-  trap 'rm -rf "$STAGE_LOCAL"' EXIT INT TERM
 
   FILES="
 etc/init.d/heizungpanel
@@ -91,11 +120,31 @@ www/luci-static/resources/view/heizungpanel/panel.js
 
 }
 
+setup_mux() {
+  if [ "$USE_MUX" -eq 0 ]; then
+    return 0
+  fi
+
+  require_cmd mktemp
+  MUX_DIR="$(mktemp -d)"
+  SSH_MUX_OPTS="-o ControlMaster=auto -o ControlPersist=300 -o ControlPath=$MUX_DIR/ctl"
+
+  echo "[0/4] Establish SSH master connection (single password prompt)"
+  set -- ssh -fN -p "$SSH_PORT"
+  if [ -n "$SSH_KEY" ]; then
+    set -- "$@" -i "$SSH_KEY"
+  fi
+  # shellcheck disable=SC2086
+  "$@" $SSH_MUX_OPTS "$REMOTE"
+  MUX_ACTIVE=1
+}
+
 run_install() {
   require_cmd ssh
   require_cmd scp
   require_cmd mktemp
 
+  setup_mux
   create_stage_tree
   SSH_CMD="$(build_ssh_cmd)"
   SCP_CMD="$(build_scp_cmd)"
@@ -132,6 +181,7 @@ run_install() {
 run_uninstall() {
   require_cmd ssh
 
+  setup_mux
   SSH_CMD="$(build_ssh_cmd)"
   echo "[1/2] Remove files from target"
   # shellcheck disable=SC2086
@@ -182,6 +232,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --no-restart)
       NO_RESTART=1
+      shift
+      ;;
+    --no-mux)
+      USE_MUX=0
       shift
       ;;
     -h|--help)
