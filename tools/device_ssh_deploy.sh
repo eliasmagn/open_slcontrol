@@ -104,8 +104,9 @@ usr/libexec/heizungpanel/press.sh
 usr/libexec/heizungpanel/config.sh
 usr/libexec/heizungpanel/m2_capture.sh
 usr/libexec/heizungpanel/display_emulator.sh
+usr/libexec/heizungpanel/mapping_validate.sh
 usr/share/rpcd/acl.d/luci-app-heizungpanel.json
-usr/share/luci-app-heizungpanel.json
+usr/share/luci/menu.d/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
 "
 
@@ -166,7 +167,7 @@ run_install() {
     mkdir -p /usr/libexec/heizungpanel /usr/share/rpcd/acl.d /usr/share/luci/menu.d /www/luci-static/resources/view/heizungpanel && \
     cp '$REMOTE_STAGE'/usr/libexec/heizungpanel/* /usr/libexec/heizungpanel/ && \
     cp '$REMOTE_STAGE/usr/share/rpcd/acl.d/luci-app-heizungpanel.json' /usr/share/rpcd/acl.d/luci-app-heizungpanel.json && \
-    cp '$REMOTE_STAGE/usr/share/luci-app-heizungpanel.json' /usr/share/luci/menu.d/luci-app-heizungpanel.json && \
+    cp '$REMOTE_STAGE/usr/share/luci/menu.d/luci-app-heizungpanel.json' /usr/share/luci/menu.d/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/panel.js' /www/luci-static/resources/view/heizungpanel/panel.js && \
     chmod 755 /etc/init.d/heizungpanel /usr/libexec/heizungpanel/*.sh"
 
