@@ -25,7 +25,7 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 ## M2-Artefakte (v0)
 - `docs/mapping_v0.md` – eingefrorene Mapping-Tabelle mit Confidence.
 - `docs/campaign_v0.md` – v0 Session-Protokoll aus dem gelieferten Dump + klare Next-Steps für echte Einzelaktions-Captures.
-- `tools/device_ssh_deploy.sh` – SSH/SCP-Helper für Install/Push und Uninstall/Remove auf laufenden OpenWrt-Geräten.
+- `tools/device_ssh_deploy.sh` – SSH/SCP-Helper für Install/Push und Uninstall/Remove auf laufenden OpenWrt-Geräten (inkl. LuCI-Menü-Deployment und Cache-Refresh).
 
 ## Priorisierung
 1. **M2 validieren:** echte Ein-Aktions-Dumps (Idle, +, -, Z, V, Mode enter/exit) und `likely -> confirmed`.
@@ -37,7 +37,7 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
    - `option poll_interval_ms '1000'`
    - `option write_mode '0'`
 2. Service starten: `/etc/init.d/heizungpanel start`.
-3. LuCI öffnen und Status prüfen.
+3. LuCI öffnen und Status prüfen (Menü: **Services → Heizungpanel**).
 
 ## Deploy auf Zielgerät via SSH/SCP
 - Install/Push:
