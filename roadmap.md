@@ -27,3 +27,8 @@
 ## M4 – Optionaler Write-Mode
 - Nur mit UCI-Freigabe.
 - Allowlist + Audit-Logging.
+
+## M5 – Dokumentationssynchronität
+- Verbindliche Docs-Sync-Checkliste in der Contribution-Doku verankern.
+- PR-Standard: Doc-Impact-Note mit aktualisierten Dateien und Begründung.
+

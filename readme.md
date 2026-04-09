@@ -26,3 +26,15 @@ Teilweise funktional und im Einsatz:
 - `checklist.md` – operative Aufgaben.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
+
+## Contribution
+
+### Mandatory Docs Sync Checklist
+Bei **jeder** Protokoll- oder Feature-Änderung muss die Dokumentation synchron aktualisiert werden:
+- `concept.md`: Architektur-/Intent-Änderungen
+- `checklist.md`: umsetzbare Implementierungsaufgaben
+- `roadmap.md`: Milestone-Fortschritt/Status
+- `readme.md`: nutzerseitiges Verhalten, Deploy und Usage
+
+PRs ohne konsistente Aktualisierung dieser vier Dateien gelten als unvollständig.
+

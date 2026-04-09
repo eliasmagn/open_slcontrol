@@ -19,3 +19,4 @@ Die App ist bereits teilweise funktional:
 - Bestehende Funktionalität erhalten.
 - Safety-first (read-only default, minimale ACL).
 - Schrittweise Härtung vor Feature-Ausbau.
+- Dokumentation bleibt synchron: Protokoll-/Feature-Änderungen werden in `concept.md`, `checklist.md`, `roadmap.md` und `readme.md` nachgeführt.

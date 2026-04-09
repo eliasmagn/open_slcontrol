@@ -29,3 +29,7 @@
 - [ ] Feed-Paketstruktur vervollständigen.
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1-Progress gepflegt.
+
+## F) PR-Dokumentationspflicht
+- [ ] Jede PR enthält eine kurze **Doc-Impact-Note**: welche der vier Dateien (`concept.md`, `checklist.md`, `roadmap.md`, `readme.md`) wurden aktualisiert – und warum.
+
