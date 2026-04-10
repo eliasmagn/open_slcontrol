@@ -202,3 +202,8 @@ Neu seit 2026-04-10 (Display-Reassembly-Korrektur):
 - Dadurch bleibt der vorherige Zwischenstand während Segmentupdates erhalten; das Display wird nicht mehr pro Teilblock neu geleert und ist bei Uhrzeitbetrieb wieder lesbar.
 - Der Parser (`usr/libexec/heizungpanel/parser.uc`) übernimmt dieselbe Semantik und liefert zusätzlich `mode_code` im JSON-State für Polling-Fallbacks.
 - Modus-Latch wird zusätzlich über bekannte Abschlussbytes (`83 EF`, `83 FB`) gespeist, damit die Betriebsartenanzeige stabiler bleibt.
+
+Neu seit 2026-04-10 (/tmp-Stabilitätsfix):
+- `state_bridge.sh` nutzt für `state_cache_file` kein `tee`-Append mehr, sondern schreibt nur noch den jeweils letzten Parser-State in die Cache-Datei.
+- Damit bleibt `/tmp/heizungpanel/state.json` konstant klein (eine Zeile) und kann den Router nicht mehr durch ungebremstes Dateiwachstum volllaufen lassen.
+- Cache-Updates erfolgen atomar über temporäre Datei + `mv`; beim Start wird der Cache einmal truncatet.

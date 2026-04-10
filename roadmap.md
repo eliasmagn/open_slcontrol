@@ -101,3 +101,4 @@
 - Stand 2026-04-10: UI-Feedback für Send-/Config-Aktionen von globalen LuCI-Alerts auf lokale Inline-Meldungen im Panel umgestellt (kurze Anzeigezeiten, kein Alert-Stacking, kein Layout-Sprung durch reservierten Meldungsbereich).
 - Stand 2026-04-10: 0x320-Reassembly auf Marker-Protokoll umgestellt (`81` Start/Clear, adressierte Teilupdates, `83 <mode_byte>` Abschluss), um segmentweises Flackern/Abhacken im Uhrzeitbetrieb zu vermeiden.
 - Stand 2026-04-10: Parser-JSON um `mode_code` erweitert; bekannte Abschlussbytes (`EF`/`FB`) werden zusätzlich als latched Modusquelle genutzt.
+- Stand 2026-04-10: State-Cache-Schreibpfad in `state_bridge.sh` auf Single-Line-Latest-State umgestellt (statt `tee`-Append), damit `/tmp/heizungpanel/state.json` nicht unendlich wächst und Systeme destabilisiert.

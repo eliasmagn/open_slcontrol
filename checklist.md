@@ -177,3 +177,8 @@
 - [x] Segment-„Abhacken“ behoben: Buffer wird nicht mehr pro Teilsegment geleert, sondern nur bei explizitem `0x81` oder nach Fallback-Timeout.
 - [x] Modus-Latch um `mode_code` erweitert (`0x83 EF/FB`), sodass Betriebsarten-LED/Modushinweis zusätzlich zum 0x321-Latch aus dem Display-Protokoll gespeist werden.
 - [x] Parser (`parser.uc`) liefert `mode_code` im JSON-State und übernimmt dieselbe `0x81`/`0x83`-Semantik für Polling-Fallback.
+
+## Update 2026-04-10 – /tmp-Wachstum durch State-Cache gestoppt
+- [x] `state_bridge.sh` schreibt den Cache nicht mehr per `tee` als Endlosdatei, sondern hält `/tmp/heizungpanel/state.json` strikt auf **eine** JSON-Zeile (latest state).
+- [x] Atomares Cache-Update (`.tmp` + `mv`) ergänzt, damit `state.sh` keine halben Schreibzustände liest.
+- [x] Start-Truncate für `state_cache_file` ergänzt, damit vorhandene Altdateien beim Dienststart sofort freigegeben werden.
