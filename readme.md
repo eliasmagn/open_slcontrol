@@ -1,5 +1,20 @@
 # open_slcontrol
 
+## Runtime-Modell (kanonisch, Stand 2026-04-10)
+- **Raw-first ist Standard**: Liveanzeige im Browser wird aus Raw-Frames (`0x320/0x321`) dekodiert.
+- **Leichte Retains on-device**:
+  - `<mqtt_base>/mode` = **durable/latch** für bekannte Betriebsart (`0x321 flags16`)
+  - `<mqtt_base>/snapshot` = letzter 2x20-Display-Snapshot
+  - `<mqtt_base>/state` = optional/legacy (Debug), standardmäßig aus
+- **Default-Publishing**: `publish_raw=1`, `publish_mode=1`, `publish_snapshot=1`, `publish_state=0`.
+- **CAN-Setup bleibt ausschließlich im Init-Skript** (`/etc/init.d/heizungpanel`).
+
+## Neu seit 2026-04-10 (durable Mode-Latch gegen transiente 0x321-Werte)
+- `mode_bridge.sh` publiziert retained auf `<mqtt_base>/mode` jetzt **nur noch bei bekannten persistenten Betriebsarten** (`7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`).
+- Transiente/unbekannte `0x321`-Werte überschreiben den durable Mode-Latch nicht mehr.
+- Für Beobachtbarkeit wird jeder `0x321`-Wechsel weiterhin unretained auf `<mqtt_base>/mode/current` publiziert.
+- `state.sh` nutzt weiter retained `mode` als primäre Modusquelle für den Bootstrap; dadurch bleibt der UI-Startmodus stabil nach Navigation/Button-Events.
+
 ## Neu seit 2026-04-10 (JSON-safe Bootstrap/Snapshot + robuste Hydration)
 - `panel.js` liest Bootstrapdaten jetzt robust aus **flat**-Feldern und aus den verschachtelten Feldern (`mode.*`, `snapshot.*`) und hydriert damit weiterhin den internen 2x20-Decoderzustand (`lcd[]`, `mode_flags16`, `mode_code`).
 - `snapshot_bridge.sh` escaped Snapshotstrings vor MQTT-Publish jetzt JSON-sicher (u. a. `\` und `"`), damit auch ungewöhnliche Displayinhalte gültiges JSON erzeugen.

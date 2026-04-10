@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Mode-Retention stabilisiert (durable statt transient)
+- Retained Mode-Topic ist jetzt auf langlebige Betriebsarten gelatcht; unbekannte/transiente `0x321`-Werte überschreiben den retained Status nicht mehr.
+- Optionaler Diagnosekanal `<mqtt_base>/mode/current` ergänzt (unretained), um den letzten rohen `0x321`-Wechsel sichtbar zu halten.
+- Wirkung auf UI-Bootstrap: `state.sh` liest weiterhin retained `mode` als primäre Modusquelle, wodurch der Startzustand nach Button-/Navigations-Events stabil bleibt.
+
 ## Update 2026-04-10 – JSON-robuste Retained-Bootstrapkette
 - Snapshot-Retain wird jetzt JSON-sicher escaped publiziert (`snapshot_bridge.sh`), damit Sonderzeichen im Displayinhalt keine ungültigen Payloads erzeugen.
 - Bootstrap-API (`state.sh`) baut JSON über `jshn` statt roher `%s`-Interpolation und bleibt damit auch bei `"`/`\` stabil.
