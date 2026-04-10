@@ -1,5 +1,11 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Durable Mode-Latch
+- Der retained Topic `<mqtt_base>/mode` ist ausdrücklich ein **langlebiger Betriebsarten-Latch** und darf nicht durch transiente/unbekannte `0x321`-Zwischenwerte überschrieben werden.
+- `mode_bridge.sh` publiziert retained deshalb nur für bekannte persistente Modi (`7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`).
+- Für Diagnose/Beobachtung wird der jeweils letzte rohe `0x321`-Wechsel separat und **unretained** auf `<mqtt_base>/mode/current` geführt.
+- `state.sh` bleibt beim Prinzip „retained mode als Primärquelle, snapshot für Display-Bootstrap, optional legacy state als Fallback“.
+
 ## Architektur-Update 2026-04-10 – JSON-sichere Bootstrap-Payloads
 - Snapshot-Retains werden beim Erzeugen JSON-sicher escaped, sodass Displayzeichen wie `"` und `\` keine kaputten MQTT-JSON-Zeilen erzeugen.
 - `state.sh` baut die Bootstrapantwort strukturiert via `jshn` auf; Stringfelder werden damit zentral und korrekt escaped.

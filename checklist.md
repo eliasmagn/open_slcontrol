@@ -1,5 +1,11 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Durable Mode-Latch (0x321)
+- [x] `mode_bridge.sh` so angepasst, dass retained `<mqtt_base>/mode` nur noch bei bekannten persistenten Moduswerten geschrieben wird.
+- [x] Transiente/unbekannte `0x321`-Werte überschreiben retained mode nicht mehr.
+- [x] Observability ergänzt: letzter roher `0x321`-Wert wird unretained auf `<mqtt_base>/mode/current` publiziert.
+- [x] Bootstrap-Pfad bleibt unverändert leichtgewichtig: `state.sh` liest retained `mode` primär, `snapshot` bleibt intakt, legacy `state` nur optionaler Fallback.
+
 ## Update 2026-04-10 – JSON-safe Bootstrap/Snapshot
 - [x] `snapshot_bridge.sh` escaped `line1`/`line2`/`mode_code` vor JSON-Output, sodass `"`/`\` die Payload nicht mehr brechen.
 - [x] `state.sh` auf `jshn`-basiertes JSON-Building umgestellt (`json_add_string` + `json_dump`) statt manueller Stringinterpolation.

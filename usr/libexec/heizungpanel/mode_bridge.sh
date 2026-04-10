@@ -4,11 +4,13 @@ MQTT_HOST="$1"
 MQTT_PORT="$2"
 TOPIC_RAW="$3"
 TOPIC_MODE="$4"
+TOPIC_MODE_CURRENT="$5"
 
 [ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
 [ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
 [ -n "$TOPIC_RAW" ] || TOPIC_RAW="heizungpanel/raw"
 [ -n "$TOPIC_MODE" ] || TOPIC_MODE="heizungpanel/mode"
+[ -n "$TOPIC_MODE_CURRENT" ] || TOPIC_MODE_CURRENT="${TOPIC_MODE}/current"
 BUILD_TAG="commit:8b755f2"
 
 logger -t heizungpanel "mode bridge start ($BUILD_TAG)"
@@ -32,10 +34,16 @@ function mode_name(flags) {
   if (flags == "FDFF") return "hand"
   return "unknown"
 }
-function emit(flags,    ts, name) {
+function emit_current(flags,    ts, name) {
   ts = now_ms()
   name = mode_name(flags)
-  printf("{\"schema_version\":1,\"ts_ms\":%d,\"flags16\":\"%s\",\"mode_name\":\"%s\"}\n", ts, flags, name)
+  printf("current\t{\"schema_version\":1,\"ts_ms\":%d,\"flags16\":\"%s\",\"mode_name\":\"%s\"}\n", ts, flags, name)
+  fflush()
+}
+function emit_mode(flags,    ts, name) {
+  ts = now_ms()
+  name = mode_name(flags)
+  printf("mode\t{\"schema_version\":1,\"ts_ms\":%d,\"flags16\":\"%s\",\"mode_name\":\"%s\"}\n", ts, flags, name)
   fflush()
 }
 function parse_id_hex(line,    a) {
@@ -75,9 +83,19 @@ function parse_len_bytes(line,    m, n, i, tok, want, count, out) {
     next
 
   last_flags = flags
-  emit(flags)
-}' \
-    | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_MODE" -r -l
+  emit_current(flags)
+
+  name = mode_name(flags)
+  if (name != "unknown")
+    emit_mode(flags)
+}' | while IFS="$(printf '\t')" read -r kind payload; do
+      [ -n "$payload" ] || continue
+      if [ "$kind" = "mode" ]; then
+        printf '%s\n' "$payload" | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_MODE" -r -l
+      elif [ "$kind" = "current" ]; then
+        printf '%s\n' "$payload" | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_MODE_CURRENT" -l
+      fi
+    done
 
   rc=$?
   logger -t heizungpanel "mode bridge exited (rc=$rc); retrying"
