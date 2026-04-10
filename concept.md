@@ -1,3 +1,8 @@
+## Architektur-Update 2026-04-10 – Kanonischer Bootstrap-Topic
+- Neues kleines Runtime-Topic `<mqtt_base>/bootstrap` eingeführt (retained, kanonisch): enthält nur `mode{flags16,mode_name,ts_ms}` und `snapshot{line1,line2,mode_code,ts_ms}`.
+- `state.sh` nutzt jetzt primär dieses kombinierte Bootstrap-Payload und fällt nur bei Bedarf auf `mode`+`snapshot` (und optional legacy `state`) zurück.
+- Raw-first bleibt unverändert: Browser dekodiert Liveanzeige weiterhin aus `<mqtt_base>/raw`; `mode/current` bleibt transient/debug-only.
+
 # Konzept – open_slcontrol
 
 ## Architektur-Update 2026-04-10 – `dev_readme` + Mode-Topic-Klarheit

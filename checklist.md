@@ -1,3 +1,9 @@
+## Update 2026-04-10 – Kanonischer Bootstrap-Topic
+- [x] Canonical retained Topic `<mqtt_base>/bootstrap` ergänzt (leichtgewichtig, kombiniert `mode` + `snapshot`).
+- [x] `state.sh` vereinfacht: primärer Bootstrap-Read über `<mqtt_base>/bootstrap`, kompatibler Fallback auf `mode`/`snapshot`/legacy `state` beibehalten.
+- [x] Runtime strikt belassen: `mode/current` bleibt transient und ist keine Bootstrap-Quelle; Raw bleibt Primär-Livepfad.
+- [x] Doku aktualisiert (`README.md`, `dev_readme.md`, `concept.md`, `roadmap.md`).
+
 # Checklist – Aufgaben und Fortschritt
 
 ## Update 2026-04-10 – `dev_readme` Transition + Runtime-Naming

@@ -13,7 +13,8 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 - `<mqtt_base>/raw` – Live-Rawframes, unretained (Default-Stream).
 - `<mqtt_base>/mode` – **durable + retained** Betriebsarten-Latch aus bekannten stabilen `0x321 flags16`.
 - `<mqtt_base>/mode/current` – **transient + unretained** letzter beobachteter `0x321`-Wert (Debug/Observability).
-- `<mqtt_base>/snapshot` – retained Bootstrap (`line1`, `line2`, `mode_code`).
+- `<mqtt_base>/snapshot` – retained Display-Snapshot (`line1`, `line2`, `mode_code`).
+- `<mqtt_base>/bootstrap` – **canonical retained Bootstrap** mit `mode{flags16,mode_name,ts_ms}` + `snapshot{line1,line2,mode_code,ts_ms}`.
 - `<mqtt_base>/state` – optionaler Legacy-Vollstate (`publish_state=0` per Default).
 
 ## Durable `mode` vs transient `mode/current`
@@ -24,10 +25,12 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 ## Bootstrap-Semantik
 
-`state.sh` hydriert den UI-Startzustand aus:
-1. retained `<mqtt_base>/mode` (durable)
+`state.sh` hydriert den UI-Startzustand primär aus retained `<mqtt_base>/bootstrap` (kanonisch, klein, kombiniert).
+
+Fallback (Kompatibilität):
+1. retained `<mqtt_base>/mode` (durable, niemals `mode/current`)
 2. retained `<mqtt_base>/snapshot`
-3. optional `<mqtt_base>/state` nur als Legacy-Fallback
+3. optional retained `<mqtt_base>/state` nur Legacy/Debug
 
 `mode/current` ist **keine** Bootstrap-Quelle.
 
@@ -37,6 +40,7 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 - `?mode=mode` oder `?mode=mode_durable`
 - `?mode=mode_current`, `?mode=current`, `?mode=mode/current`
 - `?mode=snapshot`
+- `?mode=bootstrap`
 - `?mode=state` (legacy)
 
 ## Defaults
@@ -44,6 +48,7 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 - `publish_raw=1`
 - `publish_mode=1`
 - `publish_snapshot=1`
+- `publish_bootstrap=1`
 - `publish_state=0`
 
 ## Deployment / Betrieb
