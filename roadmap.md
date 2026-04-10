@@ -100,6 +100,12 @@
 - Stand 2026-04-10: 0x320-Frontend-Rendering auf vollständige Burst-Neuzeichnung umgestellt (gesamtes 2x20 wird neu geschrieben, keine Restzeichen aus Vorwerten).
 - Stand 2026-04-10: UI-Feedback für Send-/Config-Aktionen von globalen LuCI-Alerts auf lokale Inline-Meldungen im Panel umgestellt (kurze Anzeigezeiten, kein Alert-Stacking, kein Layout-Sprung durch reservierten Meldungsbereich).
 - Stand 2026-04-10: 0x320-Reassembly auf Marker-Protokoll umgestellt (`81` Start/Clear, adressierte Teilupdates, `83 <mode_byte>` Abschluss), um segmentweises Flackern/Abhacken im Uhrzeitbetrieb zu vermeiden.
-- Stand 2026-04-10: Parser-JSON um `mode_code` erweitert; bekannte Abschlussbytes (`EF`/`FB`) werden zusätzlich als latched Modusquelle genutzt.
+- Stand 2026-04-10: Parser-JSON um `mode_code` erweitert; bekannte Abschlussbytes (`EF`/`FB`) stehen als zusätzliche Diagnose-/Hinweisquelle bereit.
 - Stand 2026-04-10: State-Cache-Schreibpfad in `state_bridge.sh` auf Single-Line-Latest-State umgestellt (statt `tee`-Append), damit `/tmp/heizungpanel/state.json` nicht unendlich wächst und Systeme destabilisiert.
 - Stand 2026-04-10: Parser-RegEx für Candump-Format-B auf ucode-kompatible Syntax ohne `(?:...)` korrigiert; damit endet der state-bridge Restart-Loop durch Laufzeit-Syntaxfehler.
+- Stand 2026-04-10: `mode_code`-Deutung geschärft – `83 EF/83 FB` werden als Display-/Screenklasse geführt, nicht als Heizungs-Betriebsmodus.
+- Stand 2026-04-10: LED-Priorität gehärtet – `0x321 mode_flags16` entscheidet primär; `0x320 mode_code` dient nur noch als Fallback bei fehlendem bekanntem Latch-Mode.
+- Stand 2026-04-10: CAN-Quellenpriorität finalisiert – aktive Betriebsarten-LEDs werden ausschließlich aus `0x321` gesetzt; `0x320 mode_code` bleibt diagnostisch und setzt keinen Latch.
+- Stand 2026-04-10: Moduswechsel-ACK im LuCI ergänzt – nach Sendekommando wird eine passende `0x321`-Bestätigung der Anlage aktiv überwacht (Erfolg/Timeout-Hinweis).
+- Stand 2026-04-10: `0x320`-Abschlussbytes (`83 EF`/`83 FB`) in LuCI als Screenklasse gekennzeichnet („kein Anlagenmodus“), um Fehlinterpretation als Heizungsmodus zu vermeiden.
+- Stand 2026-04-10: Build-Traceability ergänzt – Init + Bridges loggen nun ein `BUILD_TAG` (Commit-String) beim Start in Syslog.

@@ -63,3 +63,9 @@ Die App ist funktional im Read-only-Pfad:
 21. Daemon-seitige Zustandsvorhaltung: `state_bridge.sh` schreibt den letzten JSON-State nach `/tmp/heizungpanel/state.json`, sodass beim ersten Öffnen des Webinterface sofort ein bekannter Zustand vorliegt (auch wenn MQTT gerade keine frische Antwort liefert).
 22. Korrektur 2026-04-10: Display bleibt im Push-Betrieb ohne künstliches Blanking; persistiert wird nur der Betriebsartenstatus der LEDs (Latch), nicht ein zusätzlicher Display-Flicker-Effekt.
 23. Lesbarkeits-/Safety-Korrektur 2026-04-10: Im Frontend wird pro 0x320-Burst immer ein kompletter 2x20-Frame aus einem zuvor geleerten 40-Char-Buffer aufgebaut und dann als Ganzes gerendert (keine Restzeichen).
+24. Feldkorrektur 2026-04-10: `mode_code`-Hinweise (`0x83 EF/FB`) werden nicht mehr als Betriebsarten interpretiert, sondern als Display-/Screenzustand (Diagnose).
+25. Prioritätsregel 2026-04-10: Für die LED-Anzeige hat gelatchtes `mode_flags16` aus `0x321` Vorrang; `mode_code` aus `0x320` wird nur noch als Fallback genutzt, wenn kein bekannter `mode_flags16`-Status vorliegt.
+26. CAN-Quellenpriorität 2026-04-10: Der gelatchte `0x321`-Status der Anlage ist die einzige Quelle für aktive Betriebsarten-LEDs; `0x320 mode_code` bleibt rein diagnostisch (Hinweis/Fallbacktext), schreibt keinen Modus-Latch mehr.
+27. Sendebestätigung 2026-04-10: Nach Modus-Sendebefehlen wartet das Frontend auf ein passendes `0x321 flags16` als Anlagen-Bestätigung und meldet Erfolg/Timeout sichtbar im Panel.
+28. Hypothese 2026-04-10 (Feldfeedback): `0x320`-Abschlussbytes `83 EF`/`83 FB` werden als **Display-/Screenklassen** interpretiert (z. B. Standardstatus vs. interaktiv/zweizeilig), nicht als Heizungs-Betriebsmodus.
+29. Build-Identifikation 2026-04-10: Init- und Bridge-Skripte tragen ein `BUILD_TAG`-Commit-Label und loggen dieses beim Start via `logger -t heizungpanel`, damit die laufende Version im Syslog sichtbar ist.

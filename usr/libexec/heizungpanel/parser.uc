@@ -380,11 +380,6 @@ while ((line = input.read("line")) != null) {
         if (off == 0x83) {
             if (length(data) >= 4) {
                 state.mode_code = uc(substr(data, 2, 2));
-                // Mirror known mode bytes into latched mode_flags when possible.
-                if (state.mode_code == "EF")
-                    state.mode_flags16 = "7FFF";
-                else if (state.mode_code == "FB")
-                    state.mode_flags16 = "BFFF";
             }
             emit(false);
             continue;
