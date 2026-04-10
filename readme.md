@@ -1,5 +1,10 @@
 # open_slcontrol
 
+## Neu seit 2026-04-10 (Bootstrap-Hydration im Browserdecoder)
+- `panel.js` hydriert beim Bootstrap jetzt nicht nur das DOM, sondern auch den internen 2x20-Decoderpuffer (`lcd[]`) sowie `mode_flags16`/`mode_code`.
+- Dadurch bleibt der initiale Snapshot stabil, wenn als erstes Live-Frame nur `0x321` oder ein früher `0x83` eintrifft.
+- Ergebnis: Raw-first bleibt unverändert (Live weiter über Raw-SSE), aber ohne frühes „Leer-Rendern“ direkt nach dem Seitenaufruf.
+
 ## Neu seit 2026-04-10 (Runtime-Trim / True Raw-first)
 - `state.sh` fragt den optionalen Legacy-State (`<mqtt_base>/state`) nur noch bei fehlendem Bootstrap (`mode`/`snapshot`) ab.
 - `state_bridge.sh` ist im Log explizit als „legacy full-state bridge“ markiert.

@@ -1,5 +1,10 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Bootstrap-Hydration stabilisiert
+- Beim UI-Bootstrap wird der retained Snapshot jetzt als **Decoder-Startzustand** übernommen (nicht nur als DOM-Text).
+- Konkret werden 2x20-Zeilen in den internen LCD-Puffer hydriert und mit retained `mode_flags16`/`mode_code` verknüpft.
+- Damit bleibt der erste Live-Render bei frühen `0x321`/`0x83`-Frames stabil, ohne den Bootstrap kurzfristig zu „verwerfen“.
+
 ## Architektur-Update 2026-04-10 – Runtime-Trim
 - `raw_bridge.sh` bleibt der primäre Livepfad.
 - `state.sh` priorisiert retained `mode` + `snapshot` vollständig und nutzt `.../state` nur noch bei fehlendem Bootstrap.
