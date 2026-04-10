@@ -57,6 +57,7 @@
 - Stand 2026-04-09: Deploy startet den Dienst auf frischen Geräten robust mit `stop || true` + `start` (statt `restart`), damit nach Device-Reset kein zweiter Push nötig ist.
 - Stand 2026-04-10: Deploy-CLI validiert fehlende Pflichtwerte robuster (`--port`, `--identity`, `--stage`) und bietet `--overwrite-config` für bewusstes Überschreiben von `/etc/config/heizungpanel`.
 - Stand 2026-04-10: Deploy-Helper behebt einen Regressionsfehler im SCP-Aufruf; bei `install|push` werden Source/Target wieder korrekt übergeben (Fix für lokalen `scp usage`-Abbruch bei Schritt `[2/4]`).
+- Stand 2026-04-10: Deploy-/Runtime-Härtung gegen Netzverlust: CAN-Setup akzeptiert nur noch `can*|vcan*|slcan*`; der Deploy-Helper überspringt den automatischen Dienstneustart bei unsicherem `can_if` und warnt stattdessen.
 
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.

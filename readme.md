@@ -145,6 +145,7 @@ Optionen:
 - `-s, --stage <path>` Remote-Temp-Verzeichnis (Default `/tmp/open_slcontrol_deploy`).
 - `--no-restart` kopiert/löscht Dateien ohne Service-Neustart.
 - `--overwrite-config` überschreibt bei `install|push` die vorhandene `/etc/config/heizungpanel` explizit.
+- Beim automatischen Restart wird `can_if` validiert; bei unsicherem Interface-Namen wird `heizungpanel` nicht gestartet (mit Warnmeldung statt Netzwerkausfall-Risiko).
 
 ## Security
 - Standard: Safe Read-only.
@@ -180,3 +181,7 @@ Neu seit 2026-04-10 (Vereinfachung):
 
 Neu seit 2026-04-10 (Send-Mode-Fix):
 - Beim CAN-(Re)Setup wird bei `write_mode=1` nun explizit `listen-only off` gesetzt (inkl. Bridge-Reinit-Pfade), damit Senden nicht an einem zuvor gesetzten Listen-only-Status hängen bleibt.
+
+Neu seit 2026-04-10 (Deploy-/Netzwerk-Schutz):
+- CAN-Setup verweigert jetzt explizit Nicht-CAN-Interfaces (`can*`, `vcan*`, `slcan*` sind erlaubt). Dadurch kann ein falsch gesetztes `can_if` nicht mehr versehentlich LAN/WAN-Interfaces herunterziehen.
+- `tools/device_ssh_deploy.sh` überspringt den automatischen `heizungpanel`-Restart, wenn `can_setup=1` mit unsicherem `can_if` erkannt wird, und meldet stattdessen eine Warnung.
