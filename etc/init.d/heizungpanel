@@ -57,7 +57,7 @@ start_service() {
 
   # RAW bridge with internal retry loop
   procd_open_instance raw
-  procd_set_param command /usr/libexec/heizungpanel/raw_bridge.sh "$can_if" "$can_bitrate" "$can_setup" "$listen_only" "$mqtt_host" "$mqtt_port" "$topic_raw"
+  procd_set_param command /usr/libexec/heizungpanel/raw_bridge.sh "$can_if" "$mqtt_host" "$mqtt_port" "$topic_raw"
   procd_set_param respawn 3600 5 5
   procd_set_param stdout 1
   procd_set_param stderr 1
@@ -65,7 +65,7 @@ start_service() {
 
   # STATE bridge with CAN re-init on failures
   procd_open_instance state
-  procd_set_param command /usr/libexec/heizungpanel/state_bridge.sh "$can_if" "$can_bitrate" "$can_setup" "$listen_only" "$mqtt_host" "$mqtt_port" "$topic_state"
+  procd_set_param command /usr/libexec/heizungpanel/state_bridge.sh "$can_if" "$can_bitrate" "$mqtt_host" "$mqtt_port" "$topic_state"
   procd_set_param respawn 3600 5 5
   procd_set_param stdout 1
   procd_set_param stderr 1

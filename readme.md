@@ -225,3 +225,9 @@ Neu seit 2026-04-10 (/tmp-Stabilitätsfix):
 Neu seit 2026-04-10 (Parser-Kompatibilitätsfix):
 - `parser.uc` nutzt für Candump-Format-B nicht mehr die nicht überall unterstützte Regex-Form `(?:...)`.
 - Dadurch verschwindet der wiederholte Laufzeitfehler `Syntax error: Repetition not preceded by valid expression` und die `state_bridge` fällt nicht mehr in einen Dauer-Restart-Loop.
+
+Neu seit 2026-04-10 (Restkonsolidierung):
+- Bridge-Parameter entschlackt: `raw_bridge.sh` und `state_bridge.sh` tragen keine toten CAN-Setup-Argumente (`CAN_SETUP`, `LISTEN_ONLY`) mehr.
+- Parser-Env-Transfer gehärtet: `state_bridge.sh` setzt `CAN_IF` und `CAN_BITRATE` direkt am `ucode`-Prozess in der Pipeline.
+- Doku-Doppelung entschärft: `README.md` ist jetzt bewusst nur ein Verweis auf diese Datei (`readme.md`) als Single Source of Truth.
+- LuCI-Konfigcode bereinigt: ungenutztes `require ui` und tote `inputRow()` aus `config.js` entfernt.

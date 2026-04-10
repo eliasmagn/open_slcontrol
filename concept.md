@@ -6,7 +6,7 @@ Eine robuste OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN, mit stabil
 ## Ausgangslage
 Die App ist funktional im Read-only-Pfad:
 - LuCI-WebGUI ist sichtbar und nutzbar.
-- CAN-Interface + Bridges laufen mit Reconnect-Verhalten inkl. CAN-Reinit in beiden Bridges.
+- CAN-Interface wird zentral im Init-Skript konfiguriert; Bridges laufen mit Reconnect-Schleifen als reine Consumer/Publisher.
 - `candump`-Frames werden geparst und als JSON-State verteilt.
 - Der SSH/SCP-Deploy-Weg ist vorhanden; ein Stage-Lifetime-Bug im Deploy-Skript wurde am 2026-04-09 behoben, damit Uploads zuverlässig laufen.
 - Der SSH/SCP-Deploy-Weg ist auf OpenWrt/Dropbear-Ziele ohne SFTP-Server angepasst (`scp -O`), damit Deployments nicht an `ash: /usr/libexec/sftp-server: not found` scheitern (2026-04-09).
@@ -20,7 +20,7 @@ Die App ist funktional im Read-only-Pfad:
 - Der SSH/SCP-Deploy-Weg prüft vor dem automatischen Dienstneustart die CAN-Interface-Sicherheit und überspringt den Restart mit Warnung, wenn ein unsicheres `can_if` erkannt wird (2026-04-10).
 
 ## Architektur (Soll)
-1. Erfassung: `candump` auf `can_if` (Raw/State jeweils mit CAN-Reinit bei Fehlern).
+1. Erfassung: `candump` auf `can_if` (Raw/State mit Retry-Schleifen; CAN-Setup ausschließlich im Init-Skript).
 2. Parsing: `parser.uc` bleibt für den State-Topic-Pfad verfügbar, aber die LuCI-Visualisierung dekodiert eingehende Rohframes (`0x320/0x321/0x1F5`) direkt im Browser.
    Parser-RegExe bleiben auf die tatsächlich verfügbare ucode-Engine begrenzt (keine nicht unterstützten Konstrukte wie `(?:...)`), um Bridge-Crash-Loops auf älteren Targets zu vermeiden.
 3. Verteilung: MQTT retain als Primärquelle; zusätzlich stellt ein CGI-SSE-Bridge (`/www/cgi-bin/heizungpanel_stream`) den Raw-Topic-Strom als `text/event-stream` bereit.
@@ -55,7 +55,7 @@ Die App ist funktional im Read-only-Pfad:
 
 15. Vereinfachter Konfigfluss: keine zusätzliche MQTT-Unlock-Policy mehr; die App verwendet den normalen UCI-Konfigurationspfad für `heizungpanel.main` ohne extra Schutzschicht.
 
-16. CAN-Write-Betrieb: Bei aktivem Write-Mode wird beim (Re-)Setup des CAN-Interfaces `listen-only off` explizit gesetzt (Init + Bridge-Reinit), um latente Listen-only-Reste sicher zu überschreiben.
+16. CAN-Write-Betrieb: Bei aktivem Write-Mode wird beim (Re-)Setup des CAN-Interfaces `listen-only off` explizit gesetzt (zentral im Init), um latente Listen-only-Reste sicher zu überschreiben.
 17. Interface-Safety: CAN-Setup ist strikt auf Interface-Präfixe `can*`, `vcan*`, `slcan*` begrenzt, damit Fehlkonfigurationen keine Netzwerk-Uplinks herunterfahren.
 18. Feldabgleich 2026-04-10: LCD-Geometrie auf 2x20 erweitert (statt 2x16), inkl. HD44780-Offset-Fenster `0x00..0x13` und `0x40..0x53`.
 19. UI-Verhalten: Bei erkannten Inhaltswechseln wird ein kurzes LCD-Blanking simuliert, um das reale Umschaltverhalten besser abzubilden.
@@ -75,3 +75,6 @@ Die App ist funktional im Read-only-Pfad:
 32. CAN-Ownership 2026-04-10: Das CAN-Interface wird ausschließlich im Init-Skript konfiguriert; Bridges arbeiten als reine Consumer/Publisher ohne eigenes Link-Reconfigure.
 33. Decoder-Umgebung 2026-04-10: `state_bridge.sh` exportiert `CAN_IF`/`CAN_BITRATE` pro Prozess, damit `parser.uc` die Metadaten unabhängig von Pipeline-Scopes zuverlässig erhält.
 34. Display-Konsistenz 2026-04-10: Emulator, Parser und LuCI verwenden konsistent 2x20/40 Zeichen.
+
+35. Parser-Umgebung (Härtung 2026-04-10): `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf (`CAN_IF=... CAN_BITRATE=... /usr/bin/ucode ...`), damit die Metadaten in Pipelines robust ankommen.
+36. Doku-Quelle (Härtung 2026-04-10): `readme.md` ist kanonisch; `README.md` bleibt als kurzer Verweis, um Doppelpflege zu vermeiden.
