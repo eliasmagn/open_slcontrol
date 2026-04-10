@@ -1,5 +1,10 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Runtime-Trim (True Raw-first)
+- [x] `state.sh` so angepasst, dass der optionale Legacy-Topicabruf (`<mqtt_base>/state`) erst bei fehlendem `mode`/`snapshot` ausgeführt wird.
+- [x] `state_bridge.sh` als Legacy-Vollstatepfad im Startlog klar gekennzeichnet.
+- [x] Doku-Korrektur in `concept.md`/`roadmap.md`/`readme.md`: Produktionspfad bleibt browserseitiges Raw-Decoding.
+
 ## Update 2026-04-10 – Raw-first Architekturshift
 - [x] SSE-Default auf Raw umgestellt (`/cgi-bin/heizungpanel_stream` -> `<mqtt_base>/raw`).
 - [x] Neue retained Nebenkanäle eingeführt: `<mqtt_base>/mode` und `<mqtt_base>/snapshot`.
@@ -227,4 +232,4 @@
 - [ ] **Packaging als Install-Quelle**: Dateiliste zwischen Paket und SSH-Deploy aus einer Quelle erzeugen.
 - [ ] **Stream-Auth in LuCI/rpcd integrieren**: Query-Token mittelfristig durch Session-gebundene Auth ersetzen.
 - [ ] **Doku konsolidieren**: Doppelpflege zwischen `README.md`/`readme.md` abbauen.
-- [x] **PR1 Teilschritt umgesetzt:** LuCI-EventSource von Raw-Decode auf Backend-State umgestellt (Raw nur noch via `mode=raw` für Debug).
+- [x] **PR1 Teilschritt korrigiert auf Zielarchitektur:** LuCI-EventSource bleibt Raw-Decode-Produktionspfad; Backend-State ist optionaler Legacy-/Debugpfad.

@@ -18,7 +18,7 @@ STATE_CACHE_DIR="$(dirname "$STATE_CACHE")"
 
 mkdir -p "$STATE_CACHE_DIR" >/dev/null 2>&1 || true
 : > "$STATE_CACHE" 2>/dev/null || true
-logger -t heizungpanel "state bridge start ($BUILD_TAG)"
+logger -t heizungpanel "legacy full-state bridge start ($BUILD_TAG)"
 
 cache_and_forward() {
   local line tmp

@@ -1,5 +1,10 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Runtime-Trim
+- `raw_bridge.sh` bleibt der primäre Livepfad.
+- `state.sh` priorisiert retained `mode` + `snapshot` vollständig und nutzt `.../state` nur noch bei fehlendem Bootstrap.
+- Der Vollparserpfad (`state_bridge.sh`) ist klar als Legacy-/Debugpfad markiert und nicht Architektur-Default.
+
 ## Architektur-Update 2026-04-10 – Raw-first
 Die Runtime ist auf ein **raw-first browser-decoding**-Modell umgestellt:
 - OpenWrt publiziert primär Raw-CAN (`raw_bridge.sh`).
@@ -98,6 +103,7 @@ Zur Reduktion von Drift zwischen Parser, LuCI und Emulator wird die nächste Aus
 
 Kurzfristig umgesetzt: `state.sh` behandelt den State jetzt als versionierte API-Antwort mit struktureller JSON-Validierung und Metaangaben (`schema_version`, `source`, `age_ms`, `seq`) statt reinem Brace-Check.
 
-## Umsetzungsschritt PR1 (2026-04-10): Decoder-SSOT Richtung
-- LuCI-Pushpfad dekodiert den Raw-CAN-Stream nicht mehr clientseitig, sondern konsumiert den normalisierten JSON-State aus dem Backend-Topic.
-- Der SSE-Stream liefert standardmäßig `heizungpanel/state`; Raw bleibt nur noch als expliziter Debug-Modus (`?mode=raw`) verfügbar.
+## Umsetzungsschritt PR1 (2026-04-10): True Raw-first festgezogen
+- LuCI-Pushpfad bleibt clientseitig raw-dekodiert (`0x320/0x321`) als Produktionspfad.
+- Der SSE-Stream liefert standardmäßig `heizungpanel/raw`; `mode=state` bleibt nur optional für Legacy-/Debugzwecke.
+- On-device-Vorhaltung bleibt minimal (`mode` + `snapshot` retained); Vollstate-Decoding ist explizit sekundär.
