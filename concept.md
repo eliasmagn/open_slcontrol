@@ -1,5 +1,15 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Raw-first
+Die Runtime ist auf ein **raw-first browser-decoding**-Modell umgestellt:
+- OpenWrt publiziert primär Raw-CAN (`raw_bridge.sh`).
+- OpenWrt hält nur langlebige kleine Retains:
+  - `mode_bridge.sh` -> `<mqtt_base>/mode` (latched `0x321` Mode/LED)
+  - `snapshot_bridge.sh` -> `<mqtt_base>/snapshot` (minimaler 2x20 Bootstrap)
+- Volldecoding (`state_bridge.sh`) ist optional/debug (`publish_state=0` per Default).
+- LuCI-Panel dekodiert den Live-Displaystrom aus Rawframes im Browser für geringe Interaktionslatenz.
+
+
 ## Ziel
 Eine robuste OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN, mit stabilem Read-only-Betrieb als Standard und optionalem, abgesichertem Write-Modus.
 

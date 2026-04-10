@@ -1,5 +1,19 @@
 # open_slcontrol
 
+## Neu seit 2026-04-10 (Raw-first Architektur)
+- **Primärer UI-Pfad:** Browser nutzt jetzt standardmäßig den Raw-SSE-Stream: `/cgi-bin/heizungpanel_stream?mode=raw&token=...` (ohne `mode` ebenfalls raw).
+- **Embedded-Default entschlackt:** `publish_state=0` ist Default; die schwere Voll-Decodierung (`state_bridge.sh`) ist nur noch optional/debug.
+- **Dauerzustand bleibt on-device:** neuer `mode_bridge.sh` hält `heizungpanel/mode` retained (latched `0x321 flags16` + Mode-Name).
+- **Schneller First Paint:** neuer `snapshot_bridge.sh` hält `heizungpanel/snapshot` retained (2x20-Snapshot + `mode_code`) als Bootstrap.
+- **Bootstrap-Endpoint:** `state.sh` liefert jetzt primär ein leichtes Bootstrap (`mode` + `snapshot`) und nutzt `.../state` nur als Kompat-/Debug-Fallback.
+- **Saubere Topic-Trennung:**
+  - live raw: `<mqtt_base>/raw`
+  - retained mode/LED: `<mqtt_base>/mode`
+  - retained display bootstrap: `<mqtt_base>/snapshot`
+  - optional full decoded debug: `<mqtt_base>/state`
+- **Neue UCI-Schalter:** `publish_raw`, `publish_mode`, `publish_snapshot`, `publish_state` (Default: `1/1/1/0`).
+
+
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 ## Aktueller Stand (2026-04-10)

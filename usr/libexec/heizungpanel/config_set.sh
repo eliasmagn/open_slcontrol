@@ -62,7 +62,7 @@ validate_kv() {
       require_numeric "$value" || fail "Invalid poll_interval_ms" 2
       [ "$value" -ge 250 ] && [ "$value" -le 10000 ] || fail "poll_interval_ms out of range" 2
       ;;
-    write_mode)
+    write_mode|publish_raw|publish_mode|publish_snapshot|publish_state)
       case "$value" in 0|1) ;; *) fail "Invalid boolean for $key" 2 ;; esac
       ;;
     mqtt_host)
