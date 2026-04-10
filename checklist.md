@@ -1,5 +1,10 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Bootstrap-Live-Übergang finalisiert (pending-clear)
+- [x] LuCI-Decoder nutzt nach Bootstrap einen vorgemerkten `0x81`-Clear statt Sofort-Clear.
+- [x] Erstes echtes `0x320`-Textsegment führt das vorgemerkte Clear einmalig aus, bevor Livezeichen geschrieben werden.
+- [x] `state.sh` escaped Bootstrap-/Mode-Felder für robuste JSON-Ausgabe auch bei Sonderzeichen.
+
 ## Update 2026-04-10 – Bootstrap/Raw-Übergang weiter gehärtet
 - [x] LuCI-Decoder schützt Bootstrap gegen frühe Clear-Sequenzen: `0x81` wird nach Bootstrap ignoriert, bis ein erster Live-Textblock (`0x320` mit Offsetdaten) eingetroffen ist.
 - [x] Erstes `0x321`/`0x83` kann den Bootstrap dadurch nicht mehr mit Leerzeichen überschreiben.

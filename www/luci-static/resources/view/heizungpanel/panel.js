@@ -196,6 +196,7 @@ return view.extend({
     var liveHasRendered = false;
     var bootstrapHydrated = false;
     var liveTextSeen = false;
+    var pendingLiveClear = false;
 
     function hydrateLcdFromLines(a, b) {
       var l1 = pad20(a);
@@ -238,7 +239,9 @@ return view.extend({
       if (f.id !== '320' || f.data.length < 2) return;
       var lead = f.data.slice(0, 2).toUpperCase();
       if (lead === '81') {
-        if (!bootstrapHydrated || liveTextSeen) {
+        if (bootstrapHydrated && !liveTextSeen) {
+          pendingLiveClear = true;
+        } else {
           for (var i = 0; i < 40; i++) lcd[i] = ' ';
         }
         return;
@@ -255,6 +258,10 @@ return view.extend({
       var off = hex2dec(lead);
       var idx = lcdIndex(off);
       if (idx < 0) return;
+      if (pendingLiveClear) {
+        for (var k = 0; k < 40; k++) lcd[k] = ' ';
+        pendingLiveClear = false;
+      }
       liveTextSeen = true;
       for (var j = 2; (j + 1) < f.data.length && idx < 40; j += 2) {
         lcd[idx++] = byteToChar(f.data.slice(j, j + 2));
@@ -268,6 +275,7 @@ return view.extend({
       hydrateLcdFromLines(lineA, lineB);
       bootstrapHydrated = true;
       liveTextSeen = false;
+      pendingLiveClear = false;
       modeFlags = (st.mode_flags16 || '----').toUpperCase();
       modeCode = (st.mode_code || '--').toUpperCase();
       if (!liveHasRendered) {

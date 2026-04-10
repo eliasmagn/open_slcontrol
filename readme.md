@@ -1,5 +1,12 @@
 # open_slcontrol
 
+## Neu seit 2026-04-10 (Bootstrap-Hydration: Live-Clear verzögert)
+- `panel.js` schützt den Bootstrap-Startzustand jetzt auch bei frühen `0x81`-Frames mit einer **verzögerten Clear-Logik**:
+  - Ein frühes `0x81` wird nach Bootstrap zunächst nur vorgemerkt.
+  - Das tatsächliche Clear erfolgt erst beim ersten echten Live-Textsegment (`0x320` mit Offsetdaten).
+  - Dadurch bleibt der Bootstrap stabil sichtbar, bis echte Rohdaten ihn ablösen, ohne dass alte Zeichenreste in den ersten Live-Zyklus hineinragen.
+- `state.sh` escaped Bootstrap-Strings jetzt robust vor der JSON-Ausgabe, damit Sonderzeichen wie `\` und `"` keine ungültigen Antworten erzeugen.
+
 ## Neu seit 2026-04-10 (Bootstrap-Guard gegen frühe Clear-Frames)
 - `panel.js` schützt den gebootstrappten LCD-Inhalt jetzt zusätzlich während der Stream-Anlaufphase:
   - Nach Bootstrap wird ein frühes `0x81` (Clear) ignoriert, bis mindestens ein echter Live-Textblock aus `0x320` angekommen ist.
