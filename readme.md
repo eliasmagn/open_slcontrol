@@ -33,7 +33,11 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` hält den lokalen Stage-Ordner jetzt korrekt bis nach dem Upload (Fix für `scp .../etc: No such file or directory`).
 - Deploy-Helper-Fix: Upload nutzt erzwungen den klassischen SCP-Modus (`scp -O`) für OpenWrt/Dropbear-Ziele ohne SFTP-Server (Fix für `ash: /usr/libexec/sftp-server: not found`).
 - Deploy-Helper-Fix: LuCI-Menüeintrag wird jetzt mit ausgerollt (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`), damit die Ansicht nach Router-Reset/Neuinstallation wieder unter **Services** erscheint.
+- Deploy-Helper-Fix: Zusätzlich wird jetzt auch `/usr/share/luci-app-heizungpanel.json` ausgerollt/entfernt, damit sowohl ältere als auch aktuelle LuCI-Menüladepfade konsistent bedient werden.
+- Deploy-Helper-Härtung: Menü-JSON wird im Deploy aus einer kanonischen Quelle (`/usr/share/luci/menu.d/...`) gespiegelt, um Drift zwischen Legacy-/Current-Pfad zu vermeiden.
 - Deploy-Helper-Fix: LuCI-Caches (`/tmp/luci-indexcache`, `/tmp/luci-modulecache`) werden beim Deploy bereinigt, damit neue Menüeinträge sofort sichtbar sind.
+- Deploy-Helper-Härtung: Optionen mit Pflichtwert (`--port`, `--identity`, `--stage`) werden jetzt vorab validiert und liefern bei fehlendem Wert eine klare Fehlermeldung statt eines unsauberen `set -u`-Abbruchs.
+- Deploy-Helper-Härtung: Install überschreibt `/etc/config/heizungpanel` standardmäßig nicht mehr; mit `--overwrite-config` kann ein erzwungenes Überschreiben aktiviert werden.
 - Deploy-Helper-Fix: Service-Start nach frischem Reset/Erstinstallation gehärtet (`stop || true` + `start` statt `restart`), damit kein zweiter Push mehr nötig ist, wenn `ubus service delete ... (Not found)` beim ersten Lauf auftritt.
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` rollt jetzt zusätzlich `usr/libexec/heizungpanel/set_mode.sh` und `usr/libexec/heizungpanel/isolate_321.sh` mit aus.
 
@@ -132,6 +136,7 @@ Optionen:
 - `-i, --identity <key>` SSH-Key.
 - `-s, --stage <path>` Remote-Temp-Verzeichnis (Default `/tmp/open_slcontrol_deploy`).
 - `--no-restart` kopiert/löscht Dateien ohne Service-Neustart.
+- `--overwrite-config` überschreibt bei `install|push` die vorhandene `/etc/config/heizungpanel` explizit.
 
 ## Security
 - Standard: Safe Read-only.
