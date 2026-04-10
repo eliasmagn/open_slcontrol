@@ -120,6 +120,8 @@ create_stage_tree() {
 etc/init.d/heizungpanel
 etc/config/heizungpanel
 usr/libexec/heizungpanel/raw_bridge.sh
+usr/libexec/heizungpanel/mode_bridge.sh
+usr/libexec/heizungpanel/snapshot_bridge.sh
 usr/libexec/heizungpanel/state_bridge.sh
 usr/libexec/heizungpanel/state.sh
 usr/libexec/heizungpanel/parser.uc

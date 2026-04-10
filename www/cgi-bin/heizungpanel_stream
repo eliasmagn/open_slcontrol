@@ -37,11 +37,13 @@ if [ -n "$TOKEN_EXPECTED" ] && [ "$TOKEN_GIVEN" != "$TOKEN_EXPECTED" ]; then
 fi
 
 MODE="$(qs_get mode)"
-if [ "$MODE" = "raw" ]; then
-  TOPIC="$MQTT_BASE/raw"
-else
-  TOPIC="$MQTT_BASE/state"
-fi
+case "$MODE" in
+  ''|raw) TOPIC="$MQTT_BASE/raw" ;;
+  state) TOPIC="$MQTT_BASE/state" ;;
+  mode) TOPIC="$MQTT_BASE/mode" ;;
+  snapshot) TOPIC="$MQTT_BASE/snapshot" ;;
+  *) TOPIC="$MQTT_BASE/raw" ;;
+esac
 
 echo "Content-Type: text/event-stream"
 echo "Cache-Control: no-cache"

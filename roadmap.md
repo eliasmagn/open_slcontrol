@@ -1,5 +1,12 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Architekturphase "Raw-first" (umgesetzt)
+- Runtime-Priorität gedreht: Raw ist jetzt Standardpfad für UI-Liveupdates.
+- On-device-Decoding auf dauerhafte Minimalzustände reduziert (`mode` + `snapshot` retained).
+- Volldecoding bleibt als optionaler Debugpfad verfügbar, aber nicht mehr Default.
+- LuCI öffnet schnell mit Bootstrap und rekonstruiert laufende Anzeige direkt aus Rawframes.
+
+
 ## M1 – Betriebsstabilität (**abgeschlossen am 2026-04-09**)
 **Ziel:** Solider 24/7-Read-only-Betrieb als Freigabe-Gate für Folgephasen.
 

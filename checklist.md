@@ -1,5 +1,15 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Raw-first Architekturshift
+- [x] SSE-Default auf Raw umgestellt (`/cgi-bin/heizungpanel_stream` -> `<mqtt_base>/raw`).
+- [x] Neue retained Nebenkanäle eingeführt: `<mqtt_base>/mode` und `<mqtt_base>/snapshot`.
+- [x] Neue Lightweight-Dienste ergänzt: `mode_bridge.sh` und `snapshot_bridge.sh`.
+- [x] Init-Runtime per UCI-Schalter aufteilbar gemacht (`publish_raw/publish_mode/publish_snapshot/publish_state`).
+- [x] Default-Runtime auf raw-first gesetzt (`publish_state=0` als Debug-Opt-in).
+- [x] LuCI-Panel auf Raw-Livedecode + Bootstrap (`state.sh`) umgestellt.
+- [x] Begriffstrennung geschärft: raw stream vs mode retain vs snapshot retain vs optional full state.
+
+
 ## A) M1 Stabilität & Betrieb (**höchste Priorität**)
 - [x] CAN-Interface-Prüfung beim Start (Interface vorhanden?).
 - [x] Fehlerlogging bei CAN-Setup/Bitrate/Bring-Up.
