@@ -1,5 +1,10 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – JSON-sichere Bootstrap-Payloads
+- Snapshot-Retains werden beim Erzeugen JSON-sicher escaped, sodass Displayzeichen wie `"` und `\` keine kaputten MQTT-JSON-Zeilen erzeugen.
+- `state.sh` baut die Bootstrapantwort strukturiert via `jshn` auf; Stringfelder werden damit zentral und korrekt escaped.
+- Das Frontend akzeptiert Bootstrapfelder weiterhin sowohl in flacher Form als auch in `mode`/`snapshot`, um schema-robust zu bleiben.
+
 ## Architektur-Update 2026-04-10 – Bootstrap-zu-Live ohne Rest-/Leerartefakte
 - Nach Bootstrap wird ein frühes `0x81` nicht sofort ausgeführt, sondern als „pending clear“ markiert.
 - Erst wenn der erste echte Live-Textblock (`0x320` Offsets) eintrifft, wird der LCD-Puffer einmalig geleert und dann mit Livebytes befüllt.

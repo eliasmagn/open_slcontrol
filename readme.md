@@ -1,5 +1,10 @@
 # open_slcontrol
 
+## Neu seit 2026-04-10 (JSON-safe Bootstrap/Snapshot + robuste Hydration)
+- `panel.js` liest Bootstrapdaten jetzt robust aus **flat**-Feldern und aus den verschachtelten Feldern (`mode.*`, `snapshot.*`) und hydriert damit weiterhin den internen 2x20-Decoderzustand (`lcd[]`, `mode_flags16`, `mode_code`).
+- `snapshot_bridge.sh` escaped Snapshotstrings vor MQTT-Publish jetzt JSON-sicher (u. a. `\` und `"`), damit auch ungewöhnliche Displayinhalte gültiges JSON erzeugen.
+- `state.sh` erzeugt die Antwort nicht mehr per manuellem `printf "%s"`-Einsetzen, sondern über `jshn` (`json_add_string`/`json_dump`), sodass Bootstrap-JSON robust escaped bleibt.
+
 ## Neu seit 2026-04-10 (Bootstrap-Hydration: Live-Clear verzögert)
 - `panel.js` schützt den Bootstrap-Startzustand jetzt auch bei frühen `0x81`-Frames mit einer **verzögerten Clear-Logik**:
   - Ein frühes `0x81` wird nach Bootstrap zunächst nur vorgemerkt.
