@@ -102,3 +102,4 @@
 - Stand 2026-04-10: 0x320-Reassembly auf Marker-Protokoll umgestellt (`81` Start/Clear, adressierte Teilupdates, `83 <mode_byte>` Abschluss), um segmentweises Flackern/Abhacken im Uhrzeitbetrieb zu vermeiden.
 - Stand 2026-04-10: Parser-JSON um `mode_code` erweitert; bekannte Abschlussbytes (`EF`/`FB`) werden zusätzlich als latched Modusquelle genutzt.
 - Stand 2026-04-10: State-Cache-Schreibpfad in `state_bridge.sh` auf Single-Line-Latest-State umgestellt (statt `tee`-Append), damit `/tmp/heizungpanel/state.json` nicht unendlich wächst und Systeme destabilisiert.
+- Stand 2026-04-10: Parser-RegEx für Candump-Format-B auf ucode-kompatible Syntax ohne `(?:...)` korrigiert; damit endet der state-bridge Restart-Loop durch Laufzeit-Syntaxfehler.

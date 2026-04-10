@@ -182,3 +182,8 @@
 - [x] `state_bridge.sh` schreibt den Cache nicht mehr per `tee` als Endlosdatei, sondern hält `/tmp/heizungpanel/state.json` strikt auf **eine** JSON-Zeile (latest state).
 - [x] Atomares Cache-Update (`.tmp` + `mv`) ergänzt, damit `state.sh` keine halben Schreibzustände liest.
 - [x] Start-Truncate für `state_cache_file` ergänzt, damit vorhandene Altdateien beim Dienststart sofort freigegeben werden.
+
+## Update 2026-04-10 – Parser-RegEx-Kompatibilitätsfix (Crash-Loop)
+- [x] `parser.uc`: Candump-Format-RegEx auf ucode-kompatible Variante ohne `(?:...)` umgestellt.
+- [x] Capture-Group-Indices angepasst (`id/want/tail`), damit Parsing auf Zielsystemen ohne Regex-Feature-Support wieder stabil läuft.
+- [x] Folgewirkung: State-Bridge-Exit-Loop durch Parser-Syntaxfehler beendet (kein permanentes Reconnect-Stakkato mehr).

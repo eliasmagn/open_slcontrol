@@ -229,13 +229,14 @@ function parse_frame(line) {
 
     // Format B1: "can0  320   [4]  09 20 2E 20"
     // Format B2: "(ts) can0 RX - - 320 [4] 09 20 2E 20" (candump -a -t a -x)
-    m = match(line, /(?:^|\s)([0-9A-Fa-f]+)\s+\[\s*(\d+)\s*\]\s+(.+)\s*$/);
+    // NOTE: ucode regex on target does not support non-capturing groups `(?:...)`.
+    m = match(line, /(^|[ \t])([0-9A-Fa-f]+)[ \t]+\[[ \t]*(\d+)[ \t]*\][ \t]+(.+)[ \t]*$/);
     if (!m)
         return null;
 
-    let id = uc(m[1]);
-    let want = int(m[2]);
-    let tail = m[3];
+    let id = uc(m[2]);
+    let want = int(m[3]);
+    let tail = m[4];
     // candump -a -t a -x may append ASCII visualization in single quotes.
     // Strip that suffix to avoid accidental hex matches from text like "73".
     let q = index(tail, "'");

@@ -207,3 +207,7 @@ Neu seit 2026-04-10 (/tmp-Stabilitätsfix):
 - `state_bridge.sh` nutzt für `state_cache_file` kein `tee`-Append mehr, sondern schreibt nur noch den jeweils letzten Parser-State in die Cache-Datei.
 - Damit bleibt `/tmp/heizungpanel/state.json` konstant klein (eine Zeile) und kann den Router nicht mehr durch ungebremstes Dateiwachstum volllaufen lassen.
 - Cache-Updates erfolgen atomar über temporäre Datei + `mv`; beim Start wird der Cache einmal truncatet.
+
+Neu seit 2026-04-10 (Parser-Kompatibilitätsfix):
+- `parser.uc` nutzt für Candump-Format-B nicht mehr die nicht überall unterstützte Regex-Form `(?:...)`.
+- Dadurch verschwindet der wiederholte Laufzeitfehler `Syntax error: Repetition not preceded by valid expression` und die `state_bridge` fällt nicht mehr in einen Dauer-Restart-Loop.
