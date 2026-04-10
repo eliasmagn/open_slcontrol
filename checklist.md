@@ -1,5 +1,10 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Bootstrap/Raw-Übergang weiter gehärtet
+- [x] LuCI-Decoder schützt Bootstrap gegen frühe Clear-Sequenzen: `0x81` wird nach Bootstrap ignoriert, bis ein erster Live-Textblock (`0x320` mit Offsetdaten) eingetroffen ist.
+- [x] Erstes `0x321`/`0x83` kann den Bootstrap dadurch nicht mehr mit Leerzeichen überschreiben.
+- [x] `state.sh`-Retained-Abfragen intern vereinheitlicht (kleiner Helper für `mode`/`snapshot`/optional `state`), ohne Architekturänderung.
+
 ## Update 2026-04-10 – Bootstrap/Livedecode-Härtung
 - [x] Bootstrap-Hydration im LuCI-Decoder ergänzt: Snapshot-Zeilen werden in den internen `lcd[]`-Puffer übernommen (nicht nur ins DOM gerendert).
 - [x] Retained Bootstrap setzt beim Initialzustand zusätzlich `mode_flags16` und `mode_code`, sodass der erste `renderLive()` konsistent bleibt.
