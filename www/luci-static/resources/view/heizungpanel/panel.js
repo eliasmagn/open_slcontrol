@@ -335,184 +335,52 @@ return view.extend({
       ])
     ]);
 
-    var lcd = new Array(40).fill(' ');
-    var lcdAssembling = false;
-    var lcdFlushTimer = null;
     var frameCount = 0;
     var lastFrameAt = 0;
-    var state = {
-      line1: '                    ',
-      line2: '                    ',
-      flags16: '----',
-      mode_flags16: '----',
-      mode_code: '--',
-      last_1f5: ''
-    };
 
-    var byteToChar = function(hex) {
-      var b = parseInt(hex, 16);
-      if (hex === 'DF') return '°';
-      if (hex === 'E2') return 'ß';
-      if (hex === 'F5') return 'ü';
-      if (hex === 'E1') return 'ä';
-      if (hex === 'EF') return 'ö';
-      if (!isNaN(b) && b >= 32 && b <= 126) return String.fromCharCode(b);
-      return ' ';
-    };
 
-    var lcdIndexFromOffset = function(off) {
-      if (off >= 0x00 && off <= 0x13) return off;
-      if (off >= 0x40 && off <= 0x53) return 20 + (off - 0x40);
-      if (off >= 0x14 && off <= 0x1F) return off;
-      if (off >= 0x54 && off <= 0x5F) return 20 + (off - 0x54);
-      return -1;
-    };
+    var applyStateLine = function(line) {
+      if (!line) return;
 
-    var paintLcd = function(l1, l2) {
-      line1.textContent = l1;
-      line2.textContent = l2;
-      line1.className = 'l' + (l1.trim() ? '' : ' dim');
-      line2.className = 'l' + (l2.trim() ? '' : ' dim');
-    };
-
-    var parseRawFrame = function(line) {
-      var m = line.match(/([0-9A-Fa-f]+)#([0-9A-Fa-f]+)/);
-      if (m)
-        return { id: m[1].toUpperCase(), hex: m[2].toUpperCase() };
-
-      m = line.match(/(?:^|\s)([0-9A-Fa-f]+)\s+\[\s*(\d+)\s*\]\s+(.+)\s*$/);
-      if (!m) return null;
-      var id = m[1].toUpperCase();
-      var want = parseInt(m[2], 10) || 0;
-      var tail = m[3];
-      var q = tail.indexOf("'");
-      if (q >= 0) tail = tail.slice(0, q);
-      var bytes = tail.match(/[0-9A-Fa-f]{2}/g) || [];
-      if (want > 0 && bytes.length > want) bytes = bytes.slice(0, want);
-      if (!bytes.length) return null;
-      return { id: id, hex: bytes.join('').toUpperCase() };
-    };
-
-    var renderFromState = function(st) {
-      var l1 = (st.line1 || '').padEnd(20, ' ').slice(0, 20);
-      var l2 = (st.line2 || '').padEnd(20, ' ').slice(0, 20);
-      var hasLcdText = !!(l1.trim() || l2.trim());
-      var hasFlags = !!(st.flags16 && st.flags16 !== '----');
-      var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
-      var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      var modeFlagsNorm = String(st.mode_flags16 || st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      var modeCodeNorm = String(st.mode_code || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      var modeInfoFlags = modeByFlags[modeFlagsNorm];
-      var screenClassInfo = screenClassByCode[modeCodeNorm];
-      var keyInfo = keyByFlags[flagsNorm];
-
-      paintLcd(l1, l2);
-      lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString() + ' (Push)';
-      flags.textContent = 'frames: ' + frameCount + '  flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
-
-      clearLeds();
-      if (modeInfoFlags) {
-        modeInfoFlags.led.className = 'hp-led on';
-        modeHint.textContent = 'Modus aus 0x321 (Anlage/CAN): ' + modeInfoFlags.name + ' (' + modeFlagsNorm + ')';
-      } else if (keyInfo) {
-        modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
-      } else if (screenClassInfo) {
-        modeHint.textContent = '0x320 Abschlussbyte: ' + modeCodeNorm + ' = ' + screenClassInfo + ' (kein Anlagenmodus)';
-      } else if (modeCodeNorm) {
-        modeHint.textContent = '0x320 Abschlussbyte: ' + modeCodeNorm + ' (unbekannte Bildschirmklasse, kein Anlagenmodus)';
-      } else if (flagsNorm) {
-        modeHint.textContent = '0x321 aktiv, noch nicht zugeordnet: ' + flagsNorm;
-      } else {
-        modeHint.textContent = 'Modus aus 0x321: n/a';
+      var st = null;
+      try {
+        st = JSON.parse(line);
+      } catch (e) {
+        return;
       }
 
-      if (pendingModeAck) {
-        if (modeFlagsNorm === pendingModeAck.expected_flags) {
-          showActionFeedback('ok', 'CAN-Bestätigung: Modus "' + pendingModeAck.code + '" aktiv (' + modeFlagsNorm + ')', 2500);
-          pendingModeAck = null;
-        } else if (Date.now() > pendingModeAck.deadline && !pendingModeAck.warned) {
-          showActionFeedback('warn', 'Noch keine CAN-Bestätigung für "' + pendingModeAck.code + '" (erwartet ' + pendingModeAck.expected_flags + ')', 3000);
-          pendingModeAck.warned = true;
-        }
-      }
-
-      if (!hasAnyPayload) {
-        status.className = 'hp-status warn';
-        status.textContent = 'Status: verbunden, aber noch keine decodierbaren Paneldaten';
-      } else {
-        status.className = 'hp-status ok';
-        status.textContent = 'Status: live (Push/SSE)';
-      }
-    };
-
-    var applyRawLine = function(line) {
-      var f = parseRawFrame(line);
-      if (!f) return;
       frameCount++;
       lastFrameAt = Date.now();
 
-      if (f.id === '321' && f.hex.length >= 4) {
-        state.flags16 = f.hex.slice(0, 4);
-        if (modeByFlags[state.flags16]) state.mode_flags16 = state.flags16;
-        renderFromState(state);
-        return;
+      var l1 = (st.line1 || '').padEnd(20, ' ').slice(0, 20);
+      var l2 = (st.line2 || '').padEnd(20, ' ').slice(0, 20);
+      var modeFlagsNorm = String(st.mode_flags16 || st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+
+      renderFromState({
+        line1: l1,
+        line2: l2,
+        flags16: st.flags16 || '----',
+        mode_flags16: st.mode_flags16 || modeFlagsNorm || '----',
+        mode_code: st.mode_code || '--',
+        last_1f5: st.last_1f5 || ''
+      });
+
+      var parserTs = parseEpochMs(st.ts_ms);
+      var nowTs = Date.now();
+      var displayTs = parserTs;
+      var suffix = '';
+
+      if (!displayTs || Math.abs(nowTs - displayTs) > (5 * 60 * 1000)) {
+        displayTs = nowTs;
+        suffix = ' (Browserzeit)';
       }
 
-      if (f.id === '1F5') {
-        state.last_1f5 = f.hex;
-        renderFromState(state);
-        return;
+      lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date(displayTs).toLocaleString() + suffix;
+
+      if (st.status === 'no_data') {
+        status.className = 'hp-status warn';
+        status.textContent = 'Status: keine Live-Daten (Cache/MQTT leer)';
       }
-
-      if (f.id !== '320' || f.hex.length < 2) return;
-
-      var off = parseInt(f.hex.slice(0, 2), 16);
-      if (isNaN(off)) return;
-
-      // 0x81 marks a new LCD cycle (clear/reset buffer)
-      if (off === 0x81) {
-        lcd = new Array(40).fill(' ');
-        lcdAssembling = true;
-        if (lcdFlushTimer) {
-          window.clearTimeout(lcdFlushTimer);
-          lcdFlushTimer = null;
-        }
-        return;
-      }
-
-      // 0x83 <mode_byte> marks the end of an LCD cycle
-      if (off === 0x83) {
-        if (f.hex.length >= 4) state.mode_code = f.hex.slice(2, 4).toUpperCase();
-        state.line1 = lcd.slice(0, 20).join('');
-        state.line2 = lcd.slice(20, 40).join('');
-        renderFromState(state);
-        lcdAssembling = false;
-        if (lcdFlushTimer) {
-          window.clearTimeout(lcdFlushTimer);
-          lcdFlushTimer = null;
-        }
-        return;
-      }
-
-      var base = lcdIndexFromOffset(off);
-      if (base < 0) return;
-
-      if (!lcdAssembling) lcdAssembling = true;
-
-      for (var p = 2; p < f.hex.length; p += 2) {
-        var idx = base + ((p - 2) / 2);
-        if (idx < 0 || idx >= 40) continue;
-        lcd[idx] = byteToChar(f.hex.slice(p, p + 2));
-      }
-
-      if (lcdFlushTimer) window.clearTimeout(lcdFlushTimer);
-      lcdFlushTimer = window.setTimeout(function() {
-        state.line1 = lcd.slice(0, 20).join('');
-        state.line2 = lcd.slice(20, 40).join('');
-        renderFromState(state);
-        lcdAssembling = false;
-        lcdFlushTimer = null;
-      }, 120);
     };
 
     var connectPush = function() {
@@ -525,7 +393,7 @@ return view.extend({
       var url = '/cgi-bin/heizungpanel_stream?token=' + encodeURIComponent(streamToken);
       var es = new EventSource(url);
       es.onmessage = function(ev) {
-        applyRawLine(ev.data || '');
+        applyStateLine(ev.data || '');
       };
       es.onerror = function() {
         status.className = 'hp-status warn';

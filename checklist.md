@@ -207,3 +207,14 @@
 - [x] Parser-Umgebungsübergabe gehärtet: `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf in der Pipeline (prozesslokal, explizit).
 - [x] Doku-Drift zwischen `README.md` und `readme.md` entschärft: `README.md` verweist nur noch auf `readme.md` als kanonische Quelle.
 - [x] LuCI-Konfigcode bereinigt: tote Hilfsfunktion `inputRow()` und ungenutztes `require ui` aus `config.js` entfernt.
+
+## F) Architektur-Konsolidierung (neu)
+- [ ] **Decoder-Single-Source-of-Truth**: Browser-/Emulator-Decoder auf kanonische Backend-Decoderdaten umstellen.
+- [ ] **Konfig-API vereinheitlichen**: `config.sh`/`config_get.sh`/`config_set.sh`/`set_mode.sh` hinter einer kanonischen API konsolidieren.
+- [ ] **CAN-Ownership weiter härten**: genau ein Prozess darf `ip link ... can ...` steuern.
+- [x] **State-Semantik stärken**: `state.sh` validiert jetzt JSON strukturell (jshn), ergänzt `schema_version`, `source`, `age_ms`, `seq` und fällt bei Ungültigkeit robust auf MQTT/`no_data` zurück.
+- [ ] **Capability-Handshake einführen**: UI rendert Kommandos aus Backend-`supported_commands` statt statischer Annahmen.
+- [ ] **Packaging als Install-Quelle**: Dateiliste zwischen Paket und SSH-Deploy aus einer Quelle erzeugen.
+- [ ] **Stream-Auth in LuCI/rpcd integrieren**: Query-Token mittelfristig durch Session-gebundene Auth ersetzen.
+- [ ] **Doku konsolidieren**: Doppelpflege zwischen `README.md`/`readme.md` abbauen.
+- [x] **PR1 Teilschritt umgesetzt:** LuCI-EventSource von Raw-Decode auf Backend-State umgestellt (Raw nur noch via `mode=raw` für Debug).

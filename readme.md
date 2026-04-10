@@ -231,3 +231,19 @@ Neu seit 2026-04-10 (Restkonsolidierung):
 - Parser-Env-Transfer gehärtet: `state_bridge.sh` setzt `CAN_IF` und `CAN_BITRATE` direkt am `ucode`-Prozess in der Pipeline.
 - Doku-Doppelung entschärft: `README.md` ist jetzt bewusst nur ein Verweis auf diese Datei (`readme.md`) als Single Source of Truth.
 - LuCI-Konfigcode bereinigt: ungenutztes `require ui` und tote `inputRow()` aus `config.js` entfernt.
+
+## Neu seit 2026-04-10 (State-API-Härtung)
+- `usr/libexec/heizungpanel/state.sh` validiert Cache-/MQTT-Inhalte jetzt strukturell per JSON-Parser (`jshn`) statt nur auf `{...}`-Muster.
+- Jede erfolgreiche Antwort wird um versionierte Meta-Felder ergänzt:
+  - `schema_version: 1`
+  - `source: "cache" | "mqtt"`
+  - `age_ms` (Alter relativ zu `ts_ms`, sonst `-1`)
+  - `seq` (aus `source_frame`, falls vorhanden)
+- Bei ungültigem Cache erfolgt sauberer Fallback auf MQTT; bei weiterhin ungültigen Daten wird ein expliziter `no_data`-State geliefert.
+
+Diese Härtung ist die Grundlage für die nächste Konsolidierungsserie (Decoder-SSOT, API-Zusammenführung, CAN-Ownership-Zentralisierung).
+
+## Neu seit 2026-04-10 (Decoder-SSOT Teilschritt)
+- `www/cgi-bin/heizungpanel_stream` streamt standardmäßig `heizungpanel/state` (normalisierter Parser-State) statt `heizungpanel/raw`.
+- Rohframes sind nur noch als Debugpfad verfügbar: `/cgi-bin/heizungpanel_stream?token=<...>&mode=raw`.
+- Das LuCI-Panel konsumiert im Push-Betrieb damit primär Backend-State und führt keinen produktiven Raw-CAN-Reassembly-Pfad mehr aus.

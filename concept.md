@@ -78,3 +78,16 @@ Die App ist funktional im Read-only-Pfad:
 
 35. Parser-Umgebung (Härtung 2026-04-10): `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf (`CAN_IF=... CAN_BITRATE=... /usr/bin/ucode ...`), damit die Metadaten in Pipelines robust ankommen.
 36. Doku-Quelle (Härtung 2026-04-10): `readme.md` ist kanonisch; `README.md` bleibt als kurzer Verweis, um Doppelpflege zu vermeiden.
+
+## Architektur-Delta 2026-04-10 (Konsolidierungspfad)
+Zur Reduktion von Drift zwischen Parser, LuCI und Emulator wird die nächste Ausbaustufe als explizite Vier-Schichten-Architektur geführt:
+1. **Acquisition** (CAN/MQTT-Ingest + Ownership)
+2. **Decode/Core** (kanonische Protokolldekodierung + normalisierter State)
+3. **Control API** (Konfig, Capabilities, Kommandogate)
+4. **Presentation** (LuCI, Emulator, Debugpfade)
+
+Kurzfristig umgesetzt: `state.sh` behandelt den State jetzt als versionierte API-Antwort mit struktureller JSON-Validierung und Metaangaben (`schema_version`, `source`, `age_ms`, `seq`) statt reinem Brace-Check.
+
+## Umsetzungsschritt PR1 (2026-04-10): Decoder-SSOT Richtung
+- LuCI-Pushpfad dekodiert den Raw-CAN-Stream nicht mehr clientseitig, sondern konsumiert den normalisierten JSON-State aus dem Backend-Topic.
+- Der SSE-Stream liefert standardmäßig `heizungpanel/state`; Raw bleibt nur noch als expliziter Debug-Modus (`?mode=raw`) verfügbar.
