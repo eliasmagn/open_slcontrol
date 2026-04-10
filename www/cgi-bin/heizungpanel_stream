@@ -9,6 +9,12 @@ MQTT_BASE="$(uci -q get heizungpanel.main.mqtt_base)"
 [ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
 [ -n "$MQTT_BASE" ] || MQTT_BASE="heizungpanel"
 
+TOPIC_RAW="${MQTT_BASE}/raw"
+TOPIC_STATE="${MQTT_BASE}/state"
+TOPIC_MODE="${MQTT_BASE}/mode"
+TOPIC_MODE_CURRENT="${TOPIC_MODE}/current"
+TOPIC_SNAPSHOT="${MQTT_BASE}/snapshot"
+
 qs_get() {
   local key="$1"
   local in="${QUERY_STRING:-}"
@@ -38,12 +44,12 @@ fi
 
 MODE="$(qs_get mode)"
 case "$MODE" in
-  ''|raw) TOPIC="$MQTT_BASE/raw" ;;
-  state) TOPIC="$MQTT_BASE/state" ;;
-  mode) TOPIC="$MQTT_BASE/mode" ;;
-  mode_current|current|mode/current) TOPIC="$MQTT_BASE/mode/current" ;;
-  snapshot) TOPIC="$MQTT_BASE/snapshot" ;;
-  *) TOPIC="$MQTT_BASE/raw" ;;
+  ''|raw) TOPIC="$TOPIC_RAW" ;;
+  state) TOPIC="$TOPIC_STATE" ;;
+  mode) TOPIC="$TOPIC_MODE" ;;
+  mode_current|current|mode/current) TOPIC="$TOPIC_MODE_CURRENT" ;;
+  snapshot) TOPIC="$TOPIC_SNAPSHOT" ;;
+  *) TOPIC="$TOPIC_RAW" ;;
 esac
 
 echo "Content-Type: text/event-stream"

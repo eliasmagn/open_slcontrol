@@ -1,5 +1,11 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Abschluss PR-Schritt `mode/current` Konsistenz
+- Runtime- und API-Fläche sind jetzt konsistent benannt: Stream-CGI führt den transienten Pfad klar als `<base>/mode/current` neben durablem `<base>/mode`.
+- Betriebslogging bildet das tatsächliche Topic-Modell konditional ab und zeigt bei aktivem Mode-Publishing beide Pfade mit retained/transient-Semantik.
+- Öffentliche Doku ist auf den Ist-Zustand reduziert (Raw-first, Browser als Decoder, `state` nur optional).
+
+
 ## Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
 - Stream-Selektion ergänzt: `mode/current` ist jetzt auch als expliziter Query-Alias adressierbar, ohne Default-`raw` zu ändern.
 - Runtime-Topic-Logging beschreibt die Semantik der Topics präziser (durable/retained vs transient/unretained vs legacy/optional).

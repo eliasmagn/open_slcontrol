@@ -1,5 +1,11 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Feinschliff Runtime/API/Doku `mode/current`
+- [x] Stream-CGI intern auf benannte Topic-Konstanten gehärtet; transienter Kanal bleibt explizit über `mode_current`/`current`/`mode/current` erreichbar.
+- [x] Init-Topic-Log konditional geschärft: `mode` + `mode/current` werden bei `publish_mode=1` gemeinsam ausgewiesen, sonst klar als deaktiviert geloggt.
+- [x] `README.md` als öffentliche Kurzfassung aktualisiert; `readme.md` auf kompaktes kanonisches Runtime-Modell reduziert.
+
+
 ## Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
 - [x] Stream-API akzeptiert jetzt auch `?mode=mode/current` als expliziten Alias für den transienten Kanal.
 - [x] Init-Topic-Summary präzisiert: `mode/current` als *transient, unretained*; `snapshot` als retained Bootstrap; `state` als legacy/optional.
