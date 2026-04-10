@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Bootstrap/Livestream ohne Früh-Clear und ohne Restzeichen
+- Start-`0x81` wird nach Bootstrap nicht mehr sofort auf den LCD-Puffer angewendet, sondern bis zum ersten echten `0x320`-Textblock vorgemerkt.
+- Beim ersten Live-Textblock wird einmalig gecleart und direkt mit Livebytes fortgesetzt.
+- Ergebnis: Bootstrap bleibt stabil bis echte Liveupdates da sind; der erste Livezyklus startet trotzdem sauber aus leerem Buffer.
+
 ## Update 2026-04-10 – Bootstrap-Schutz gegen frühe Clear-Frames
 - LuCI behält den Bootstrap-Snapshot jetzt sichtbar, bis mindestens ein echter Live-Textblock (`0x320` Offset-Payload) empfangen wurde.
 - Früh eintreffende `0x81`/`0x321`/`0x83`-Frames beim Verbindungsaufbau führen damit nicht mehr zu einem kurzfristig leeren Display.

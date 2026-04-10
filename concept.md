@@ -1,5 +1,10 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Bootstrap-zu-Live ohne Rest-/Leerartefakte
+- Nach Bootstrap wird ein frühes `0x81` nicht sofort ausgeführt, sondern als „pending clear“ markiert.
+- Erst wenn der erste echte Live-Textblock (`0x320` Offsets) eintrifft, wird der LCD-Puffer einmalig geleert und dann mit Livebytes befüllt.
+- Effekt: kein frühes Leerräumen durch Startframes und gleichzeitig kein Mischen alter Bootstrapzeichen mit dem ersten Live-Zyklus.
+
 ## Architektur-Update 2026-04-10 – Bootstrap/Live-Guard im Browser
 - Bootstrapdaten werden als **vollständiger Decoderzustand** übernommen (`lcd[]`, `mode_flags16`, `mode_code`).
 - Solange noch kein erster live `0x320`-Textblock gesehen wurde, ignoriert der Decoder ein frühes `0x81`-Clear, damit der Bootstrap-Inhalt nicht durch Zwischenframes verschwindet.

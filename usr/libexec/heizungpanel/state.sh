@@ -32,6 +32,13 @@ extract_json_field() {
   printf '%s' "$__val"
 }
 
+json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  printf '%s' "$s"
+}
+
 mqtt_get_retained() {
   local topic="$1"
   mosquitto_sub -h "$HOST" -p "$PORT" -t "$topic" -C 1 -W "$MQTT_WAIT" 2>/dev/null
@@ -78,8 +85,16 @@ if [ -n "$SNAP_LINE1" ] || [ -n "$SNAP_LINE2" ] || [ "$MODE_FLAGS" != "----" ]; 
     [ "$AGE" -ge 0 ] || AGE=0
   fi
 
+  MODE_FLAGS_ESC="$(json_escape "$MODE_FLAGS")"
+  MODE_NAME_ESC="$(json_escape "$MODE_NAME")"
+  MODE_TS_ESC="$(json_escape "$MODE_TS")"
+  SNAP_LINE1_ESC="$(json_escape "$SNAP_LINE1")"
+  SNAP_LINE2_ESC="$(json_escape "$SNAP_LINE2")"
+  SNAP_MODE_CODE_ESC="$(json_escape "$SNAP_MODE_CODE")"
+  SNAP_TS_ESC="$(json_escape "$SNAP_TS")"
+
   printf '{"status":"ok","schema_version":2,"source":"bootstrap","age_ms":%s,"mode":{"flags16":"%s","mode_name":"%s","ts_ms":"%s"},"snapshot":{"line1":"%s","line2":"%s","mode_code":"%s","ts_ms":"%s"},"mode_flags16":"%s","line1":"%s","line2":"%s","mode_code":"%s"}\n' \
-    "$AGE" "$MODE_FLAGS" "$MODE_NAME" "$MODE_TS" "$SNAP_LINE1" "$SNAP_LINE2" "$SNAP_MODE_CODE" "$SNAP_TS" "$MODE_FLAGS" "$SNAP_LINE1" "$SNAP_LINE2" "$SNAP_MODE_CODE"
+    "$AGE" "$MODE_FLAGS_ESC" "$MODE_NAME_ESC" "$MODE_TS_ESC" "$SNAP_LINE1_ESC" "$SNAP_LINE2_ESC" "$SNAP_MODE_CODE_ESC" "$SNAP_TS_ESC" "$MODE_FLAGS_ESC" "$SNAP_LINE1_ESC" "$SNAP_LINE2_ESC" "$SNAP_MODE_CODE_ESC"
   exit 0
 fi
 
