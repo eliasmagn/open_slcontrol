@@ -210,8 +210,14 @@ run_install() {
       /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; \
       rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true; \
       /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; \
-      /etc/init.d/heizungpanel stop >/dev/null 2>&1 || true; \
-      /etc/init.d/heizungpanel start"
+      CAN_SETUP=\$(uci -q get heizungpanel.main.can_setup || echo 1); \
+      CAN_IF=\$(uci -q get heizungpanel.main.can_if || echo can0); \
+      if [ \"\$CAN_SETUP\" = \"1\" ] && ! echo \"\$CAN_IF\" | grep -Eq '^(can|vcan|slcan)'; then \
+        echo 'WARNING: Skip heizungpanel restart (unsafe can_if='\$CAN_IF')' >&2; \
+      else \
+        /etc/init.d/heizungpanel stop >/dev/null 2>&1 || true; \
+        /etc/init.d/heizungpanel start; \
+      fi"
   else
     echo "[4/4] Skipping restart (--no-restart set)"
   fi

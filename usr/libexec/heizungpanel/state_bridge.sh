@@ -20,6 +20,14 @@ TOPIC_STATE="$7"
 setup_can() {
   [ "$CAN_SETUP" = "1" ] || return 0
 
+  case "$CAN_IF" in
+    can*|vcan*|slcan*) ;;
+    *)
+      logger -t heizungpanel "Refusing CAN setup on non-CAN interface: $CAN_IF"
+      return 1
+      ;;
+  esac
+
   if ! ip link show "$CAN_IF" >/dev/null 2>&1; then
     logger -t heizungpanel "CAN interface missing: $CAN_IF"
     return 1

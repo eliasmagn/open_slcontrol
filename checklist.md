@@ -155,3 +155,7 @@
 ## Update 2026-04-10 – Send-Mode/Listen-Only Fix
 - [x] CAN-Rekonfiguration setzt jetzt explizit `listen-only off`, wenn `write_mode=1` (statt implizit leerem Argument).
 - [x] Fix sowohl im Init-Startpfad (`etc/init.d/heizungpanel`) als auch in beiden Bridge-Reinit-Pfaden (`raw_bridge.sh`, `state_bridge.sh`) umgesetzt.
+
+## Update 2026-04-10 – Deploy-/Netzwerk-Schutz bei falschem `can_if`
+- [x] CAN-Setup-Härtung: `etc/init.d/heizungpanel`, `raw_bridge.sh` und `state_bridge.sh` verweigern aktiv Nicht-CAN-Interfaces (`can*|vcan*|slcan*`), um versehentliches `ip link set <lan_if> down` zu verhindern.
+- [x] Deploy-Härtung: `tools/device_ssh_deploy.sh` startet den Dienst bei `can_setup=1` nicht automatisch neu, falls `can_if` unsicher ist; stattdessen Warnung im Deploy-Output.

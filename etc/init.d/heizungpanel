@@ -24,6 +24,14 @@ start_service() {
   local topic_state="${mqtt_base}/state"
 
   if [ "$can_setup" = "1" ]; then
+    case "$can_if" in
+      can*|vcan*|slcan*) ;;
+      *)
+        logger -t heizungpanel "Refusing CAN setup on non-CAN interface: $can_if (set option can_setup '0' or can_if 'can0')"
+        return 1
+        ;;
+    esac
+
     local lo_arg="listen-only off"
     [ "$listen_only" = "1" ] && lo_arg="listen-only on"
 
