@@ -21,42 +21,11 @@ BUILD_TAG="commit:8b755f2"
 STATE_CACHE_DIR="$(dirname "$STATE_CACHE")"
 
 
-setup_can() {
-  [ "$CAN_SETUP" = "1" ] || return 0
-
-  case "$CAN_IF" in
-    can*|vcan*|slcan*) ;;
-    *)
-      logger -t heizungpanel "Refusing CAN setup on non-CAN interface: $CAN_IF"
-      return 1
-      ;;
-  esac
-
-  if ! ip link show "$CAN_IF" >/dev/null 2>&1; then
-    logger -t heizungpanel "CAN interface missing: $CAN_IF"
-    return 1
-  fi
-
-  local lo_arg="listen-only off"
-  [ "$LISTEN_ONLY" = "1" ] && lo_arg="listen-only on"
-
-  ip link set "$CAN_IF" down >/dev/null 2>&1 || true
-  if ! ip link set "$CAN_IF" type can bitrate "$CAN_BITRATE" $lo_arg >/dev/null 2>&1; then
-    logger -t heizungpanel "CAN setup failed: if=$CAN_IF bitrate=$CAN_BITRATE"
-    return 1
-  fi
-
-  if ! ip link set "$CAN_IF" up >/dev/null 2>&1; then
-    logger -t heizungpanel "CAN bring-up failed: if=$CAN_IF"
-    return 1
-  fi
-
-  return 0
-}
-
 mkdir -p "$STATE_CACHE_DIR" >/dev/null 2>&1 || true
 : > "$STATE_CACHE" 2>/dev/null || true
 logger -t heizungpanel "state bridge start ($BUILD_TAG)"
+
+export CAN_IF CAN_BITRATE
 
 cache_and_forward() {
   local line tmp
@@ -71,17 +40,12 @@ cache_and_forward() {
 }
 
 while true; do
-  if ! setup_can; then
-    sleep 2
-    continue
-  fi
-
-  CAN_IF="$CAN_IF" CAN_BITRATE="$CAN_BITRATE" candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null \
+  candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null \
     | /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc \
     | cache_and_forward \
     | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_STATE" -r -l
 
   rc=$?
-  logger -t heizungpanel "state bridge exited (rc=$rc, if=$CAN_IF); reinitializing CAN and retrying"
+  logger -t heizungpanel "state bridge exited (rc=$rc, if=$CAN_IF); retrying"
   sleep 1
 done

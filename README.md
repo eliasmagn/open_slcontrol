@@ -2,7 +2,7 @@
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
-## Aktueller Stand (2026-04-09)
+## Aktueller Stand (2026-04-10)
 Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
 - CAN-Raw- und State-Bridge laufen mit Retry-Schleifen.
@@ -10,7 +10,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Cache wird nur bis `state_max_age` verwendet (Default 15s).
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
-- LuCI spiegelt den rekonstruierten Display-Zustand als klaren „LCD 2x16 (emuliert aus CAN 0x320)“-Block; Debugdaten bleiben zusätzlich sichtbar.
+- LuCI spiegelt den rekonstruierten Display-Zustand als klaren „LCD 2x20 (emuliert aus CAN 0x320)“-Block; Debugdaten bleiben zusätzlich sichtbar.
 - Parser reassembliert jetzt LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten; beobachtete LCD-Sonderbytes (`DF/E2/F5/E1/EF`) werden für UI/Parser auf UTF-8 gemappt.
 - Hotfix Feldfeedback: `0xEF` wird aktuell bewusst als Leerzeichen behandelt (statt `ö`), um ein persistentes Phantom-`ö` in der Panel-Emulation zu vermeiden, bis kontrollierte Einzelaktions-Captures die Zuordnung bestätigen.
 - LuCI-Zeitstempel-Härtung: Wenn `ts_ms` aus dem State unplausibel von der Browserzeit abweicht (>5 Minuten), zeigt „Letzte Aktualisierung“ automatisch Browserzeit mit Suffix `(Browserzeit)`.
@@ -57,7 +57,7 @@ Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:
 - Mit 0x321-Flags-/Markertrace:
   - `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags`
 
-Hinweis: Fragmentierte `0x320`-Markerblöcke werden offset-basiert zusammengesetzt, bis ein vollständiger 2x16-Zustand vorliegt.
+Hinweis: Fragmentierte `0x320`-Markerblöcke werden offset-basiert zusammengesetzt, bis ein vollständiger 2x20-Zustand vorliegt.
 
 ## Deploy auf Zielgerät via SSH/SCP
 - Install/Push:
@@ -82,3 +82,11 @@ Hinweis: Fragmentierte `0x320`-Markerblöcke werden offset-basiert zusammengeset
 - `checklist.md` – operative Aufgaben und Status.
 - `roadmap.md` – Milestones und Fortschritt.
 - `readme.md` – aktueller Betriebs-/Deploy-Stand.
+
+
+## Konsolidierung offene Strukturpunkte (2026-04-10)
+- Deploy umfasst nun Konfig-Seite + Backend-Skripte (`config.js`, `config_get.sh`, `config_set.sh`).
+- Konfigspeichern erfolgt atomar als Batch (ein Commit, ein Restart).
+- CAN-Setup liegt nur noch im Init-Skript; Bridges re-konfigurieren das Interface nicht mehr.
+- `state_bridge.sh` exportiert Parser-Umgebungswerte explizit (`CAN_IF`, `CAN_BITRATE`).
+- `display_emulator.sh` ist auf 2x20/40 Zeichen synchronisiert.

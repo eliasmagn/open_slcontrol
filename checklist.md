@@ -193,3 +193,10 @@
 - [x] `parser.uc`: Candump-Format-RegEx auf ucode-kompatible Variante ohne `(?:...)` umgestellt.
 - [x] Capture-Group-Indices angepasst (`id/want/tail`), damit Parsing auf Zielsystemen ohne Regex-Feature-Support wieder stabil läuft.
 - [x] Folgewirkung: State-Bridge-Exit-Loop durch Parser-Syntaxfehler beendet (kein permanentes Reconnect-Stakkato mehr).
+
+## Update 2026-04-10 – Konsolidierung offene Strukturpunkte
+- [x] Deploy-Dateiliste vervollständigt (`tools/device_ssh_deploy.sh` liefert jetzt `config.js`, `config_get.sh`, `config_set.sh` mit aus und entfernt sie beim Uninstall wieder).
+- [x] Konfig-Flow atomar gemacht (`config.js` -> ein Batch-Request; `config_set.sh` -> Validierung aller Felder, genau ein Commit + ein Restart).
+- [x] CAN-Ownership auf Init-Skript reduziert (CAN-(Re)Setup aus `raw_bridge.sh` und `state_bridge.sh` entfernt).
+- [x] Parser-Env-Vererbung stabilisiert (`state_bridge.sh` exportiert `CAN_IF`/`CAN_BITRATE` für `parser.uc`).
+- [x] 2x20-Drift im Terminal-Emulator bereinigt (`display_emulator.sh` von 2x16 auf 2x20 umgestellt).

@@ -109,3 +109,5 @@
 - Stand 2026-04-10: Moduswechsel-ACK im LuCI ergänzt – nach Sendekommando wird eine passende `0x321`-Bestätigung der Anlage aktiv überwacht (Erfolg/Timeout-Hinweis).
 - Stand 2026-04-10: `0x320`-Abschlussbytes (`83 EF`/`83 FB`) in LuCI als Screenklasse gekennzeichnet („kein Anlagenmodus“), um Fehlinterpretation als Heizungsmodus zu vermeiden.
 - Stand 2026-04-10: Build-Traceability ergänzt – Init + Bridges loggen nun ein `BUILD_TAG` (Commit-String) beim Start in Syslog.
+
+- Stand 2026-04-10: Offene Konsolidierungspunkte geschlossen – Deploy-Dateisatz enthält die Konfig-Assets/Skripte, Konfig-Speichern läuft atomar (ein Commit/ein Restart), CAN-Setup hat genau einen Owner (Init), Parser-Env ist explizit exportiert und der Display-Emulator ist auf 2x20 synchronisiert.

@@ -21,7 +21,7 @@ Modes:
   (default)       Subscribe to MQTT topic (heizungpanel/raw).
 
 Notes:
-  - Reconstructs a 2x16 LCD from 0x320 frames (offset-based merge).
+  - Reconstructs a 2x20 LCD from 0x320 frames (offset-based merge).
   - With --show-flags, prints latest 0x321 flags and a short marker trace.
 USAGE
 }
@@ -73,10 +73,10 @@ function hex2dec(h, i, c, v, out) {
 }
 
 function lcd_index(off) {
-  if (off >= 0x00 && off <= 0x0F) return off
-  if (off >= 0x40 && off <= 0x4F) return 16 + (off - 0x40)
-  if (off >= 0x10 && off <= 0x1F) return off
-  if (off >= 0x50 && off <= 0x5F) return 16 + (off - 0x50)
+  if (off >= 0x00 && off <= 0x13) return off
+  if (off >= 0x40 && off <= 0x53) return 20 + (off - 0x40)
+  if (off >= 0x14 && off <= 0x1F) return off
+  if (off >= 0x54 && off <= 0x5F) return 20 + (off - 0x54)
   return -1
 }
 
@@ -150,8 +150,8 @@ function render(    i, line1, line2) {
   line1 = ""
   line2 = ""
 
-  for (i = 0; i < 16; i++) line1 = line1 lcd[i]
-  for (i = 16; i < 32; i++) line2 = line2 lcd[i]
+  for (i = 0; i < 20; i++) line1 = line1 lcd[i]
+  for (i = 20; i < 40; i++) line2 = line2 lcd[i]
 
   printf("\033[H\033[J")
   print "Heizungpanel LCD Emulator"
@@ -171,7 +171,7 @@ function render(    i, line1, line2) {
 }
 
 BEGIN {
-  for (i = 0; i < 32; i++) lcd[i] = " "
+  for (i = 0; i < 40; i++) lcd[i] = " "
   frame_no = 0
   last_320 = "-"
   flags16 = "----"
@@ -210,7 +210,7 @@ BEGIN {
     next
 
   pos = base
-  for (idx = 3; (idx + 1) <= length(data) && pos < 32; idx += 2) {
+  for (idx = 3; (idx + 1) <= length(data) && pos < 40; idx += 2) {
     b = substr(data, idx, 2)
     lcd[pos] = byte_to_char(b)
     pos++

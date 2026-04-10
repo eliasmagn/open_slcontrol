@@ -12,7 +12,7 @@ Neu seit 2026-04-10 (Write/MQTT-Safety):
 
 Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0.1 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
-- CAN-Raw- und State-Bridge laufen mit Retry-Schleifen inkl. CAN-Reinitialisierung nach Bridge-Exit.
+- CAN-Raw- und State-Bridge laufen mit Retry-Schleifen ohne zusätzliche Bridge-seitige CAN-Rekonfiguration (Ownership im Init-Skript).
 - State wird per MQTT retained publiziert; LuCI liest den Zustand direkt aus dem MQTT-State-Topic.
 - LuCI liest den State jetzt direkt aus MQTT (`<mqtt_base>/state`) statt aus einem Dateicache; damit folgen Anzeige-Updates unmittelbar dem Stream.
 - Optionaler MQTT-Wartewert für `state.sh`: `state_mqtt_wait` (UCI, Default `1` Sekunde).
@@ -20,7 +20,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000), neuer Default: `500ms`.
 - LuCI pollt mit dem aus UCI geladenen Intervall (inkl. Clamp 250..10000).
 - LuCI zeigt unter dem Hinweisbereich einen Konfigurations-Switch für `Send mode` (`write_mode`); Änderungen werden in UCI gespeichert und der Dienst wird neu gestartet.
-- LuCI zeigt den rekonstruierten LCD-Inhalt jetzt explizit als „LCD 2x16 (emuliert aus CAN 0x320)“ mit gedimmtem Fallback bei No-Data/Fehlern, sodass die Panel-Emulation klar vom Debug-Block getrennt ist.
+- LuCI zeigt den rekonstruierten LCD-Inhalt jetzt explizit als „LCD 2x20 (emuliert aus CAN 0x320)“ mit gedimmtem Fallback bei No-Data/Fehlern, sodass die Panel-Emulation klar vom Debug-Block getrennt ist.
 - LuCI meldet bei formal `status=ok`, aber komplett leerem Payload (`line1/line2` leer, `flags16=----`) nun explizit einen Warnzustand („verbunden, aber noch keine decodierbaren Paneldaten“) statt irreführendem `Status: OK`.
 - Write-Mode ist via UCI standardmäßig aus (`write_mode=0`) und in `press.sh` allowlist-gesichert.
 - Parser reassembliert LCD-Zeilen aus `0x320` offsets, dekodiert `0x321` in `active_bits`/`bit_roles`, paart `0x258/0x259` über Index + Fenster und liefert Confidence-/Invariant-Metadaten. Das Rendering nutzt ASCII (`0x20..0x7E`) plus Panel-Sonderzeichen (`0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`).
@@ -36,7 +36,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 - Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
 - Für die Frage „welche 0x321-Werte gibt es und welche Frames gehören dazu?“ steht `usr/libexec/heizungpanel/isolate_321.sh` bereit (Unique-Flags + Kontext pro `flags16`).
-- Für eine schnelle Terminal-/Offline-Sicht auf das emulierte 2x16-Display steht `usr/libexec/heizungpanel/display_emulator.sh` bereit (liest MQTT-Raw, Candump-Dateien oder STDIN; optional mit `--show-flags` für 0x321-Markertrace).
+- Für eine schnelle Terminal-/Offline-Sicht auf das emulierte 2x20-Display steht `usr/libexec/heizungpanel/display_emulator.sh` bereit (liest MQTT-Raw, Candump-Dateien oder STDIN; optional mit `--show-flags` für 0x321-Markertrace).
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` hält den lokalen Stage-Ordner jetzt korrekt bis nach dem Upload (Fix für `scp .../etc: No such file or directory`).
 - Deploy-Helper-Fix: Upload nutzt erzwungen den klassischen SCP-Modus (`scp -O`) für OpenWrt/Dropbear-Ziele ohne SFTP-Server (Fix für `ash: /usr/libexec/sftp-server: not found`).
 - Deploy-Helper-Fix: LuCI-Menüeintrag wird jetzt mit ausgerollt (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`), damit die Ansicht nach Router-Reset/Neuinstallation wieder unter **Services** erscheint.
@@ -112,7 +112,7 @@ Auf dem Zielgerät oder einem Host mit MQTT-Zugriff:
   - `usr/libexec/heizungpanel/display_emulator.sh --file /tmp/candump_sample.txt --show-flags`
 
 Hinweise:
-- Die Emulatoranzeige merged fragmentierte `0x320`-Blöcke über LCD-Offsets, bis beide 16er Zeilen konsistent aufgebaut sind.
+- Die Emulatoranzeige merged fragmentierte `0x320`-Blöcke über LCD-Offsets, bis beide 20er Zeilen konsistent aufgebaut sind.
 - `--show-flags` blendet den letzten `flags16`-Wert und eine kurze `0x321`-Historie (aktive low-Bits) ein.
 
 ## Priorisierung
@@ -174,6 +174,14 @@ Lokal wurde ein Stubbed-Harness (`tools/bridge_stability_harness.sh`) gegen beid
 Hinweis: Das ist ein lokaler Reconnect-Loop-Test (ohne echte CAN-Hardware). Der 1h-Run auf Zielgerät bleibt weiterhin der Abnahmetest.
 
 - Hotfix 2026-04-09: `www/luci-static/resources/view/heizungpanel/panel.js` ergänzt Plausibilitätsprüfung für leere Nutzdaten; Warnstatus wird angezeigt, wenn zwar Polling läuft, aber noch keine decodierbaren LCD-/Flag-Daten vorliegen.
+
+
+Neu seit 2026-04-10 (Konsolidierung offener Punkte):
+- SSH-Deploy-Dateisatz umfasst jetzt auch die dedizierte Konfigseite (`config.js`) sowie `config_get.sh`/`config_set.sh`; Install und Remove behandeln diese Dateien explizit.
+- Konfigspeichern ist auf atomaren Batch-Flow umgestellt: LuCI sendet alle Felder in einem Request (`--batch-json`), Backend validiert alle Keys, führt genau **einen** `uci commit` und genau **einen** Service-Restart aus.
+- CAN-Ownership bereinigt: Interface-Setup bleibt im Init-Skript; `raw_bridge.sh` und `state_bridge.sh` führen kein eigenes `ip link ... down/type/up` mehr aus.
+- Parser-Umgebungsvariablen werden im State-Bridge-Prozess exportiert (`CAN_IF`, `CAN_BITRATE`) und damit zuverlässig an `parser.uc` vererbt.
+- Display-Emulator ist auf 2x20/40 Zeichen aktualisiert und konsistent mit Parser/LuCI.
 
 Neu seit 2026-04-10 (Vereinfachung):
 - Zusätzliche MQTT-Schutz-/Unlock-Mechanik wurde entfernt; Konfigurationsänderungen laufen wieder über den normalen UCI-Flow.

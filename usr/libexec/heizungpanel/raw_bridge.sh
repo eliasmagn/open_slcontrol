@@ -18,49 +18,11 @@ TOPIC_RAW="$7"
 [ -n "$CANDUMP_ARGS" ] || CANDUMP_ARGS="-a -t a -x"
 BUILD_TAG="commit:8b755f2"
 
-setup_can() {
-  [ "$CAN_SETUP" = "1" ] || return 0
-
-  case "$CAN_IF" in
-    can*|vcan*|slcan*) ;;
-    *)
-      logger -t heizungpanel "Refusing CAN setup on non-CAN interface: $CAN_IF"
-      return 1
-      ;;
-  esac
-
-  if ! ip link show "$CAN_IF" >/dev/null 2>&1; then
-    logger -t heizungpanel "CAN interface missing: $CAN_IF"
-    return 1
-  fi
-
-  local lo_arg="listen-only off"
-  [ "$LISTEN_ONLY" = "1" ] && lo_arg="listen-only on"
-
-  ip link set "$CAN_IF" down >/dev/null 2>&1 || true
-  if ! ip link set "$CAN_IF" type can bitrate "$CAN_BITRATE" $lo_arg >/dev/null 2>&1; then
-    logger -t heizungpanel "CAN setup failed (raw bridge): if=$CAN_IF bitrate=$CAN_BITRATE"
-    return 1
-  fi
-
-  if ! ip link set "$CAN_IF" up >/dev/null 2>&1; then
-    logger -t heizungpanel "CAN bring-up failed (raw bridge): if=$CAN_IF"
-    return 1
-  fi
-
-  return 0
-}
-
 logger -t heizungpanel "raw bridge start ($BUILD_TAG)"
 
 while true; do
-  if ! setup_can; then
-    sleep 2
-    continue
-  fi
-
   candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_RAW" -l
   rc=$?
-  logger -t heizungpanel "raw bridge exited (rc=$rc, if=$CAN_IF); reinitializing CAN and retrying"
+  logger -t heizungpanel "raw bridge exited (rc=$rc, if=$CAN_IF); retrying"
   sleep 1
 done
