@@ -11,7 +11,7 @@
 - UI-Status für `OK` / `keine Daten` / `Fehler` vorhanden.
 - „Letzte Aktualisierung“ im UI sichtbar.
 - ACL auf notwendige Skripte eingeschränkt.
-- Reconnect bei CAN-Ausfall (Retry-Loops + CAN-Reinit in State- und Raw-Bridge).
+- Reconnect bei CAN-Ausfall (Retry-Loops in den Bridges; CAN-Setup zentral im Init-Skript).
 - Restart-/Long-run-Stresstest durchgeführt und dokumentiert.
 
 ## M1.5 – Runtime-Knobs in Config/UI (**abgeschlossen am 2026-04-09**)
@@ -91,7 +91,7 @@
 - Zusätzliche MQTT-Schutz-/Unlock-Mechanik entfernt, da UCI-Standardmechanik als ausreichend bewertet wurde.
 - Konfigoberfläche auf App + MQTT reduziert; keine separate Safety-Sektion mehr.
 
-- Stand 2026-04-10: Send-Mode-Fix umgesetzt – CAN-Setup setzt `listen-only off` jetzt explizit bei `write_mode=1` (Init + Bridge-Reinit), damit TX zuverlässig funktioniert.
+- Stand 2026-04-10: Send-Mode-Fix umgesetzt – CAN-Setup setzt `listen-only off` explizit bei `write_mode=1` (zentral im Init), damit TX zuverlässig funktioniert.
 - Stand 2026-04-10: Feldabgleich umgesetzt – LCD-Geometrie von 2x16 auf 2x20 angepasst (Parser + LuCI-Renderer).
 - Stand 2026-04-10: UI-Display simuliert jetzt Blanking bei Textwechsel (kurzer Full-Clear vor Neuzeichnung).
 - Stand 2026-04-10: Betriebsarten-LEDs verwenden gelatchten Modus (`mode_flags16`) und bleiben dadurch persistent trotz transienter 0x321-Events.
@@ -111,3 +111,10 @@
 - Stand 2026-04-10: Build-Traceability ergänzt – Init + Bridges loggen nun ein `BUILD_TAG` (Commit-String) beim Start in Syslog.
 
 - Stand 2026-04-10: Offene Konsolidierungspunkte geschlossen – Deploy-Dateisatz enthält die Konfig-Assets/Skripte, Konfig-Speichern läuft atomar (ein Commit/ein Restart), CAN-Setup hat genau einen Owner (Init), Parser-Env ist explizit exportiert und der Display-Emulator ist auf 2x20 synchronisiert.
+
+
+## Stand 2026-04-10 – Konsolidierung Restpunkte (2. Runde)
+- Bridge-Parameter bereinigt: keine toten CAN-Setup-Argumente mehr in `raw_bridge.sh`/`state_bridge.sh`.
+- Parser-Env-Transfer explizit pro Aufruf: `CAN_IF`/`CAN_BITRATE` werden direkt am `ucode`-Prozess gesetzt.
+- Doku-Quelle vereinheitlicht: `README.md` dient nur als Verweis auf `readme.md` (kanonisch).
+- Kleine Code-Altlasten entfernt: `config.js` ohne ungenutztes `ui`-Require und ohne tote `inputRow()`-Funktion.

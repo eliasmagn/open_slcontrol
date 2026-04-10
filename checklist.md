@@ -7,7 +7,7 @@
 - [x] State-Cache nur frisch verwenden (`state_max_age` via UCI, Default 15s).
 - [x] **LuCI-Stateabruf auf MQTT-Stream umgestellt** (kein Dateicache mehr im `state.sh`; reduziert Latenz und vermeidet Stale-Reads).
 - [x] **Init-/Bridge-Aufruf entschlackt** (`state_bridge.sh` wird ohne obsoletes Statefile-Argument gestartet).
-- [x] **Reconnect-Strategie bei CAN-Ausfall ergänzt** (interne Retry-Loops + CAN-Reinit jetzt in **State- und Raw-Bridge**).
+- [x] **Reconnect-Strategie bei CAN-Ausfall ergänzt** (interne Retry-Loops in den Bridges; CAN-Setup bleibt ausschließlich im Init-Skript).
 - [x] **Restart-/Long-run-Stresstest dokumentiert** (Ablauf + Messwerte unter „Testnotizen“).
 
 ## B) Runtime-Knobs / LuCI-UI
@@ -154,7 +154,7 @@
 
 ## Update 2026-04-10 – Send-Mode/Listen-Only Fix
 - [x] CAN-Rekonfiguration setzt jetzt explizit `listen-only off`, wenn `write_mode=1` (statt implizit leerem Argument).
-- [x] Fix sowohl im Init-Startpfad (`etc/init.d/heizungpanel`) als auch in beiden Bridge-Reinit-Pfaden (`raw_bridge.sh`, `state_bridge.sh`) umgesetzt.
+- [x] Fix zentral im Init-Startpfad (`etc/init.d/heizungpanel`) umgesetzt; Bridges bleiben reine Consumer/Publisher ohne eigenes CAN-Reconfigure.
 
 ## Update 2026-04-10 – Deploy-/Netzwerk-Schutz bei falschem `can_if`
 - [x] CAN-Setup-Härtung: `etc/init.d/heizungpanel`, `raw_bridge.sh` und `state_bridge.sh` verweigern aktiv Nicht-CAN-Interfaces (`can*|vcan*|slcan*`), um versehentliches `ip link set <lan_if> down` zu verhindern.
@@ -200,3 +200,10 @@
 - [x] CAN-Ownership auf Init-Skript reduziert (CAN-(Re)Setup aus `raw_bridge.sh` und `state_bridge.sh` entfernt).
 - [x] Parser-Env-Vererbung stabilisiert (`state_bridge.sh` exportiert `CAN_IF`/`CAN_BITRATE` für `parser.uc`).
 - [x] 2x20-Drift im Terminal-Emulator bereinigt (`display_emulator.sh` von 2x16 auf 2x20 umgestellt).
+
+
+## Update 2026-04-10 – Konsolidierung Restpunkte (2. Runde)
+- [x] Bridge-Startparameter entschlackt: `raw_bridge.sh` erhält nur noch `CAN_IF + MQTT-*`; `state_bridge.sh` nur `CAN_IF/CAN_BITRATE + MQTT-*` (kein totes `CAN_SETUP`/`LISTEN_ONLY` mehr).
+- [x] Parser-Umgebungsübergabe gehärtet: `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf in der Pipeline (prozesslokal, explizit).
+- [x] Doku-Drift zwischen `README.md` und `readme.md` entschärft: `README.md` verweist nur noch auf `readme.md` als kanonische Quelle.
+- [x] LuCI-Konfigcode bereinigt: tote Hilfsfunktion `inputRow()` und ungenutztes `require ui` aus `config.js` entfernt.

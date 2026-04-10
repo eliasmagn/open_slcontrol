@@ -1,7 +1,6 @@
 'use strict';
 'require view';
 'require fs';
-'require ui';
 
 function el(tag, attrs, children) {
   var n = document.createElement(tag);
@@ -44,20 +43,6 @@ return view.extend({
       '.hp-warn { color:#ef6c00; }',
       '.hp-note { font-size:12px; color:#555; margin-bottom:6px; }'
     ].join('\n') });
-
-    function inputRow(label, key, value, note) {
-      return {
-        key: key,
-        input: el('input', { type: 'text', value: value || '' }, []),
-        node: el('div', { class: 'hp-row' }, [
-          el('label', {}, [label]),
-          el('div', {}, [
-            el('div', {}, []),
-            el('div', {}, [])
-          ])
-        ])
-      };
-    }
 
     function mkRow(label, key, value, note, type) {
       var inp = el('input', { type: type || 'text', value: value || '' }, []);

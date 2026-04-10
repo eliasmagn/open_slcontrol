@@ -2,16 +2,12 @@
 
 CAN_IF="$1"
 CAN_BITRATE="$2"
-CAN_SETUP="$3"
-LISTEN_ONLY="$4"
-MQTT_HOST="$5"
-MQTT_PORT="$6"
-TOPIC_STATE="$7"
+MQTT_HOST="$3"
+MQTT_PORT="$4"
+TOPIC_STATE="$5"
 
 [ -n "$CAN_IF" ] || CAN_IF="can0"
 [ -n "$CAN_BITRATE" ] || CAN_BITRATE="69144"
-[ -n "$CAN_SETUP" ] || CAN_SETUP="1"
-[ -n "$LISTEN_ONLY" ] || LISTEN_ONLY="1"
 [ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
 [ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
 [ -n "$TOPIC_STATE" ] || TOPIC_STATE="heizungpanel/state"
@@ -20,12 +16,9 @@ TOPIC_STATE="$7"
 BUILD_TAG="commit:8b755f2"
 STATE_CACHE_DIR="$(dirname "$STATE_CACHE")"
 
-
 mkdir -p "$STATE_CACHE_DIR" >/dev/null 2>&1 || true
 : > "$STATE_CACHE" 2>/dev/null || true
 logger -t heizungpanel "state bridge start ($BUILD_TAG)"
-
-export CAN_IF CAN_BITRATE
 
 cache_and_forward() {
   local line tmp
@@ -41,7 +34,7 @@ cache_and_forward() {
 
 while true; do
   candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null \
-    | /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc \
+    | CAN_IF="$CAN_IF" CAN_BITRATE="$CAN_BITRATE" /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc \
     | cache_and_forward \
     | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_STATE" -r -l
 
