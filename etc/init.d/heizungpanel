@@ -27,10 +27,10 @@ start_service() {
   config_get mqtt_base   main mqtt_base   "heizungpanel"
 
   local topic_raw="${mqtt_base}/raw"
-  local topic_mode="${mqtt_base}/mode"
+  local topic_mode_durable="${mqtt_base}/mode"
+  local topic_mode_current="${topic_mode_durable}/current"
   local topic_snapshot="${mqtt_base}/snapshot"
   local topic_state="${mqtt_base}/state"
-  local topic_mode_current="${topic_mode}/current"
 
   logger -t heizungpanel "service start ($BUILD_TAG)"
 
@@ -74,7 +74,7 @@ start_service() {
 
   if [ "$publish_mode" = "1" ]; then
     procd_open_instance mode
-    procd_set_param command /usr/libexec/heizungpanel/mode_bridge.sh "$mqtt_host" "$mqtt_port" "$topic_raw" "$topic_mode" "$topic_mode_current"
+    procd_set_param command /usr/libexec/heizungpanel/mode_bridge.sh "$mqtt_host" "$mqtt_port" "$topic_raw" "$topic_mode_durable" "$topic_mode_current"
     procd_set_param respawn 3600 5 5
     procd_set_param stdout 1
     procd_set_param stderr 1
@@ -101,7 +101,7 @@ start_service() {
 
   local summary="MQTT publishing: raw=${publish_raw}:${topic_raw}"
   if [ "$publish_mode" = "1" ]; then
-    summary="$summary mode(durable,retained)=1:${topic_mode} mode/current(transient,unretained)=1:${topic_mode_current}"
+    summary="$summary mode(durable,retained)=1:${topic_mode_durable} mode/current(transient,unretained)=1:${topic_mode_current}"
   else
     summary="$summary mode(durable,retained)=0:- mode/current(transient,unretained)=0:-"
   fi
