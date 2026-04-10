@@ -110,6 +110,7 @@ usr/libexec/heizungpanel/isolate_321.sh
 usr/share/rpcd/acl.d/luci-app-heizungpanel.json
 usr/share/luci/menu.d/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
+www/cgi-bin/heizungpanel_stream
 "
 
   for rel in $FILES; do
@@ -166,12 +167,13 @@ run_install() {
   # shellcheck disable=SC2086
   $SSH_CMD "cp '$REMOTE_STAGE/etc/init.d/heizungpanel' /etc/init.d/heizungpanel && \
     cp '$REMOTE_STAGE/etc/config/heizungpanel' /etc/config/heizungpanel && \
-    mkdir -p /usr/libexec/heizungpanel /usr/share/rpcd/acl.d /usr/share/luci/menu.d /www/luci-static/resources/view/heizungpanel && \
+    mkdir -p /usr/libexec/heizungpanel /usr/share/rpcd/acl.d /usr/share/luci/menu.d /www/luci-static/resources/view/heizungpanel /www/cgi-bin && \
     cp '$REMOTE_STAGE'/usr/libexec/heizungpanel/* /usr/libexec/heizungpanel/ && \
     cp '$REMOTE_STAGE/usr/share/rpcd/acl.d/luci-app-heizungpanel.json' /usr/share/rpcd/acl.d/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/usr/share/luci/menu.d/luci-app-heizungpanel.json' /usr/share/luci/menu.d/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/panel.js' /www/luci-static/resources/view/heizungpanel/panel.js && \
-    chmod 755 /etc/init.d/heizungpanel /usr/libexec/heizungpanel/*.sh"
+    cp '$REMOTE_STAGE/www/cgi-bin/heizungpanel_stream' /www/cgi-bin/heizungpanel_stream && \
+    chmod 755 /etc/init.d/heizungpanel /usr/libexec/heizungpanel/*.sh /www/cgi-bin/heizungpanel_stream"
 
   if [ "$NO_RESTART" -eq 0 ]; then
     echo "[4/4] Reload services"
@@ -200,7 +202,8 @@ run_uninstall() {
     /etc/config/heizungpanel \
     /usr/share/rpcd/acl.d/luci-app-heizungpanel.json \
     /usr/share/luci/menu.d/luci-app-heizungpanel.json \
-    /www/luci-static/resources/view/heizungpanel/panel.js && \
+    /www/luci-static/resources/view/heizungpanel/panel.js \
+    /www/cgi-bin/heizungpanel_stream && \
     rm -rf /usr/libexec/heizungpanel"
 
   if [ "$NO_RESTART" -eq 0 ]; then

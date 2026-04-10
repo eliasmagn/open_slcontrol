@@ -22,10 +22,6 @@ start_service() {
 
   local topic_raw="${mqtt_base}/raw"
   local topic_state="${mqtt_base}/state"
-  local runtime_dir="/tmp/heizungpanel"
-  local state_file="${runtime_dir}/state.json"
-
-  mkdir -p "$runtime_dir"
 
   if [ "$can_setup" = "1" ]; then
     local lo_arg=""
@@ -58,7 +54,7 @@ start_service() {
 
   # STATE bridge with CAN re-init on failures
   procd_open_instance state
-  procd_set_param command /usr/libexec/heizungpanel/state_bridge.sh "$can_if" "$can_bitrate" "$can_setup" "$listen_only" "$mqtt_host" "$mqtt_port" "$topic_state" "$state_file"
+  procd_set_param command /usr/libexec/heizungpanel/state_bridge.sh "$can_if" "$can_bitrate" "$can_setup" "$listen_only" "$mqtt_host" "$mqtt_port" "$topic_state"
   procd_set_param respawn 3600 5 5
   procd_set_param stdout 1
   procd_set_param stderr 1

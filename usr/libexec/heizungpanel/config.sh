@@ -2,10 +2,10 @@
 
 POLL_MS="$(uci -q get heizungpanel.main.poll_interval_ms)"
 WRITE_MODE="$(uci -q get heizungpanel.main.write_mode)"
-LISTEN_ONLY="$(uci -q get heizungpanel.main.listen_only)"
+STREAM_TOKEN="$(uci -q get heizungpanel.main.stream_token)"
 
 case "$POLL_MS" in
-  ''|*[!0-9]*) POLL_MS=1000 ;;
+  ''|*[!0-9]*) POLL_MS=500 ;;
 esac
 
 if [ "$POLL_MS" -lt 250 ]; then
@@ -15,6 +15,5 @@ elif [ "$POLL_MS" -gt 10000 ]; then
 fi
 
 [ "$WRITE_MODE" = "1" ] || WRITE_MODE=0
-[ "$LISTEN_ONLY" = "1" ] || LISTEN_ONLY=0
 
-printf '{"poll_interval_ms":%s,"write_mode":%s,"listen_only":%s}\n' "$POLL_MS" "$WRITE_MODE" "$LISTEN_ONLY"
+printf '{"poll_interval_ms":%s,"write_mode":%s,"stream_token":"%s"}\n' "$POLL_MS" "$WRITE_MODE" "${STREAM_TOKEN:-}"

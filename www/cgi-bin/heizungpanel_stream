@@ -1,0 +1,52 @@
+#!/bin/sh
+
+TOKEN_EXPECTED="$(uci -q get heizungpanel.main.stream_token)"
+MQTT_HOST="$(uci -q get heizungpanel.main.mqtt_host)"
+MQTT_PORT="$(uci -q get heizungpanel.main.mqtt_port)"
+MQTT_BASE="$(uci -q get heizungpanel.main.mqtt_base)"
+
+[ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
+[ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
+[ -n "$MQTT_BASE" ] || MQTT_BASE="heizungpanel"
+
+qs_get() {
+  local key="$1"
+  local in="${QUERY_STRING:-}"
+  local part k v
+  local oldifs="$IFS"
+  IFS='&'
+  for part in $in; do
+    k="${part%%=*}"
+    v="${part#*=}"
+    [ "$k" = "$key" ] || continue
+    IFS="$oldifs"
+    printf '%s' "$v"
+    return 0
+  done
+  IFS="$oldifs"
+  return 1
+}
+
+TOKEN_GIVEN="$(qs_get token)"
+if [ -n "$TOKEN_EXPECTED" ] && [ "$TOKEN_GIVEN" != "$TOKEN_EXPECTED" ]; then
+  echo "Status: 403 Forbidden"
+  echo "Content-Type: text/plain"
+  echo
+  echo "forbidden"
+  exit 0
+fi
+
+echo "Content-Type: text/event-stream"
+echo "Cache-Control: no-cache"
+echo "Connection: keep-alive"
+echo
+
+echo "event: hello"
+echo "data: stream-open"
+echo
+
+exec mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$MQTT_BASE/raw" 2>/dev/null \
+  | while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      printf 'data: %s\n\n' "$line"
+    done

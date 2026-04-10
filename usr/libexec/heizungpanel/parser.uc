@@ -234,6 +234,11 @@ function parse_frame(line) {
     let id = uc(m[1]);
     let want = int(m[2]);
     let tail = m[3];
+    // candump -a -t a -x may append ASCII visualization in single quotes.
+    // Strip that suffix to avoid accidental hex matches from text like "73".
+    let q = index(tail, "'");
+    if (q >= 0)
+        tail = substr(tail, 0, q);
 
     // Extract hex bytes from tail
     let bytes = [];

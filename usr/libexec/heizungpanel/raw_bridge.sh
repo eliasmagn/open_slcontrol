@@ -15,6 +15,7 @@ TOPIC_RAW="$7"
 [ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
 [ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
 [ -n "$TOPIC_RAW" ] || TOPIC_RAW="heizungpanel/raw"
+[ -n "$CANDUMP_ARGS" ] || CANDUMP_ARGS="-a -t a -x"
 
 setup_can() {
   [ "$CAN_SETUP" = "1" ] || return 0
@@ -47,7 +48,7 @@ while true; do
     continue
   fi
 
-  candump -L "$CAN_IF" 2>/dev/null | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_RAW" -l
+  candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_RAW" -l
   rc=$?
   logger -t heizungpanel "raw bridge exited (rc=$rc, if=$CAN_IF); reinitializing CAN and retrying"
   sleep 1

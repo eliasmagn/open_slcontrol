@@ -6,8 +6,8 @@
 ### Erledigt
 - LuCI-Panel-Emulation im UI klar als 2x16-LCD-Spiegel markiert (inkl. No-Data/Fehler-Leerzustand), damit die Ansicht als Gerätepanel-Emulation erkennbar ist.
 - CAN-Start prüft Interface und loggt Fehler.
-- State-Cache via `/tmp/heizungpanel/state.json` aktiv.
-- Frischeprüfung für Cache (`state_max_age`) aktiv.
+- State-Distribution über MQTT retained aktiv.
+- LuCI-Stateabruf läuft MQTT-basiert (ohne Dateicache), um Stale-Reads zu vermeiden.
 - UI-Status für `OK` / `keine Daten` / `Fehler` vorhanden.
 - „Letzte Aktualisierung“ im UI sichtbar.
 - ACL auf notwendige Skripte eingeschränkt.
@@ -65,5 +65,12 @@
 - Stand 2026-04-09: LuCI-Zeitstempel-Anzeige gehärtet; bei unplausibler Parser-`ts_ms`-Abweichung (>5 Minuten) zeigt das Panel Browserzeit (`Letzte Aktualisierung ... (Browserzeit)`), damit die UI-Zeit konsistent mit der LuCI-Systemansicht bleibt.
 - Stand 2026-04-09: LuCI-Mode-LEDs und Modus-/Tastenhinweise werden jetzt live aus bekannten `0x321 flags16`-Werten gespeist (u.a. `7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`, Navigation `FFFB/FF7F`).
 - Stand 2026-04-09: Parser akzeptiert jetzt zusätzlich timestampbasierte Candump-Zeilen mit `[len] bytes` (can-utils-abhängig), wodurch 0x320-LCD-Texte wieder im LuCI-Panel erscheinen.
+- Stand 2026-04-10: Bridges wurden auf ein einheitliches Live-/Debug-Quellformat umgestellt (`candump -a -t a -x`, optional via `CANDUMP_ARGS`), damit Feld-Dumps 1:1 dem Laufzeitstrom entsprechen.
+- Stand 2026-04-10: Parser schneidet bei `candump -x` die angehängte ASCII-Spalte (`'...'`) vor der Hex-Extraktion ab, um Fehlinterpretationen beim LCD-Reassembly zu verhindern.
+- Stand 2026-04-10: LuCI-Statusabruf auf MQTT-Only umgestellt (`state.sh` ohne Dateicache, `state_bridge.sh` ohne `tee`-Statefile), um Anzeige-Latenz und Datei-Staleness zu reduzieren.
+- Stand 2026-04-10: Runtime entschlackt (`init.d` ohne obsoletes `state_file`-Argument, `config.sh` nur mit benötigten Feldern), um Overhead und Komplexität zu senken.
+- Stand 2026-04-10: Default-LuCI-Polling auf 500ms gesenkt (bei weiterem Clamp `250..10000`) für sichtbar niedrigere Interaktionslatenz.
+- Stand 2026-04-10: LuCI nutzt primär Push-Updates via SSE (`/cgi-bin/heizungpanel_stream`) statt Intervall-Polling.
+- Stand 2026-04-10: Parsing für die UI wurde in den Browser verlagert (`panel.js` dekodiert `0x320/0x321/0x1F5` aus Raw-Frames), um Router-CPU für die Paneldarstellung zu entlasten.
 - Stand 2026-04-09: Deploy-Tool-Fileliste erweitert; `set_mode.sh` und `isolate_321.sh` werden bei Install/Push mit übertragen.
 - Stand 2026-04-09: LuCI behandelt `press.sh`-Exitcode 4 jetzt als Hinweis „Mapping noch nicht hinterlegt“ statt als generischen Send-Fehler.
