@@ -98,7 +98,11 @@ return view.extend({
       '.hp-status.err { color:#ff8a80; }',
       '.hp-switches { margin-top:10px; display:flex; flex-direction:column; gap:8px; }',
       '.hp-switch { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; }',
-      '.hp-switch input { width:18px; height:18px; }'
+      '.hp-switch input { width:18px; height:18px; }',
+      '.hp-inline-msg { min-height:20px; margin-top:8px; font-size:12px; opacity:.95; }',
+      '.hp-inline-msg.ok { color:#97e493; }',
+      '.hp-inline-msg.warn { color:#ffd166; }',
+      '.hp-inline-msg.err { color:#ff8a80; }'
     ].join('\n') });
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
@@ -113,21 +117,36 @@ return view.extend({
       flags, status, lastUpdate
     ]);
 
+    var actionFeedback = el('div', { class:'hp-inline-msg', 'aria-live':'polite' }, ['']);
+    var actionTimer = null;
+    var showActionFeedback = function(level, text, timeoutMs) {
+      if (actionTimer) window.clearTimeout(actionTimer);
+      actionFeedback.className = 'hp-inline-msg ' + (level || 'ok');
+      actionFeedback.textContent = text || '';
+      if (timeoutMs && timeoutMs > 0) {
+        actionTimer = window.setTimeout(function() {
+          actionFeedback.className = 'hp-inline-msg';
+          actionFeedback.textContent = '';
+          actionTimer = null;
+        }, timeoutMs);
+      }
+    };
+
     var runSend = function(code) {
       return fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
         if (res && res.code === 0) {
-          ui.addNotification(null, E('p', {}, _('OK: ' + code)));
+          showActionFeedback('ok', 'Befehl gesendet: ' + code, 1200);
           return;
         }
 
         if (res && res.code === 4) {
-          ui.addNotification(null, E('p', {}, _('Hinweis: Send-Mapping für "' + code + '" ist noch nicht hinterlegt.')));
+          showActionFeedback('warn', 'Hinweis: Mapping für "' + code + '" ist noch nicht hinterlegt.', 2200);
           return;
         }
 
-        ui.addNotification(null, E('p', {}, _('Send failed: ' + (res ? res.stdout || res.stderr || res.code : ''))));
+        showActionFeedback('err', 'Senden fehlgeschlagen: ' + (res ? res.stdout || res.stderr || res.code : 'n/a'), 3500);
       }).catch(function(err) {
-        ui.addNotification(null, E('p', {}, _('Send error: ' + err)));
+        showActionFeedback('err', 'Sende-Fehler: ' + err, 3500);
       });
     };
 
@@ -178,7 +197,7 @@ return view.extend({
           inputEl.checked = !enabled;
           switchStatus.className = 'hp-status err';
           switchStatus.textContent = 'Konfiguration: Fehler bei ' + key;
-          ui.addNotification(null, E('p', {}, _('Set failed: ' + (res ? res.stdout || res.stderr || res.code : 'n/a'))));
+          showActionFeedback('err', 'Konfig-Fehler: ' + (res ? res.stdout || res.stderr || res.code : 'n/a'), 3500);
           unlock();
           return;
         }
@@ -193,12 +212,13 @@ return view.extend({
 
         switchStatus.className = 'hp-status ok';
         switchStatus.textContent = 'Konfiguration: gespeichert (' + key + '=' + (enabled ? '1' : '0') + ').';
+        showActionFeedback('ok', 'Konfiguration gespeichert: ' + key + '=' + (enabled ? '1' : '0'), 1800);
         unlock();
       }).catch(function(err) {
         inputEl.checked = !enabled;
         switchStatus.className = 'hp-status err';
         switchStatus.textContent = 'Konfiguration: Fehler bei ' + key;
-        ui.addNotification(null, E('p', {}, _('Set error: ' + err)));
+        showActionFeedback('err', 'Konfig-Fehler: ' + err, 3500);
         unlock();
       });
     };
@@ -221,6 +241,7 @@ return view.extend({
           sendSwitch
         ])
       ]),
+      actionFeedback,
       switchStatus
     ]);
 
@@ -258,6 +279,10 @@ return view.extend({
       'FBFF': { name: 'Prüfbetrieb', led: mPr.led },
       'FDFF': { name: 'Handbetrieb', led: mHand.led }
     };
+    var modeByCode = {
+      'EF': { name: 'Dauerbetrieb', led: mDauer.led },
+      'FB': { name: 'Uhrzeitbetrieb', led: mUhr.led }
+    };
 
     var keyByFlags = {
       'FF7F': 'Z / zurück',
@@ -292,7 +317,7 @@ return view.extend({
     ]);
 
     var lcd = new Array(40).fill(' ');
-    var lcdBurstActive = false;
+    var lcdAssembling = false;
     var lcdFlushTimer = null;
     var frameCount = 0;
     var lastFrameAt = 0;
@@ -301,6 +326,7 @@ return view.extend({
       line2: '                    ',
       flags16: '----',
       mode_flags16: '----',
+      mode_code: '--',
       last_1f5: ''
     };
 
@@ -356,7 +382,8 @@ return view.extend({
       var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
       var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
       var modeFlagsNorm = String(st.mode_flags16 || st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      var modeInfo = modeByFlags[modeFlagsNorm];
+      var modeCodeNorm = String(st.mode_code || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+      var modeInfo = modeByCode[modeCodeNorm] || modeByFlags[modeFlagsNorm];
       var keyInfo = keyByFlags[flagsNorm];
 
       paintLcd(l1, l2);
@@ -366,7 +393,10 @@ return view.extend({
       clearLeds();
       if (modeInfo) {
         modeInfo.led.className = 'hp-led on';
-        modeHint.textContent = 'Modus aus 0x321 (latch): ' + modeInfo.name + ' (' + modeFlagsNorm + ')';
+        if (modeByCode[modeCodeNorm])
+          modeHint.textContent = 'Modus aus 0x320 Abschlussbyte: ' + modeInfo.name + ' (' + modeCodeNorm + ')';
+        else
+          modeHint.textContent = 'Modus aus 0x321 (latch): ' + modeInfo.name + ' (' + modeFlagsNorm + ')';
       } else if (keyInfo) {
         modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
       } else if (flagsNorm) {
@@ -403,17 +433,40 @@ return view.extend({
         return;
       }
 
-      if (f.id !== '320' || f.hex.length < 4) return;
+      if (f.id !== '320' || f.hex.length < 2) return;
 
       var off = parseInt(f.hex.slice(0, 2), 16);
       if (isNaN(off)) return;
+
+      // 0x81 marks a new LCD cycle (clear/reset buffer)
+      if (off === 0x81) {
+        lcd = new Array(40).fill(' ');
+        lcdAssembling = true;
+        if (lcdFlushTimer) {
+          window.clearTimeout(lcdFlushTimer);
+          lcdFlushTimer = null;
+        }
+        return;
+      }
+
+      // 0x83 <mode_byte> marks the end of an LCD cycle
+      if (off === 0x83) {
+        if (f.hex.length >= 4) state.mode_code = f.hex.slice(2, 4).toUpperCase();
+        state.line1 = lcd.slice(0, 20).join('');
+        state.line2 = lcd.slice(20, 40).join('');
+        renderFromState(state);
+        lcdAssembling = false;
+        if (lcdFlushTimer) {
+          window.clearTimeout(lcdFlushTimer);
+          lcdFlushTimer = null;
+        }
+        return;
+      }
+
       var base = lcdIndexFromOffset(off);
       if (base < 0) return;
 
-      if (!lcdBurstActive) {
-        lcd = new Array(40).fill(' ');
-        lcdBurstActive = true;
-      }
+      if (!lcdAssembling) lcdAssembling = true;
 
       for (var p = 2; p < f.hex.length; p += 2) {
         var idx = base + ((p - 2) / 2);
@@ -426,9 +479,9 @@ return view.extend({
         state.line1 = lcd.slice(0, 20).join('');
         state.line2 = lcd.slice(20, 40).join('');
         renderFromState(state);
-        lcdBurstActive = false;
+        lcdAssembling = false;
         lcdFlushTimer = null;
-      }, 35);
+      }, 120);
     };
 
     var connectPush = function() {
@@ -505,6 +558,7 @@ return view.extend({
           line2: l2,
           flags16: st.flags16 || '----',
           mode_flags16: st.mode_flags16 || modeFlagsNorm || '----',
+          mode_code: st.mode_code || '--',
           last_1f5: st.last_1f5 || ''
         });
         var parserTs = parseEpochMs(st.ts_ms);

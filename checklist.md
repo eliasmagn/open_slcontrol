@@ -166,3 +166,14 @@
 - [x] `state_bridge.sh` schreibt den letzten Parser-State wieder in `/tmp/heizungpanel/state.json` (`tee`), `state.sh` liest primär aus diesem Cache und fällt auf MQTT zurück.
 - [x] Korrektur nach Feldfeedback: Display-Blanking wieder entfernt; Push-Rendering bleibt aktiv, nur Betriebsart-LEDs bleiben persistent (Latch).
 - [x] JS-Renderer schreibt pro 0x320-Frame-Burst das komplette 2x20-Display neu (Start immer mit leerem 40-Char-Buffer), damit keine alten Zeichenreste/Ziffern sichtbar bleiben.
+
+## Update 2026-04-10 – LuCI-Alerts entschärft (UX)
+- [x] Wiederholte globale LuCI-Toastmeldungen bei Tastenklicks entfernt (kein „OK: v“-Stacking mehr am Seitenanfang).
+- [x] Lokale Inline-Statusmeldung im Panel ergänzt (`hp-inline-msg`) mit reservierter Höhe, damit das Panel beim Feedback nicht springt.
+- [x] Feedback ist jetzt kurzlebig je Schweregrad (OK ~1.2s, Hinweis ~2.2s, Fehler ~3.5s).
+
+## Update 2026-04-10 – Display-Reassembly/Mode-Latch korrigiert
+- [x] 0x320-Decoder in LuCI auf Markersteuerung umgestellt: `0x81` startet neuen Zyklus (Buffer-Clear), adressierte Segmente bauen den Frame auf, `0x83 <mode_byte>` schließt den Zyklus ab.
+- [x] Segment-„Abhacken“ behoben: Buffer wird nicht mehr pro Teilsegment geleert, sondern nur bei explizitem `0x81` oder nach Fallback-Timeout.
+- [x] Modus-Latch um `mode_code` erweitert (`0x83 EF/FB`), sodass Betriebsarten-LED/Modushinweis zusätzlich zum 0x321-Latch aus dem Display-Protokoll gespeist werden.
+- [x] Parser (`parser.uc`) liefert `mode_code` im JSON-State und übernimmt dieselbe `0x81`/`0x83`-Semantik für Polling-Fallback.

@@ -192,3 +192,13 @@ Neu seit 2026-04-10 (Feldabgleich Display/Status):
 - Der Daemon schreibt den letzten JSON-State wieder nach `/tmp/heizungpanel/state.json`; `state.sh` liest diesen Cache zuerst und nutzt MQTT als Fallback. Dadurch ist der Status beim ersten Öffnen der Weboberfläche stabil verfügbar.
 - Korrektur: Das LuCI-Display rendert weiterhin direkt im Push-Betrieb ohne künstliches Blanking; persistent gelatcht werden nur die Betriebsarten-LEDs.
 - Safety/Lesbarkeit: Die LuCI-Anzeige rendert 0x320 nun burstweise als vollständigen 2x20-Frame aus geleertem Buffer; dadurch bleiben keine alten Zeichenreste stehen, wenn Inhalte kürzer werden.
+
+Neu seit 2026-04-10 (UX-Entschärfung Alerts):
+- Wiederholte globale LuCI-Alarmboxen bei Tastendruck wurden im Panel-Pfad entfernt, damit die Seite nicht mit `OK: ...`-Meldungen vollläuft.
+- Stattdessen gibt es eine lokale, kurzlebige Inline-Rückmeldung direkt im Panel (Erfolg/Hinweis/Fehler) mit reservierter Höhe, sodass das Frame nicht sichtbar verschoben wird.
+
+Neu seit 2026-04-10 (Display-Reassembly-Korrektur):
+- LuCI setzt das 0x320-LCD jetzt markerbasiert zusammen: `81` = neuer Bildschirminhalt/Buffer-Clear, danach adressierte Segmente, `83 <mode_byte>` = Abschlussframe.
+- Dadurch bleibt der vorherige Zwischenstand während Segmentupdates erhalten; das Display wird nicht mehr pro Teilblock neu geleert und ist bei Uhrzeitbetrieb wieder lesbar.
+- Der Parser (`usr/libexec/heizungpanel/parser.uc`) übernimmt dieselbe Semantik und liefert zusätzlich `mode_code` im JSON-State für Polling-Fallbacks.
+- Modus-Latch wird zusätzlich über bekannte Abschlussbytes (`83 EF`, `83 FB`) gespeist, damit die Betriebsartenanzeige stabiler bleibt.
