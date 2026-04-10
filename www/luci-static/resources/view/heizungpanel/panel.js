@@ -193,9 +193,19 @@ return view.extend({
     var lcd = []; for (var i = 0; i < 40; i++) lcd[i] = ' ';
     var modeCode = '--';
     var modeFlags = '----';
+    var liveHasRendered = false;
+
+    function hydrateLcdFromLines(a, b) {
+      var l1 = pad20(a);
+      var l2 = pad20(b);
+      var i;
+      for (i = 0; i < 20; i++) lcd[i] = l1.charAt(i);
+      for (i = 0; i < 20; i++) lcd[20 + i] = l2.charAt(i);
+    }
 
     function renderLive() {
       setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''));
+      liveHasRendered = true;
       flags.textContent = 'flags16: ' + modeFlags + '  mode_code: ' + modeCode;
       lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString();
       clearLeds();
@@ -248,14 +258,18 @@ return view.extend({
 
     function applyBootstrap(st) {
       if (!st || st.status !== 'ok') return;
-      if (st.line1 || st.line2) setRenderedDisplay(st.line1, st.line2);
+      var lineA = st.line1 || '';
+      var lineB = st.line2 || '';
+      hydrateLcdFromLines(lineA, lineB);
       modeFlags = (st.mode_flags16 || '----').toUpperCase();
       modeCode = (st.mode_code || '--').toUpperCase();
-      flags.textContent = 'flags16: ' + modeFlags + '  mode_code: ' + modeCode;
-      clearLeds();
-      if (modeByFlags[modeFlags]) {
-        modeByFlags[modeFlags].led.className = 'hp-led on';
-        modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+      if (!liveHasRendered) {
+        renderLive();
+        if (modeByFlags[modeFlags]) {
+          modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+        } else {
+          modeHint.textContent = 'Modus (retained): unbekannt (' + modeFlags + ')';
+        }
       }
       status.className = 'hp-status warn';
       status.textContent = 'Status: Bootstrap geladen, warte auf Raw-Liveframes';

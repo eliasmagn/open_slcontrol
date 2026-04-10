@@ -1,5 +1,10 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Bootstrap/Livedecode-Härtung
+- [x] Bootstrap-Hydration im LuCI-Decoder ergänzt: Snapshot-Zeilen werden in den internen `lcd[]`-Puffer übernommen (nicht nur ins DOM gerendert).
+- [x] Retained Bootstrap setzt beim Initialzustand zusätzlich `mode_flags16` und `mode_code`, sodass der erste `renderLive()` konsistent bleibt.
+- [x] Frühes Leer-Rendern verhindert: erste `0x321`-/`0x83`-Frames überschreiben den Snapshot nicht mehr mit Blankwerten.
+
 ## Update 2026-04-10 – Runtime-Trim (True Raw-first)
 - [x] `state.sh` so angepasst, dass der optionale Legacy-Topicabruf (`<mqtt_base>/state`) erst bei fehlendem `mode`/`snapshot` ausgeführt wird.
 - [x] `state_bridge.sh` als Legacy-Vollstatepfad im Startlog klar gekennzeichnet.

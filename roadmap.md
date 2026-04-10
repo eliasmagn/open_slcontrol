@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Bootstrap/Livestream-Übergang gehärtet
+- LuCI-Bootstrap übernimmt Snapshotdaten jetzt als vollständigen Decoder-Startzustand (`lcd[]`, `mode_flags16`, `mode_code`).
+- Der Übergang Bootstrap -> Raw-Live ist dadurch stabil, auch wenn zunächst nur `0x321` oder ein früher `0x83` ankommt.
+- Raw-first-Architektur bleibt unverändert: Embedded liefert weiter nur Raw + leichte Retains, Decoding bleibt primär im Browser.
+
 ## Update 2026-04-10 – Runtime-Trim (True Raw-first)
 - `state.sh` reduziert Legacy-Abhängigkeit: `<mqtt_base>/state` wird nur noch als Fallback bei unvollständigem Bootstrap abgefragt.
 - Legacy-Vollparser ist explizit sekundär (Debug/Kompatibilität), nicht Produktionspfad.
