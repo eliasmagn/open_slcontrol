@@ -2,84 +2,63 @@
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
-## Runtime-Modell (kanonisch, Stand 2026-04-10, konsolidiert)
+## Runtime-Modell (kanonisch)
 
-**Raw-first bleibt der Standardpfad.**
+Das Projekt läuft **raw-first**:
 
-- Browser dekodiert Liveanzeige primär aus Raw-CAN (`0x320/0x321`) über SSE.
-- Embedded hält nur leichte Retains für Bootstrap/Orientierung.
-- Vollständiger Legacy-State ist optional und standardmäßig deaktiviert.
+- Browser ist der primäre Display-Decoder (Liveanzeige aus `0x320/0x321` Raw-Frames).
+- Embedded hält nur leichte Runtime-Topics für Bootstrap und Observability.
+- Vollstate bleibt optionaler Legacy-/Debugpfad.
 
-### MQTT-Topics (Primärpfad)
+## MQTT-Topic-Modell
 
 - `<mqtt_base>/raw`  
-  Live-Rawframes (nicht retained), Primärquelle für die UI.
+  Live-Rawframes, nicht retained; primäre UI-Livequelle.
 - `<mqtt_base>/mode`  
-  **Durable, retained** Betriebsart-Latch aus bekannten stabilen `0x321 flags16`.
+  **Durable + retained** Betriebsarten-Latch aus bekannten stabilen `0x321 flags16`.
 - `<mqtt_base>/mode/current`  
-  **Transient, nicht retained**: letzter beobachteter `0x321`-Wert (Observability/Debug).
+  **Transient + unretained** letzter beobachteter `0x321`-Wert (Debug/Observability).
 - `<mqtt_base>/snapshot`  
-  Retained 2x20-Display-Bootstrap (`line1/line2/mode_code`).
+  Retained Bootstrap für 2x20-Display (`line1`, `line2`, `mode_code`).
 - `<mqtt_base>/state`  
-  Optional/legacy Vollstate (Debug/Fallback), standardmäßig aus.
+  Optionaler Legacy-Vollstate (`publish_state=0` per Default).
 
 ## Durable `mode` vs transient `mode/current`
 
-- `mode` = langlebiger Betriebszustand für LED-/Modus-Startzustand (retained).
-- `mode/current` = flüchtiger Beobachtungskanal für laufende 0x321-Wechsel (nicht retained).
-- Transiente/unbekannte 0x321-Werte überschreiben den durable Latch **nicht**.
+- `mode` ist der langlebige Anlagenmodus-Latch und bleibt über Reconnect/Neustart als retained Startzustand erhalten.
+- `mode/current` bildet nur den letzten laufenden `0x321`-Beobachtungswert ab und ist bewusst nicht retained.
+- Unbekannte/transiente `0x321`-Werte dürfen `mode` nicht überschreiben.
 
-## Bootstrap-Semantik (strict)
+## Bootstrap-Semantik
 
-- `state.sh` baut Bootstrap aus retained `mode` + retained `snapshot`.
-- `mode/current` wird **nicht** als Bootstrap-Quelle verwendet.
-- Legacy `<mqtt_base>/state` wird nur bei fehlendem Bootstrap als Fallback abgefragt.
-- Browser-Hydration bleibt Raw-first: Snapshot als Startbild, danach Live-Decode aus Raw.
+`state.sh` liefert Bootstrap aus:
 
-## Standard-Runtime
+1. retained `<mqtt_base>/mode` (durable)
+2. retained `<mqtt_base>/snapshot`
+3. optional `<mqtt_base>/state` nur als Legacy-Fallback bei fehlenden Daten
 
-In der Default-Konfiguration:
+`mode/current` ist **keine** Bootstrap-Quelle.
+
+## Stream-API (`/cgi-bin/heizungpanel_stream`)
+
+- `?mode=raw` (Default)
+- `?mode=mode` (durable retained)
+- `?mode=mode_current`, `?mode=current`, `?mode=mode/current` (transient)
+- `?mode=snapshot`
+- `?mode=state` (legacy)
+
+## Defaults
 
 - `publish_raw=1`
 - `publish_mode=1`
 - `publish_snapshot=1`
 - `publish_state=0`
 
-`/etc/init.d/heizungpanel` startet damit typischerweise:
+Damit bleiben Browser-Decode + Raw-Livepfad der Standard.
 
-- `raw_bridge.sh`
-- `mode_bridge.sh`
-- `snapshot_bridge.sh`
-- optional `state_bridge.sh` (nur bei `publish_state=1`)
+## Projektdateien
 
-## Streams
-
-`/www/cgi-bin/heizungpanel_stream` unterstützt:
-
-- `?mode=raw` (Default)
-- `?mode=mode` (durable retained)
-- `?mode=mode_current`, `?mode=current` oder `?mode=mode/current` (transient)
-- `?mode=snapshot`
-- `?mode=state` (legacy)
-
-## Architekturleitplanken
-
-- Browser bleibt primärer Display-Decoder.
-- Embedded bleibt leichtgewichtig.
-- `state_bridge.sh` bleibt legacy/optional.
-- CAN-Setup bleibt ausschließlich im Init-Skript.
-
-## Betrieb (Kurz)
-
-1. UCI prüfen (`/etc/config/heizungpanel`) – insbesondere `can_if`, `mqtt_*`, Publish-Flags, `write_mode`.
-2. Dienst starten: `/etc/init.d/heizungpanel start`.
-3. LuCI öffnen und prüfen, dass Raw-Stream aktiv ist.
-4. Bei Bedarf Stream-Endpunkt direkt prüfen:  
-   `/cgi-bin/heizungpanel_stream?mode=raw&token=<stream_token>`
-
-## Relevante Projektdateien
-
-- `concept.md` – Zielbild/Architektur.
-- `checklist.md` – laufende Aufgaben und Status.
-- `roadmap.md` – Milestones/Fortschritt.
-- `readme.md` – aktueller Betriebs-/Deploy-Stand (kanonisch).
+- `concept.md` – Architekturkonzept
+- `checklist.md` – Aufgaben-/Statusliste
+- `roadmap.md` – Fortschritts-/Meilensteinplanung
+- `README.md` – kurze öffentliche Einstiegsversion

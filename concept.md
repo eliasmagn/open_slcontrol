@@ -1,5 +1,11 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Runtime/API-Durchzug `mode/current`
+- `/www/cgi-bin/heizungpanel_stream` nutzt jetzt benannte Topic-Konstanten und führt `mode/current` explizit als transienten Streamkanal neben `mode`.
+- `/etc/init.d/heizungpanel` loggt die Topic-Summary konditional: bei `publish_mode=1` werden `mode` (durable, retained) und `mode/current` (transient, unretained) gemeinsam sichtbar, sonst beide als deaktiviert.
+- `README.md`/`readme.md` sind auf den aktuellen Raw-first Laufzeitpfad verdichtet und nennen Bootstrap strikt als `mode + snapshot` (ohne `mode/current`).
+
+
 ## Architektur-Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
 - Stream-CGI akzeptiert jetzt zusätzlich den expliziten Selektor `mode=mode/current` (neben `mode_current`/`current`) für den transienten Debugkanal.
 - Init-Startlog nennt die Semantik jetzt explizit als `mode/current (transient, unretained)` sowie `snapshot (retained bootstrap)` und `state (legacy, optional)`.
