@@ -159,3 +159,10 @@
 ## Update 2026-04-10 – Deploy-/Netzwerk-Schutz bei falschem `can_if`
 - [x] CAN-Setup-Härtung: `etc/init.d/heizungpanel`, `raw_bridge.sh` und `state_bridge.sh` verweigern aktiv Nicht-CAN-Interfaces (`can*|vcan*|slcan*`), um versehentliches `ip link set <lan_if> down` zu verhindern.
 - [x] Deploy-Härtung: `tools/device_ssh_deploy.sh` startet den Dienst bei `can_setup=1` nicht automatisch neu, falls `can_if` unsicher ist; stattdessen Warnung im Deploy-Output.
+## Update 2026-04-10 – Feldabgleich Display/LED-Persistenz
+- [x] LuCI-Display auf 2x20 umgestellt (Offset-/Reassembly-Pfade in Parser + Frontend angepasst), damit reale Zeilenlänge korrekt dargestellt wird.
+- [x] Virtuelles Display-Blanking bei Textänderung ergänzt (kurzer Full-Clear vor Neurender), damit das Verhalten näher am echten Panel liegt.
+- [x] Betriebsart-LEDs auf latched `mode_flags16` umgestellt (persistenter Modusstatus statt flüchtiger Tastenflags).
+- [x] `state_bridge.sh` schreibt den letzten Parser-State wieder in `/tmp/heizungpanel/state.json` (`tee`), `state.sh` liest primär aus diesem Cache und fällt auf MQTT zurück.
+- [x] Korrektur nach Feldfeedback: Display-Blanking wieder entfernt; Push-Rendering bleibt aktiv, nur Betriebsart-LEDs bleiben persistent (Latch).
+- [x] JS-Renderer schreibt pro 0x320-Frame-Burst das komplette 2x20-Display neu (Start immer mit leerem 40-Char-Buffer), damit keine alten Zeichenreste/Ziffern sichtbar bleiben.

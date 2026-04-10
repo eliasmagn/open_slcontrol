@@ -92,3 +92,9 @@
 - Konfigoberfläche auf App + MQTT reduziert; keine separate Safety-Sektion mehr.
 
 - Stand 2026-04-10: Send-Mode-Fix umgesetzt – CAN-Setup setzt `listen-only off` jetzt explizit bei `write_mode=1` (Init + Bridge-Reinit), damit TX zuverlässig funktioniert.
+- Stand 2026-04-10: Feldabgleich umgesetzt – LCD-Geometrie von 2x16 auf 2x20 angepasst (Parser + LuCI-Renderer).
+- Stand 2026-04-10: UI-Display simuliert jetzt Blanking bei Textwechsel (kurzer Full-Clear vor Neuzeichnung).
+- Stand 2026-04-10: Betriebsarten-LEDs verwenden gelatchten Modus (`mode_flags16`) und bleiben dadurch persistent trotz transienter 0x321-Events.
+- Stand 2026-04-10: Daemon hält den letzten Zustand wieder lokal in `/tmp/heizungpanel/state.json`; `state.sh` nutzt diesen Cache vor MQTT-Fallback für verlässlichen Initialzustand.
+- Stand 2026-04-10 (Korrektur): künstliches Display-Blanking zurückgenommen; Push-Anzeige bleibt schnell, LED-Latching bleibt persistent.
+- Stand 2026-04-10: 0x320-Frontend-Rendering auf vollständige Burst-Neuzeichnung umgestellt (gesamtes 2x20 wird neu geschrieben, keine Restzeichen aus Vorwerten).

@@ -13,7 +13,7 @@ let input = fdopen(0, "r");
 let out   = fdopen(1, "w");
 
 let lcd = [];
-for (let i = 0; i < 32; i++)
+for (let i = 0; i < 40; i++)
     lcd[i] = " ";
 
 let flag_stats = {};
@@ -36,8 +36,9 @@ let state = {
     can_if: CAN_IF,
     can_bitrate: CAN_BITRATE,
     source_frame: 0,
-    line1: "                ",
-    line2: "                ",
+    line1: "                    ",
+    line2: "                    ",
+    mode_flags16: "----",
     flags16: "----",
     active_bits: [],
     bit_roles: {},
@@ -122,9 +123,9 @@ function refresh_lcd_lines() {
     state.line1 = "";
     state.line2 = "";
 
-    for (let i = 0; i < 16; i++)
+    for (let i = 0; i < 20; i++)
         state.line1 += lcd[i];
-    for (let i = 16; i < 32; i++)
+    for (let i = 20; i < 40; i++)
         state.line2 += lcd[i];
 }
 
@@ -187,18 +188,18 @@ function hexbyte_to_char(h) {
 
 function lcd_index_from_offset(off) {
     // canonical HD44780 offsets
-    if (off >= 0x00 && off <= 0x0F)
+    if (off >= 0x00 && off <= 0x13)
         return off;
 
-    if (off >= 0x40 && off <= 0x4F)
-        return 16 + (off - 0x40);
+    if (off >= 0x40 && off <= 0x53)
+        return 20 + (off - 0x40);
 
-    // observed occasional extension chunks (e.g. 0x10..0x1F)
-    if (off >= 0x10 && off <= 0x1F)
+    // observed occasional extension chunks around wrapped addresses
+    if (off >= 0x14 && off <= 0x1F)
         return off;
 
-    if (off >= 0x50 && off <= 0x5F)
-        return 16 + (off - 0x50);
+    if (off >= 0x54 && off <= 0x5F)
+        return 20 + (off - 0x54);
 
     return -1;
 }
@@ -275,6 +276,13 @@ while ((line = input.read("line")) != null) {
     if (id == "321" && length(data) >= 4) {
         let flags = substr(data, 0, 4);
         state.flags16 = flags;
+
+        // Status modes are latched, while key events are transient.
+        if (flags == "7FFF" || flags == "BFFF" || flags == "DFFF" ||
+            flags == "EFFF" || flags == "F7FF" || flags == "FBFF" ||
+            flags == "FDFF")
+            state.mode_flags16 = flags;
+
         state.active_bits = active_bits_from_flags(flags);
 
         metrics.flags_frames++;
@@ -368,7 +376,7 @@ while ((line = input.read("line")) != null) {
 
         let p = 2;
         let pos = base;
-        while ((p + 2) <= length(data) && pos < 32) {
+        while ((p + 2) <= length(data) && pos < 40) {
             let b = substr(data, p, 2);
             lcd[pos] = hexbyte_to_char(b);
             p += 2;
