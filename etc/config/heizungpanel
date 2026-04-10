@@ -9,3 +9,4 @@ config heizungpanel 'main'
 	option poll_interval_ms '500'
 	option write_mode '0'
 	option stream_token '9b3b34735e25e48f2f07d95d309f5893'
+

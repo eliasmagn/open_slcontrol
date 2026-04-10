@@ -7,6 +7,8 @@
         "/usr/libexec/heizungpanel/state.sh": [ "exec" ],
         "/usr/libexec/heizungpanel/press.sh": [ "exec" ],
         "/usr/libexec/heizungpanel/config.sh": [ "exec" ],
+        "/usr/libexec/heizungpanel/config_get.sh": [ "exec" ],
+        "/usr/libexec/heizungpanel/config_set.sh": [ "exec" ],
         "/usr/libexec/heizungpanel/set_mode.sh": [ "exec" ]
       }
     }

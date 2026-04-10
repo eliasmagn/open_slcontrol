@@ -25,7 +25,7 @@ Die App ist funktional im Read-only-Pfad:
 4. UI: LuCI nutzt primär EventSource-Push (SSE) statt festem Polling. Die LCD-Emulation rendert ASCII (`0x20..0x7E`) plus beobachtete deutsche Sonderzeichen (`0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`) clientseitig. Bei fehlendem EventSource-Support bleibt Polling-Fallback aktiv.
    Send-Kommandos ohne hinterlegtes CAN-Mapping werden im UI als Hinweis (statt „Send failed“) ausgewiesen.
 5. Runtime-Konfig: LuCI liest `poll_interval_ms`/`write_mode` über `config.sh` aus UCI und bietet im Panel einen Konfigurations-Switch für den Send-Mode (`write_mode`). `listen_only` wird nur intern im Dienst aus `write_mode` abgeleitet (keine redundante Frontend-Konfiguration). Default-Polling ist auf 500 ms abgesenkt, um die UI-Latenz zu reduzieren.
-6. Security-Gate: `press.sh` erzwingt `write_mode` + strikte Command-Allowlist.
+6. Security-Gate: `press.sh` erzwingt `write_mode` + strikte Command-Allowlist und sendet bestätigte Mapping-Codes als `0x321`-Frames über `cansend`.
 7. Display-Emulation: `display_emulator.sh` rendert die aus `0x320` rekonstruierten LCD-Zeilen live aus MQTT-Raw oder offline aus Candump/STDIN; fragmentierte Markerblöcke werden offset-basiert gemerged, optional mit 0x321-Markertrace (`--show-flags`).
 8. Mapping-Validierung: `mapping_validate.sh` prüft 0x321-Flags und 0x258/0x259-Index-Paare aus Candump-Dateien für reproduzierbare M2-Befunde.
 9. 0x321-Clusteranalyse: `isolate_321.sh` gruppiert Candump-Frames nach identischem `flags16` und zeigt Kontextframes, um LED-/Moduszuordnungen reproduzierbar abzuleiten.
@@ -46,3 +46,10 @@ Die App ist funktional im Read-only-Pfad:
 
 - LuCI-Frontend wird bewusst ES5-kompatibel gehalten (insbesondere in View-Skripten), da der LuCI-Loader auf Zielsystemen sonst mit `compileClass`-Syntaxfehlern ausfallen kann.
 - UI-Statuslogik wurde gehärtet: Ein formales `status=ok` ohne decodierbare LCD-/Flag-Nutzdaten wird als Warnzustand dargestellt, um Scheinsicherheit im LuCI-Panel zu vermeiden (2026-04-09).
+
+12. Dedizierte Konfiguration: eigene LuCI-Seite (`heizungpanel/config`) für App-/MQTT-/Safety-Einstellungen mit serverseitiger Validierung (`config_set.sh`) statt verteilter Einzel-Toggles.
+
+
+15. Vereinfachter Konfigfluss: keine zusätzliche MQTT-Unlock-Policy mehr; die App verwendet den normalen UCI-Konfigurationspfad für `heizungpanel.main` ohne extra Schutzschicht.
+
+16. CAN-Write-Betrieb: Bei aktivem Write-Mode wird beim (Re-)Setup des CAN-Interfaces `listen-only off` explizit gesetzt (Init + Bridge-Reinit), um latente Listen-only-Reste sicher zu überschreiben.

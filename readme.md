@@ -3,6 +3,13 @@
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 ## Aktueller Stand (2026-04-10)
+Neu seit 2026-04-10 (Write/MQTT-Safety):
+- `press.sh` enthält jetzt reale Send-Mappings für bestätigte Kommandos (u.a. `v/z/boiler/uhr/dauer/uhr_boiler/aussen_reg/hand/pruef/quit`) auf CAN `0x321`.
+- Erfolgreiche TX-Sends werden als Audit nach Syslog und optional nach MQTT `<mqtt_base>/tx` publiziert.
+- Dedizierte LuCI-Konfigseite unter **Services → Heizungpanel → Konfiguration** für App + MQTT + Safety wurde ergänzt.
+- Neue serverseitige Konfig-Validierung und Schutzmechanismus gegen unbeabsichtigte MQTT-Umstellungen: `mqtt_protect_existing` + `mqtt_change_unlock` (One-shot).
+- Commit-Scope-Guard: Konfigurationsänderungen werden nur übernommen, wenn keine ausstehenden UCI-Änderungen außerhalb `heizungpanel.main.*` vorhanden sind; dadurch werden andere MQTT-/UCI-Instanzen nicht mit verändert.
+
 Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0.1 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
 - CAN-Raw- und State-Bridge laufen mit Retry-Schleifen inkl. CAN-Reinitialisierung nach Bridge-Exit.
@@ -166,3 +173,10 @@ Lokal wurde ein Stubbed-Harness (`tools/bridge_stability_harness.sh`) gegen beid
 Hinweis: Das ist ein lokaler Reconnect-Loop-Test (ohne echte CAN-Hardware). Der 1h-Run auf Zielgerät bleibt weiterhin der Abnahmetest.
 
 - Hotfix 2026-04-09: `www/luci-static/resources/view/heizungpanel/panel.js` ergänzt Plausibilitätsprüfung für leere Nutzdaten; Warnstatus wird angezeigt, wenn zwar Polling läuft, aber noch keine decodierbaren LCD-/Flag-Daten vorliegen.
+
+Neu seit 2026-04-10 (Vereinfachung):
+- Zusätzliche MQTT-Schutz-/Unlock-Mechanik wurde entfernt; Konfigurationsänderungen laufen wieder über den normalen UCI-Flow.
+- Die dedizierte LuCI-Konfigseite bleibt erhalten, ist aber auf App- und MQTT-Einstellungen reduziert.
+
+Neu seit 2026-04-10 (Send-Mode-Fix):
+- Beim CAN-(Re)Setup wird bei `write_mode=1` nun explizit `listen-only off` gesetzt (inkl. Bridge-Reinit-Pfade), damit Senden nicht an einem zuvor gesetzten Listen-only-Status hängen bleibt.

@@ -78,3 +78,16 @@
 - Stand 2026-04-10: Parsing für die UI wurde in den Browser verlagert (`panel.js` dekodiert `0x320/0x321/0x1F5` aus Raw-Frames), um Router-CPU für die Paneldarstellung zu entlasten.
 - Stand 2026-04-09: Deploy-Tool-Fileliste erweitert; `set_mode.sh` und `isolate_321.sh` werden bei Install/Push mit übertragen.
 - Stand 2026-04-09: LuCI behandelt `press.sh`-Exitcode 4 jetzt als Hinweis „Mapping noch nicht hinterlegt“ statt als generischen Send-Fehler.
+
+
+## M4.1 – Write-Pfad & sichere MQTT-Administration (**fortgeschritten am 2026-04-10**)
+- `press.sh` sendet freigegebene Kommandos jetzt real auf `0x321` (`cansend <can_if> 321#...`) statt Stub-Antworten.
+- Erfolgreiche TX-Kommandos werden in Syslog und optional auf MQTT (`<mqtt_base>/tx`) auditiert.
+- Dedizierte LuCI-Konfig-Ansicht für App/MQTT/Safety ergänzt (`heizungpanel/config`).
+
+
+## M4.2 – Konfigfluss vereinfacht (**abgeschlossen am 2026-04-10**)
+- Zusätzliche MQTT-Schutz-/Unlock-Mechanik entfernt, da UCI-Standardmechanik als ausreichend bewertet wurde.
+- Konfigoberfläche auf App + MQTT reduziert; keine separate Safety-Sektion mehr.
+
+- Stand 2026-04-10: Send-Mode-Fix umgesetzt – CAN-Setup setzt `listen-only off` jetzt explizit bei `write_mode=1` (Init + Bridge-Reinit), damit TX zuverlässig funktioniert.
