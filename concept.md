@@ -69,3 +69,9 @@ Die App ist funktional im Read-only-Pfad:
 27. Sendebestätigung 2026-04-10: Nach Modus-Sendebefehlen wartet das Frontend auf ein passendes `0x321 flags16` als Anlagen-Bestätigung und meldet Erfolg/Timeout sichtbar im Panel.
 28. Hypothese 2026-04-10 (Feldfeedback): `0x320`-Abschlussbytes `83 EF`/`83 FB` werden als **Display-/Screenklassen** interpretiert (z. B. Standardstatus vs. interaktiv/zweizeilig), nicht als Heizungs-Betriebsmodus.
 29. Build-Identifikation 2026-04-10: Init- und Bridge-Skripte tragen ein `BUILD_TAG`-Commit-Label und loggen dieses beim Start via `logger -t heizungpanel`, damit die laufende Version im Syslog sichtbar ist.
+
+30. Konsolidierung 2026-04-10: Deploy muss immer die dedizierte Konfigseite und ihre Backend-Skripte mit ausrollen (`config.js`, `config_get.sh`, `config_set.sh`), damit Dev-Deploy und Paketstand identisch bleiben.
+31. Konfig-Transaktion 2026-04-10: Änderungen werden als Batch validiert und in einem atomaren UCI-Commit mit genau einem Dienst-Restart angewendet (keine Feld-für-Feld-Restarts).
+32. CAN-Ownership 2026-04-10: Das CAN-Interface wird ausschließlich im Init-Skript konfiguriert; Bridges arbeiten als reine Consumer/Publisher ohne eigenes Link-Reconfigure.
+33. Decoder-Umgebung 2026-04-10: `state_bridge.sh` exportiert `CAN_IF`/`CAN_BITRATE` pro Prozess, damit `parser.uc` die Metadaten unabhängig von Pipeline-Scopes zuverlässig erhält.
+34. Display-Konsistenz 2026-04-10: Emulator, Parser und LuCI verwenden konsistent 2x20/40 Zeichen.

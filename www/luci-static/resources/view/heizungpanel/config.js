@@ -88,33 +88,27 @@ return view.extend({
 
     var status = el('div', { class: 'hp-status hp-warn' }, ['Status: bereit']);
 
-    function saveRow(row) {
-      var v = row.input.value;
-      return fs.exec('/usr/libexec/heizungpanel/config_set.sh', [row.key, v]).then(function(res) {
+    function saveAll(rows) {
+      var payload = {};
+      rows.forEach(function(r) {
+        payload[r.key] = r.input.value;
+      });
+
+      return fs.exec('/usr/libexec/heizungpanel/config_set.sh', ['--batch-json', JSON.stringify(payload)]).then(function(res) {
         if (res && res.code === 0) {
           status.className = 'hp-status hp-ok';
-          status.textContent = 'Gespeichert: ' + row.key;
+          status.textContent = 'Konfiguration atomar gespeichert (ein Commit, ein Restart).';
           return true;
         }
+
         status.className = 'hp-status hp-err';
-        status.textContent = 'Fehler bei ' + row.key + ': ' + (res ? (res.stderr || res.stdout || res.code) : 'n/a');
+        status.textContent = 'Fehler beim Speichern: ' + (res ? (res.stderr || res.stdout || res.code) : 'n/a');
         return false;
       }).catch(function(err) {
         status.className = 'hp-status hp-err';
-        status.textContent = 'Fehler bei ' + row.key + ': ' + err;
+        status.textContent = 'Fehler beim Speichern: ' + err;
         return false;
       });
-    }
-
-    function saveAll(rows) {
-      var p = Promise.resolve(true);
-      rows.forEach(function(r) {
-        p = p.then(function(ok) {
-          if (!ok) return false;
-          return saveRow(r);
-        });
-      });
-      return p;
     }
 
     var allRows = rowsApp.concat(rowsMqtt);
