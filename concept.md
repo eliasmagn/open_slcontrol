@@ -55,3 +55,9 @@ Die App ist funktional im Read-only-Pfad:
 
 16. CAN-Write-Betrieb: Bei aktivem Write-Mode wird beim (Re-)Setup des CAN-Interfaces `listen-only off` explizit gesetzt (Init + Bridge-Reinit), um latente Listen-only-Reste sicher zu überschreiben.
 17. Interface-Safety: CAN-Setup ist strikt auf Interface-Präfixe `can*`, `vcan*`, `slcan*` begrenzt, damit Fehlkonfigurationen keine Netzwerk-Uplinks herunterfahren.
+18. Feldabgleich 2026-04-10: LCD-Geometrie auf 2x20 erweitert (statt 2x16), inkl. HD44780-Offset-Fenster `0x00..0x13` und `0x40..0x53`.
+19. UI-Verhalten: Bei erkannten Inhaltswechseln wird ein kurzes LCD-Blanking simuliert, um das reale Umschaltverhalten besser abzubilden.
+20. Persistenter Modusstatus: Parser führt `mode_flags16` als gelatchten Betriebsartenstatus; LuCI-LEDs orientieren sich daran statt an kurzlebigen Event-Flags.
+21. Daemon-seitige Zustandsvorhaltung: `state_bridge.sh` schreibt den letzten JSON-State nach `/tmp/heizungpanel/state.json`, sodass beim ersten Öffnen des Webinterface sofort ein bekannter Zustand vorliegt (auch wenn MQTT gerade keine frische Antwort liefert).
+22. Korrektur 2026-04-10: Display bleibt im Push-Betrieb ohne künstliches Blanking; persistiert wird nur der Betriebsartenstatus der LEDs (Latch), nicht ein zusätzlicher Display-Flicker-Effekt.
+23. Lesbarkeits-/Safety-Korrektur 2026-04-10: Im Frontend wird pro 0x320-Burst immer ein kompletter 2x20-Frame aus einem zuvor geleerten 40-Char-Buffer aufgebaut und dann als Ganzes gerendert (keine Restzeichen).

@@ -66,7 +66,7 @@ return view.extend({
       '.hp-display {',
       '  margin-top:6px;',
       '  background:#0b0f16; border:2px solid #cfcfcf; border-radius:8px;',
-      '  padding:10px 12px; margin:0 auto 18px auto; width: 88%;',
+      '  padding:10px 12px; margin:0 auto 18px auto; width: 96%; max-width: 720px;',
       '  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;',
       '  color:#39a9ff; letter-spacing:1px;',
       '}',
@@ -101,14 +101,14 @@ return view.extend({
       '.hp-switch input { width:18px; height:18px; }'
     ].join('\n') });
 
-    var line1 = el('div', { class: 'l dim' }, ['                ']);
-    var line2 = el('div', { class: 'l dim' }, ['                ']);
+    var line1 = el('div', { class: 'l dim' }, ['                    ']);
+    var line2 = el('div', { class: 'l dim' }, ['                    ']);
     var flags = el('div', { class: 'hp-debug' }, ['flags16: ----  last_1f5: ----']);
     var status = el('div', { class: 'hp-status warn' }, ['Status: warte auf Daten ...']);
     var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
 
     var display = el('div', { class: 'hp-display' }, [
-      el('div', { class: 'lcd-title' }, ['LCD 2x16 (emuliert aus CAN 0x320)']),
+      el('div', { class: 'lcd-title' }, ['LCD 2x20 (emuliert aus CAN 0x320)']),
       el('div', { class: 'lcd-frame' }, [line1, line2]),
       flags, status, lastUpdate
     ]);
@@ -291,13 +291,16 @@ return view.extend({
       ])
     ]);
 
-    var lcd = new Array(32).fill(' ');
+    var lcd = new Array(40).fill(' ');
+    var lcdBurstActive = false;
+    var lcdFlushTimer = null;
     var frameCount = 0;
     var lastFrameAt = 0;
     var state = {
-      line1: '                ',
-      line2: '                ',
+      line1: '                    ',
+      line2: '                    ',
       flags16: '----',
+      mode_flags16: '----',
       last_1f5: ''
     };
 
@@ -313,11 +316,18 @@ return view.extend({
     };
 
     var lcdIndexFromOffset = function(off) {
-      if (off >= 0x00 && off <= 0x0F) return off;
-      if (off >= 0x40 && off <= 0x4F) return 16 + (off - 0x40);
-      if (off >= 0x10 && off <= 0x1F) return off;
-      if (off >= 0x50 && off <= 0x5F) return 16 + (off - 0x50);
+      if (off >= 0x00 && off <= 0x13) return off;
+      if (off >= 0x40 && off <= 0x53) return 20 + (off - 0x40);
+      if (off >= 0x14 && off <= 0x1F) return off;
+      if (off >= 0x54 && off <= 0x5F) return 20 + (off - 0x54);
       return -1;
+    };
+
+    var paintLcd = function(l1, l2) {
+      line1.textContent = l1;
+      line2.textContent = l2;
+      line1.className = 'l' + (l1.trim() ? '' : ' dim');
+      line2.className = 'l' + (l2.trim() ? '' : ' dim');
     };
 
     var parseRawFrame = function(line) {
@@ -339,26 +349,24 @@ return view.extend({
     };
 
     var renderFromState = function(st) {
-      var l1 = (st.line1 || '').padEnd(16, ' ').slice(0, 16);
-      var l2 = (st.line2 || '').padEnd(16, ' ').slice(0, 16);
+      var l1 = (st.line1 || '').padEnd(20, ' ').slice(0, 20);
+      var l2 = (st.line2 || '').padEnd(20, ' ').slice(0, 20);
       var hasLcdText = !!(l1.trim() || l2.trim());
       var hasFlags = !!(st.flags16 && st.flags16 !== '----');
       var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
       var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      var modeInfo = modeByFlags[flagsNorm];
+      var modeFlagsNorm = String(st.mode_flags16 || st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+      var modeInfo = modeByFlags[modeFlagsNorm];
       var keyInfo = keyByFlags[flagsNorm];
 
-      line1.textContent = l1;
-      line2.textContent = l2;
-      line1.className = 'l' + (l1.trim() ? '' : ' dim');
-      line2.className = 'l' + (l2.trim() ? '' : ' dim');
+      paintLcd(l1, l2);
       lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString() + ' (Push)';
       flags.textContent = 'frames: ' + frameCount + '  flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
 
       clearLeds();
       if (modeInfo) {
         modeInfo.led.className = 'hp-led on';
-        modeHint.textContent = 'Modus aus 0x321: ' + modeInfo.name + ' (' + flagsNorm + ')';
+        modeHint.textContent = 'Modus aus 0x321 (latch): ' + modeInfo.name + ' (' + modeFlagsNorm + ')';
       } else if (keyInfo) {
         modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
       } else if (flagsNorm) {
@@ -384,6 +392,7 @@ return view.extend({
 
       if (f.id === '321' && f.hex.length >= 4) {
         state.flags16 = f.hex.slice(0, 4);
+        if (modeByFlags[state.flags16]) state.mode_flags16 = state.flags16;
         renderFromState(state);
         return;
       }
@@ -401,15 +410,25 @@ return view.extend({
       var base = lcdIndexFromOffset(off);
       if (base < 0) return;
 
+      if (!lcdBurstActive) {
+        lcd = new Array(40).fill(' ');
+        lcdBurstActive = true;
+      }
+
       for (var p = 2; p < f.hex.length; p += 2) {
         var idx = base + ((p - 2) / 2);
-        if (idx < 0 || idx >= 32) continue;
+        if (idx < 0 || idx >= 40) continue;
         lcd[idx] = byteToChar(f.hex.slice(p, p + 2));
       }
 
-      state.line1 = lcd.slice(0, 16).join('');
-      state.line2 = lcd.slice(16, 32).join('');
-      renderFromState(state);
+      if (lcdFlushTimer) window.clearTimeout(lcdFlushTimer);
+      lcdFlushTimer = window.setTimeout(function() {
+        state.line1 = lcd.slice(0, 20).join('');
+        state.line2 = lcd.slice(20, 40).join('');
+        renderFromState(state);
+        lcdBurstActive = false;
+        lcdFlushTimer = null;
+      }, 35);
     };
 
     var connectPush = function() {
@@ -445,8 +464,8 @@ return view.extend({
         if (!res || res.code !== 0) {
           status.className = 'hp-status err';
           status.textContent = 'Status: Fehler beim Abruf von state.sh';
-          line1.textContent = '                ';
-          line2.textContent = '                ';
+          line1.textContent = '                    ';
+          line2.textContent = '                    ';
           line1.className = 'l dim';
           line2.className = 'l dim';
           return;
@@ -455,8 +474,8 @@ return view.extend({
         if (!txt) {
           status.className = 'hp-status warn';
           status.textContent = 'Status: keine Daten verfügbar';
-          line1.textContent = '                ';
-          line2.textContent = '                ';
+          line1.textContent = '                    ';
+          line2.textContent = '                    ';
           line1.className = 'l dim';
           line2.className = 'l dim';
           return;
@@ -467,26 +486,27 @@ return view.extend({
         } catch(e) {
           status.className = 'hp-status err';
           status.textContent = 'Status: ungültiges JSON im State';
-          line1.textContent = '                ';
-          line2.textContent = '                ';
+          line1.textContent = '                    ';
+          line2.textContent = '                    ';
           line1.className = 'l dim';
           line2.className = 'l dim';
           return;
         }
 
-        var l1 = (st.line1 || '').padEnd(16, ' ');
-        var l2 = (st.line2 || '').padEnd(16, ' ');
+        var l1 = (st.line1 || '').padEnd(20, ' ').slice(0, 20);
+        var l2 = (st.line2 || '').padEnd(20, ' ').slice(0, 20);
         var hasLcdText = !!(l1.trim() || l2.trim());
         var hasFlags = !!(st.flags16 && st.flags16 !== '----');
         var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
-        var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-        var modeInfo = modeByFlags[flagsNorm];
-        var keyInfo = keyByFlags[flagsNorm];
+        var modeFlagsNorm = String(st.mode_flags16 || st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
 
-        line1.textContent = l1;
-        line2.textContent = l2;
-        line1.className = 'l' + (l1.trim() ? '' : ' dim');
-        line2.className = 'l' + (l2.trim() ? '' : ' dim');
+        renderFromState({
+          line1: l1,
+          line2: l2,
+          flags16: st.flags16 || '----',
+          mode_flags16: st.mode_flags16 || modeFlagsNorm || '----',
+          last_1f5: st.last_1f5 || ''
+        });
         var parserTs = parseEpochMs(st.ts_ms);
         var nowTs = Date.now();
         var displayTs = parserTs;
@@ -499,19 +519,6 @@ return view.extend({
         }
 
         lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date(displayTs).toLocaleString() + suffix;
-
-        flags.textContent = 'flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
-        clearLeds();
-        if (modeInfo) {
-          modeInfo.led.className = 'hp-led on';
-          modeHint.textContent = 'Modus aus 0x321: ' + modeInfo.name + ' (' + flagsNorm + ')';
-        } else if (keyInfo) {
-          modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
-        } else if (flagsNorm) {
-          modeHint.textContent = '0x321 aktiv, noch nicht zugeordnet: ' + flagsNorm;
-        } else {
-          modeHint.textContent = 'Modus aus 0x321: n/a';
-        }
 
         if (st.status === 'no_data') {
           status.className = 'hp-status warn';

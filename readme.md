@@ -185,3 +185,10 @@ Neu seit 2026-04-10 (Send-Mode-Fix):
 Neu seit 2026-04-10 (Deploy-/Netzwerk-Schutz):
 - CAN-Setup verweigert jetzt explizit Nicht-CAN-Interfaces (`can*`, `vcan*`, `slcan*` sind erlaubt). Dadurch kann ein falsch gesetztes `can_if` nicht mehr versehentlich LAN/WAN-Interfaces herunterziehen.
 - `tools/device_ssh_deploy.sh` überspringt den automatischen `heizungpanel`-Restart, wenn `can_setup=1` mit unsicherem `can_if` erkannt wird, und meldet stattdessen eine Warnung.
+Neu seit 2026-04-10 (Feldabgleich Display/Status):
+- Virtuelles LCD auf **2x20** erweitert (statt 2x16), inkl. angepasster Offset-Reassembly im Parser und im LuCI-Live-Decoder.
+- Bei Inhaltsänderungen führt das virtuelle Display ein kurzes **Blanking** (Full-Clear) aus, damit das Umschalten sichtbarer am realen Gerät orientiert ist.
+- Betriebsarten-LEDs nutzen jetzt einen **persistenten gelatchten Modusstatus** (`mode_flags16`) statt nur den letzten flüchtigen `flags16`-Eventwert.
+- Der Daemon schreibt den letzten JSON-State wieder nach `/tmp/heizungpanel/state.json`; `state.sh` liest diesen Cache zuerst und nutzt MQTT als Fallback. Dadurch ist der Status beim ersten Öffnen der Weboberfläche stabil verfügbar.
+- Korrektur: Das LuCI-Display rendert weiterhin direkt im Push-Betrieb ohne künstliches Blanking; persistent gelatcht werden nur die Betriebsarten-LEDs.
+- Safety/Lesbarkeit: Die LuCI-Anzeige rendert 0x320 nun burstweise als vollständigen 2x20-Frame aus geleertem Buffer; dadurch bleiben keine alten Zeichenreste stehen, wenn Inhalte kürzer werden.
