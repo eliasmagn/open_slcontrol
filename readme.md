@@ -1,5 +1,10 @@
 # open_slcontrol
 
+## Neu seit 2026-04-10 (Runtime-Trim / True Raw-first)
+- `state.sh` fragt den optionalen Legacy-State (`<mqtt_base>/state`) nur noch bei fehlendem Bootstrap (`mode`/`snapshot`) ab.
+- `state_bridge.sh` ist im Log explizit als „legacy full-state bridge“ markiert.
+- Der Produktionspfad bleibt: Bootstrap laden -> Raw-SSE öffnen -> Display im Browser aus `0x320/0x321` rekonstruieren.
+
 ## Neu seit 2026-04-10 (Raw-first Architektur)
 - **Primärer UI-Pfad:** Browser nutzt jetzt standardmäßig den Raw-SSE-Stream: `/cgi-bin/heizungpanel_stream?mode=raw&token=...` (ohne `mode` ebenfalls raw).
 - **Embedded-Default entschlackt:** `publish_state=0` ist Default; die schwere Voll-Decodierung (`state_bridge.sh`) ist nur noch optional/debug.
@@ -257,7 +262,8 @@ Neu seit 2026-04-10 (Restkonsolidierung):
 
 Diese Härtung ist die Grundlage für die nächste Konsolidierungsserie (Decoder-SSOT, API-Zusammenführung, CAN-Ownership-Zentralisierung).
 
-## Neu seit 2026-04-10 (Decoder-SSOT Teilschritt)
-- `www/cgi-bin/heizungpanel_stream` streamt standardmäßig `heizungpanel/state` (normalisierter Parser-State) statt `heizungpanel/raw`.
-- Rohframes sind nur noch als Debugpfad verfügbar: `/cgi-bin/heizungpanel_stream?token=<...>&mode=raw`.
-- Das LuCI-Panel konsumiert im Push-Betrieb damit primär Backend-State und führt keinen produktiven Raw-CAN-Reassembly-Pfad mehr aus.
+## Neu seit 2026-04-10 (True Raw-first Runtime)
+- `www/cgi-bin/heizungpanel_stream` streamt standardmäßig `heizungpanel/raw` (`mode=raw` oder ohne `mode`).
+- Das LuCI-Panel bleibt im Produktionspfad browser-dekodiert (0x320/0x321 aus Rawstream), inkl. Bootstrap-vor-Live Verhalten.
+- `state_bridge.sh` bleibt als optionaler Legacy-/Debugpfad (`publish_state=1`) verfügbar und ist nicht Teil des Default-Runtimes.
+- `state.sh` fragt `.../state` nur noch bei fehlenden Bootstrapdaten als Kompatibilitätsfallback ab.

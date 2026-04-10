@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Runtime-Trim (True Raw-first)
+- `state.sh` reduziert Legacy-Abhängigkeit: `<mqtt_base>/state` wird nur noch als Fallback bei unvollständigem Bootstrap abgefragt.
+- Legacy-Vollparser ist explizit sekundär (Debug/Kompatibilität), nicht Produktionspfad.
+- Roadmap-Text korrigiert: Raw-SSE + Browser-Decoding bleiben der Standardbetrieb.
+
 ## Update 2026-04-10 – Architekturphase "Raw-first" (umgesetzt)
 - Runtime-Priorität gedreht: Raw ist jetzt Standardpfad für UI-Liveupdates.
 - On-device-Decoding auf dauerhafte Minimalzustände reduziert (`mode` + `snapshot` retained).
@@ -140,4 +145,4 @@
 
 ### Bereits umgesetzt als Vorarbeit
 - `state.sh` nutzt jetzt strukturelle JSON-Validierung und liefert versionierte State-Metafelder (`schema_version`, `source`, `age_ms`, `seq`).
-- Stand 2026-04-10 (PR1 Teilschritt): SSE-Standardpfad liefert jetzt normalisierten State statt Raw-Frames; Browser-Raw-Decode ist damit nicht mehr Produktionspfad.
+- Stand 2026-04-10 (PR1 Teilschritt korrigiert): SSE-Standardpfad bleibt Raw-Frames; Browser-Raw-Decode ist der Produktionspfad. Backend-State bleibt optional/Legacy.
