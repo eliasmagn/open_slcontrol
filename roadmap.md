@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Bootstrap-Schutz gegen frühe Clear-Frames
+- LuCI behält den Bootstrap-Snapshot jetzt sichtbar, bis mindestens ein echter Live-Textblock (`0x320` Offset-Payload) empfangen wurde.
+- Früh eintreffende `0x81`/`0x321`/`0x83`-Frames beim Verbindungsaufbau führen damit nicht mehr zu einem kurzfristig leeren Display.
+- Raw-SSE bleibt unverändert der primäre Livepfad; dies ist nur eine Startzustands-Härtung.
+
 ## Update 2026-04-10 – Bootstrap/Livestream-Übergang gehärtet
 - LuCI-Bootstrap übernimmt Snapshotdaten jetzt als vollständigen Decoder-Startzustand (`lcd[]`, `mode_flags16`, `mode_code`).
 - Der Übergang Bootstrap -> Raw-Live ist dadurch stabil, auch wenn zunächst nur `0x321` oder ein früher `0x83` ankommt.

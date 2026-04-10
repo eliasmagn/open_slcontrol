@@ -32,8 +32,13 @@ extract_json_field() {
   printf '%s' "$__val"
 }
 
-MODE_JSON="$(mosquitto_sub -h "$HOST" -p "$PORT" -t "$BASE/mode" -C 1 -W "$MQTT_WAIT" 2>/dev/null)"
-SNAP_JSON="$(mosquitto_sub -h "$HOST" -p "$PORT" -t "$BASE/snapshot" -C 1 -W "$MQTT_WAIT" 2>/dev/null)"
+mqtt_get_retained() {
+  local topic="$1"
+  mosquitto_sub -h "$HOST" -p "$PORT" -t "$topic" -C 1 -W "$MQTT_WAIT" 2>/dev/null
+}
+
+MODE_JSON="$(mqtt_get_retained "$BASE/mode")"
+SNAP_JSON="$(mqtt_get_retained "$BASE/snapshot")"
 
 MODE_FLAGS="$(extract_json_field "$MODE_JSON" flags16 2>/dev/null || true)"
 MODE_NAME="$(extract_json_field "$MODE_JSON" mode_name 2>/dev/null || true)"
@@ -46,7 +51,7 @@ SNAP_TS="$(extract_json_field "$SNAP_JSON" ts_ms 2>/dev/null || true)"
 
 # compatibility/debug fallback: only query legacy full state when bootstrap data is missing
 if [ -z "$SNAP_LINE1" ] || [ -z "$SNAP_LINE2" ] || [ -z "$MODE_FLAGS" ]; then
-  STATE_JSON="$(mosquitto_sub -h "$HOST" -p "$PORT" -t "$BASE/state" -C 1 -W "$MQTT_WAIT" 2>/dev/null)"
+  STATE_JSON="$(mqtt_get_retained "$BASE/state")"
   ST_LINE1="$(extract_json_field "$STATE_JSON" line1 2>/dev/null || true)"
   ST_LINE2="$(extract_json_field "$STATE_JSON" line2 2>/dev/null || true)"
   ST_FLAGS="$(extract_json_field "$STATE_JSON" mode_flags16 2>/dev/null || true)"

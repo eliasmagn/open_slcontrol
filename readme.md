@@ -1,5 +1,12 @@
 # open_slcontrol
 
+## Neu seit 2026-04-10 (Bootstrap-Guard gegen frühe Clear-Frames)
+- `panel.js` schützt den gebootstrappten LCD-Inhalt jetzt zusätzlich während der Stream-Anlaufphase:
+  - Nach Bootstrap wird ein frühes `0x81` (Clear) ignoriert, bis mindestens ein echter Live-Textblock aus `0x320` angekommen ist.
+  - Dadurch können erste `0x321`-/`0x83`-Frames den initialen Snapshot nicht mehr mit Blank überschreiben.
+- Sobald Live-Textdaten eingetroffen sind, arbeitet der Decoder wieder vollständig framegetrieben aus Raw (`0x81`/Offsets/`0x83`).
+- `state.sh` wurde intern leicht bereinigt (einheitlicher Retained-Reader), bleibt aber beim selben leichten Bootstrap-Modell (`mode` + `snapshot`, optionaler Legacy-`state`-Fallback).
+
 ## Neu seit 2026-04-10 (Bootstrap-Hydration im Browserdecoder)
 - `panel.js` hydriert beim Bootstrap jetzt nicht nur das DOM, sondern auch den internen 2x20-Decoderpuffer (`lcd[]`) sowie `mode_flags16`/`mode_code`.
 - Dadurch bleibt der initiale Snapshot stabil, wenn als erstes Live-Frame nur `0x321` oder ein früher `0x83` eintrifft.
