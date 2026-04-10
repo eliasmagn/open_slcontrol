@@ -24,8 +24,8 @@ start_service() {
   local topic_state="${mqtt_base}/state"
 
   if [ "$can_setup" = "1" ]; then
-    local lo_arg=""
-    [ "$listen_only" = "1" ] && lo_arg="listen-only on" || lo_arg=""
+    local lo_arg="listen-only off"
+    [ "$listen_only" = "1" ] && lo_arg="listen-only on"
 
     if ! ip link show "$can_if" >/dev/null 2>&1; then
       logger -t heizungpanel "CAN interface not found: $can_if"
@@ -34,14 +34,14 @@ start_service() {
 
     ip link set "$can_if" down >/dev/null 2>&1 || true
     if ! ip link set "$can_if" type can bitrate "$can_bitrate" $lo_arg >/dev/null 2>&1; then
-      logger -t heizungpanel "CAN setup failed: $can_if bitrate $can_bitrate"
+      logger -t heizungpanel "CAN setup failed: $can_if bitrate $can_bitrate $lo_arg"
       return 1
     fi
     if ! ip link set "$can_if" up >/dev/null 2>&1; then
       logger -t heizungpanel "CAN bring-up failed: $can_if"
       return 1
     fi
-    logger -t heizungpanel "CAN setup ok: $can_if bitrate $can_bitrate ${lo_arg:+($lo_arg)}"
+    logger -t heizungpanel "CAN setup ok: $can_if bitrate $can_bitrate ($lo_arg)"
   fi
 
   # RAW bridge with internal retry loop

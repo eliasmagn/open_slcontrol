@@ -138,3 +138,20 @@
 - [x] `sh -n etc/init.d/heizungpanel` (ok, obsolete Statefile-Pfade entfernt).
 - [x] `sh -n usr/libexec/heizungpanel/config.sh` (ok, JSON-Ausgabe auf benötigte Felder reduziert).
 - [x] `sh -n www/cgi-bin/heizungpanel_stream` (ok, SSE-CGI für Raw-MQTT-Frames).
+
+## Update 2026-04-10 – Write-Mapping + dedizierte Config + MQTT-Safety
+- [x] `press.sh`: echtes Send-Mapping für `v/z/boiler/uhr/dauer/uhr_boiler/aussen_reg/hand/pruef/quit` auf `0x321`-Payloads implementiert; unmappte erlaubte Codes liefern weiter Exitcode `4` (Hinweis statt Blindsendung).
+- [x] TX-Audit ergänzt: erfolgreicher Send wird via `logger` protokolliert und optional nach `<mqtt_base>/tx` publiziert (`mosquitto_pub`, best effort).
+- [x] Dedizierte LuCI-Konfig-Seite ergänzt: `Services -> Heizungpanel -> Konfiguration` mit App-/MQTT-/Safety-Feldern.
+- [x] Serverseitige Config-Validierung ergänzt (`config_set.sh`) inkl. Range/Format-Checks für MQTT-/App-Parameter.
+- [x] MQTT-Schutzmechanismus umgesetzt: `mqtt_protect_existing=1` blockiert Änderungen an MQTT-Kernfeldern, bis `mqtt_change_unlock=1` explizit gesetzt wurde; Unlock wird nach erfolgreicher Änderung automatisch auf `0` zurückgesetzt.
+- [x] Commit-Scope-Schutz ergänzt: Konfig-Commit bricht ab, wenn ausstehende Änderungen außerhalb `heizungpanel.main.*` erkannt werden (kein versehentliches Mitschreiben anderer Instanzen/Sektionen).
+
+## Update 2026-04-10 – MQTT-Schutzlogik zurückgebaut
+- [x] `config_set.sh`: MQTT-Protection/Unlock-Logik entfernt (`mqtt_protect_existing`, `mqtt_change_unlock` entfallen).
+- [x] Commit-Scope-Guard entfernt; Konfig-Flow nutzt wieder schlanken UCI-Standard-Commit für `heizungpanel`.
+- [x] LuCI-Konfigseite vereinfacht (kein Safety-Block mehr, nur App/MQTT-Felder).
+
+## Update 2026-04-10 – Send-Mode/Listen-Only Fix
+- [x] CAN-Rekonfiguration setzt jetzt explizit `listen-only off`, wenn `write_mode=1` (statt implizit leerem Argument).
+- [x] Fix sowohl im Init-Startpfad (`etc/init.d/heizungpanel`) als auch in beiden Bridge-Reinit-Pfaden (`raw_bridge.sh`, `state_bridge.sh`) umgesetzt.

@@ -25,7 +25,7 @@ setup_can() {
     return 1
   fi
 
-  local lo_arg=""
+  local lo_arg="listen-only off"
   [ "$LISTEN_ONLY" = "1" ] && lo_arg="listen-only on"
 
   ip link set "$CAN_IF" down >/dev/null 2>&1 || true
