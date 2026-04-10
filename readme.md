@@ -2,13 +2,15 @@
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
-## Aktueller Stand (2026-04-09)
+## Aktueller Stand (2026-04-10)
 Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2-v0.1 Parser/Mappings**:
 - LuCI-Seite sichtbar und funktionsfähig.
 - CAN-Raw- und State-Bridge laufen mit Retry-Schleifen inkl. CAN-Reinitialisierung nach Bridge-Exit.
-- State wird lokal gecacht (`/tmp/heizungpanel/state.json`) und per MQTT retained publiziert.
-- Cache wird nur bis `state_max_age` verwendet (Default 15s).
-- Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000).
+- State wird per MQTT retained publiziert; LuCI liest den Zustand direkt aus dem MQTT-State-Topic.
+- LuCI liest den State jetzt direkt aus MQTT (`<mqtt_base>/state`) statt aus einem Dateicache; damit folgen Anzeige-Updates unmittelbar dem Stream.
+- Optionaler MQTT-Wartewert für `state.sh`: `state_mqtt_wait` (UCI, Default `1` Sekunde).
+- LuCI nutzt jetzt primär **Push via SSE** (`/cgi-bin/heizungpanel_stream`) statt festem Polling; neue Frames erscheinen direkt bei Eingang.
+- Polling-Intervall ist via UCI konfigurierbar (`poll_interval_ms`, Clamp 250..10000), neuer Default: `500ms`.
 - LuCI pollt mit dem aus UCI geladenen Intervall (inkl. Clamp 250..10000).
 - LuCI zeigt unter dem Hinweisbereich einen Konfigurations-Switch für `Send mode` (`write_mode`); Änderungen werden in UCI gespeichert und der Dienst wird neu gestartet.
 - LuCI zeigt den rekonstruierten LCD-Inhalt jetzt explizit als „LCD 2x16 (emuliert aus CAN 0x320)“ mit gedimmtem Fallback bei No-Data/Fehlern, sodass die Panel-Emulation klar vom Debug-Block getrennt ist.
@@ -18,6 +20,11 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - LuCI-Zeitstempel-Härtung: Wenn `ts_ms` aus dem State unplausibel von der Browserzeit abweicht (>5 Minuten), zeigt „Letzte Aktualisierung“ automatisch Browserzeit mit Suffix `(Browserzeit)`.
 - LuCI-Mapping-Härtung: bekannte `0x321 flags16` werden live als Mode-LED und Klartext-Hinweis dargestellt (z. B. `DFFF=Boilerbetrieb`, `BFFF=Uhrzeitbetrieb`, `7FFF=Dauerbetrieb`, `FFFB/FF7F` als Navigation).
 - Parser-Input-Härtung: Neben `ID#HEX` verarbeitet der Parser jetzt auch timestampbasierte Candump-Zeilen mit `[len] bytes` (can-utils-abhängig); dadurch landen 0x320-Textframes wie `Kesseltemp...` zuverlässig im State/UI.
+- Bridge-Input vereinheitlicht: `raw_bridge.sh` und `state_bridge.sh` lesen standardmäßig via `candump -a -t a -x can0` (übersteuerbar per `CANDUMP_ARGS`), damit Live-Pfade exakt dem Debug-Dumpformat entsprechen.
+- Parser-Härtung für `-x`-ASCII: Bei timestampbasierten Candump-Zeilen entfernt `parser.uc` die angehängte ASCII-Spalte (`'....'`) vor der Hex-Byte-Extraktion, damit keine Fehltreffer aus der Textdarstellung den LCD-Parser verfälschen.
+- State-Bridge schreibt den JSON-State nicht mehr zusätzlich nach Datei; die Verteilung läuft direkt/retained über MQTT.
+- Service-Entschlackung: Init-Skript übergibt kein obsoletes `state_file`-Argument mehr an `state_bridge.sh`; `config.sh` liefert nur noch die tatsächlich vom LuCI-Panel genutzten Felder (`poll_interval_ms`, `write_mode`).
+- Clientseitiges Parsing: `panel.js` dekodiert `candump`-Rohzeilen (`0x320/0x321/0x1F5`) direkt im Browser; damit bleibt die Routerlast für die UI-Pipeline gering.
 - UI-Sendehinweise: Wenn Write-Mode aktiv ist, aber für ein Kommando noch kein CAN-Send-Mapping existiert, zeigt LuCI einen Hinweis statt einer generischen „Send failed“-Meldung.
 - Für strukturierte Einzelaktions-Captures steht `usr/libexec/heizungpanel/m2_capture.sh` bereit.
 - Für schnelle Mapping-Checks aus Candump-Dateien steht `usr/libexec/heizungpanel/mapping_validate.sh` bereit (0x321- und 0x258/0x259-Validierung).
@@ -102,11 +109,12 @@ Hinweise:
 
 ## Betrieb
 1. UCI prüfen (`/etc/config/heizungpanel`):
-   - `option state_max_age '15'`
-   - `option poll_interval_ms '1000'`
+   - `option state_mqtt_wait '1'`
+   - `option poll_interval_ms '500'`
    - `option write_mode '0'`
 2. Service starten: `/etc/init.d/heizungpanel start`.
 3. LuCI öffnen und Status prüfen.
+4. Für Push-Stream muss der SSE-Endpunkt erreichbar sein: `/cgi-bin/heizungpanel_stream?token=<stream_token>`.
 
 ## Deploy auf Zielgerät via SSH/SCP
 Voraussetzungen lokal: `ssh`, `scp`.

@@ -5,6 +5,8 @@
 - [x] Fehlerlogging bei CAN-Setup/Bitrate/Bring-Up.
 - [x] Lokale State-Datei `/tmp/heizungpanel/state.json` einführen.
 - [x] State-Cache nur frisch verwenden (`state_max_age` via UCI, Default 15s).
+- [x] **LuCI-Stateabruf auf MQTT-Stream umgestellt** (kein Dateicache mehr im `state.sh`; reduziert Latenz und vermeidet Stale-Reads).
+- [x] **Init-/Bridge-Aufruf entschlackt** (`state_bridge.sh` wird ohne obsoletes Statefile-Argument gestartet).
 - [x] **Reconnect-Strategie bei CAN-Ausfall ergänzt** (interne Retry-Loops + CAN-Reinit jetzt in **State- und Raw-Bridge**).
 - [x] **Restart-/Long-run-Stresstest dokumentiert** (Ablauf + Messwerte unter „Testnotizen“).
 
@@ -17,11 +19,16 @@
 - [x] **Polling-Intervall per UCI konfigurierbar gemacht** (`poll_interval_ms`, Fallback 1000ms, Clamp 250..10000).
 - [x] **LuCI liest Polling-Wert aus UCI** (via `config.sh`, statt Hardcode).
 - [x] **LuCI-Polling konsistent mit UCI-Clamp** (untere Grenze jetzt 250ms statt Rückfall auf 1000ms).
+- [x] **Default-Polling für geringere Latenz gesenkt** (Default jetzt 500ms in UCI/`config.sh`/LuCI-Fallback).
+- [x] **Push-Transport für LuCI ergänzt** (SSE-Bridge via `/www/cgi-bin/heizungpanel_stream`, EventSource im Frontend statt Intervall-Polling).
+- [x] **Clientseitiges Frame-Decoding ergänzt** (`panel.js` parst `0x320/0x321/0x1F5` direkt aus Raw-Stream, reduziert Parser-/State-Last auf dem Router für die UI-Anzeige).
 - [x] **LuCI-Statuslogik bei leeren Nutzdaten verbessert** (`Status: verbunden, aber noch keine decodierbaren Paneldaten` statt irreführendem `OK` bei komplett leerem Payload).
 - [x] **LuCI-Zeitstempel gegen Parser-Drift gehärtet** (bei >5 Min Abweichung wird Browserzeit als „Letzte Aktualisierung“ genutzt).
 - [x] **0x321-LED/Modus-Mapping im LuCI aktiviert** (Mode-LEDs + Klartext-Hinweis je `flags16`).
 - [x] **Konfigurations-Switch im LuCI ergänzt** (unter dem Read-only-Hinweis: `Send mode`, persistiert via UCI + Service-Restart).
 - [x] **Parser-Inputformat erweitert** (zusätzliche timestampbasierte Candump-Variante mit `[len] bytes` wird korrekt geparst; Fix für fehlende LCD-Texte trotz sichtbarer 0x320-Frames).
+- [x] **Bridge-Eingabeformat auf `candump -a -t a -x` vereinheitlicht** (Raw-/State-Bridge nutzen jetzt dasselbe Format wie Feld-Debugdumps; optional über `CANDUMP_ARGS` übersteuerbar).
+- [x] **Parser gegen ASCII-Suffixe aus `candump -x` gehärtet** (quoted Textspalte wird vor Byte-Extraktion abgeschnitten, um Fehlmatches in der Hex-Erkennung zu vermeiden).
 - [x] **LCD-Zeichenrendering für deutsches Panel gesetzt** (ASCII `0x20..0x7E` + `0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`).
 - [x] **UI-Fehlermeldung für noch offene Send-Mappings entschärft** (`press.sh` Exitcode 4 wird als Hinweis statt als „Send failed“ angezeigt).
 - [x] **Redundante `listen_only`-Konfig entfernt** (wird zur Laufzeit aus `write_mode` abgeleitet).
@@ -112,3 +119,17 @@
 ### 0x321-Clusteranalyse (2026-04-09)
 - [x] `usr/libexec/heizungpanel/isolate_321.sh` hinzugefügt (Summary + Kontextblöcke pro `flags16`-Wert aus Candump-Logs).
 - [x] Mapping aus Feldzuordnung in LuCI eingehängt (`FFFB/FF7F` Navigation, `7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF` Mode-/Funktionshinweise).
+
+### Candump-Format-Härtung (2026-04-10)
+- [x] `sh -n usr/libexec/heizungpanel/raw_bridge.sh` (ok).
+- [x] `sh -n usr/libexec/heizungpanel/state_bridge.sh` (ok).
+- [x] `node --check www/luci-static/resources/view/heizungpanel/panel.js` (ok, unverändert aber Gegencheck für UI-Syntax).
+
+### MQTT-only Stateabruf (2026-04-10)
+- [x] `sh -n usr/libexec/heizungpanel/state.sh` (ok).
+- [x] `sh -n usr/libexec/heizungpanel/state_bridge.sh` (ok, `tee` auf State-Datei entfernt).
+
+### Entschlackung/Latency-Tuning (2026-04-10)
+- [x] `sh -n etc/init.d/heizungpanel` (ok, obsolete Statefile-Pfade entfernt).
+- [x] `sh -n usr/libexec/heizungpanel/config.sh` (ok, JSON-Ausgabe auf benötigte Felder reduziert).
+- [x] `sh -n www/cgi-bin/heizungpanel_stream` (ok, SSE-CGI für Raw-MQTT-Frames).

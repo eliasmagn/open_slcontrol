@@ -7,7 +7,6 @@ LISTEN_ONLY="$4"
 MQTT_HOST="$5"
 MQTT_PORT="$6"
 TOPIC_STATE="$7"
-STATE_FILE="$8"
 
 [ -n "$CAN_IF" ] || CAN_IF="can0"
 [ -n "$CAN_BITRATE" ] || CAN_BITRATE="69144"
@@ -16,7 +15,7 @@ STATE_FILE="$8"
 [ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
 [ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
 [ -n "$TOPIC_STATE" ] || TOPIC_STATE="heizungpanel/state"
-[ -n "$STATE_FILE" ] || STATE_FILE="/tmp/heizungpanel/state.json"
+[ -n "$CANDUMP_ARGS" ] || CANDUMP_ARGS="-a -t a -x"
 
 setup_can() {
   [ "$CAN_SETUP" = "1" ] || return 0
@@ -49,9 +48,8 @@ while true; do
     continue
   fi
 
-  CAN_IF="$CAN_IF" CAN_BITRATE="$CAN_BITRATE" candump -L "$CAN_IF" 2>/dev/null \
+  CAN_IF="$CAN_IF" CAN_BITRATE="$CAN_BITRATE" candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null \
     | /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc \
-    | tee "$STATE_FILE" \
     | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_STATE" -r -l
 
   rc=$?

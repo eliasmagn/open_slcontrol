@@ -19,7 +19,7 @@ function el(tag, attrs, children) {
 
 function clampPollInterval(ms) {
   var v = parseInt(ms, 10);
-  if (isNaN(v)) return 1000;
+  if (isNaN(v)) return 500;
   if (v < 250) return 250;
   if (v > 10000) return 10000;
   return v;
@@ -35,25 +35,27 @@ return view.extend({
   load: function() {
     return fs.exec('/usr/libexec/heizungpanel/config.sh', []).then(function(res) {
       if (!res || res.code !== 0)
-        return { poll_interval_ms: 1000, write_mode: 0 };
+        return { poll_interval_ms: 500, write_mode: 0 };
 
       try {
         var cfg = JSON.parse((res.stdout || "").trim() || "{}");
         return {
           poll_interval_ms: clampPollInterval(cfg.poll_interval_ms),
-          write_mode: cfg.write_mode || 0
+          write_mode: cfg.write_mode || 0,
+          stream_token: cfg.stream_token || ''
         };
       } catch (e) {
-        return { poll_interval_ms: 1000, write_mode: 0 };
+        return { poll_interval_ms: 500, write_mode: 0, stream_token: '' };
       }
     }).catch(function() {
-      return { poll_interval_ms: 1000, write_mode: 0 };
+      return { poll_interval_ms: 500, write_mode: 0, stream_token: '' };
     });
   },
 
   render: function(cfg) {
     cfg = cfg || {};
     var pollInterval = clampPollInterval(cfg.poll_interval_ms);
+    var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === "1";
     var style = el('style', { 'html': [
       '.hp-wrap { max-width: 720px; }',
@@ -289,6 +291,155 @@ return view.extend({
       ])
     ]);
 
+    var lcd = new Array(32).fill(' ');
+    var frameCount = 0;
+    var lastFrameAt = 0;
+    var state = {
+      line1: '                ',
+      line2: '                ',
+      flags16: '----',
+      last_1f5: ''
+    };
+
+    var byteToChar = function(hex) {
+      var b = parseInt(hex, 16);
+      if (hex === 'DF') return '°';
+      if (hex === 'E2') return 'ß';
+      if (hex === 'F5') return 'ü';
+      if (hex === 'E1') return 'ä';
+      if (hex === 'EF') return 'ö';
+      if (!isNaN(b) && b >= 32 && b <= 126) return String.fromCharCode(b);
+      return ' ';
+    };
+
+    var lcdIndexFromOffset = function(off) {
+      if (off >= 0x00 && off <= 0x0F) return off;
+      if (off >= 0x40 && off <= 0x4F) return 16 + (off - 0x40);
+      if (off >= 0x10 && off <= 0x1F) return off;
+      if (off >= 0x50 && off <= 0x5F) return 16 + (off - 0x50);
+      return -1;
+    };
+
+    var parseRawFrame = function(line) {
+      var m = line.match(/([0-9A-Fa-f]+)#([0-9A-Fa-f]+)/);
+      if (m)
+        return { id: m[1].toUpperCase(), hex: m[2].toUpperCase() };
+
+      m = line.match(/(?:^|\s)([0-9A-Fa-f]+)\s+\[\s*(\d+)\s*\]\s+(.+)\s*$/);
+      if (!m) return null;
+      var id = m[1].toUpperCase();
+      var want = parseInt(m[2], 10) || 0;
+      var tail = m[3];
+      var q = tail.indexOf("'");
+      if (q >= 0) tail = tail.slice(0, q);
+      var bytes = tail.match(/[0-9A-Fa-f]{2}/g) || [];
+      if (want > 0 && bytes.length > want) bytes = bytes.slice(0, want);
+      if (!bytes.length) return null;
+      return { id: id, hex: bytes.join('').toUpperCase() };
+    };
+
+    var renderFromState = function(st) {
+      var l1 = (st.line1 || '').padEnd(16, ' ').slice(0, 16);
+      var l2 = (st.line2 || '').padEnd(16, ' ').slice(0, 16);
+      var hasLcdText = !!(l1.trim() || l2.trim());
+      var hasFlags = !!(st.flags16 && st.flags16 !== '----');
+      var hasAnyPayload = hasLcdText || hasFlags || !!st.last_1f5;
+      var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+      var modeInfo = modeByFlags[flagsNorm];
+      var keyInfo = keyByFlags[flagsNorm];
+
+      line1.textContent = l1;
+      line2.textContent = l2;
+      line1.className = 'l' + (l1.trim() ? '' : ' dim');
+      line2.className = 'l' + (l2.trim() ? '' : ' dim');
+      lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString() + ' (Push)';
+      flags.textContent = 'frames: ' + frameCount + '  flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
+
+      clearLeds();
+      if (modeInfo) {
+        modeInfo.led.className = 'hp-led on';
+        modeHint.textContent = 'Modus aus 0x321: ' + modeInfo.name + ' (' + flagsNorm + ')';
+      } else if (keyInfo) {
+        modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
+      } else if (flagsNorm) {
+        modeHint.textContent = '0x321 aktiv, noch nicht zugeordnet: ' + flagsNorm;
+      } else {
+        modeHint.textContent = 'Modus aus 0x321: n/a';
+      }
+
+      if (!hasAnyPayload) {
+        status.className = 'hp-status warn';
+        status.textContent = 'Status: verbunden, aber noch keine decodierbaren Paneldaten';
+      } else {
+        status.className = 'hp-status ok';
+        status.textContent = 'Status: live (Push/SSE)';
+      }
+    };
+
+    var applyRawLine = function(line) {
+      var f = parseRawFrame(line);
+      if (!f) return;
+      frameCount++;
+      lastFrameAt = Date.now();
+
+      if (f.id === '321' && f.hex.length >= 4) {
+        state.flags16 = f.hex.slice(0, 4);
+        renderFromState(state);
+        return;
+      }
+
+      if (f.id === '1F5') {
+        state.last_1f5 = f.hex;
+        renderFromState(state);
+        return;
+      }
+
+      if (f.id !== '320' || f.hex.length < 4) return;
+
+      var off = parseInt(f.hex.slice(0, 2), 16);
+      if (isNaN(off)) return;
+      var base = lcdIndexFromOffset(off);
+      if (base < 0) return;
+
+      for (var p = 2; p < f.hex.length; p += 2) {
+        var idx = base + ((p - 2) / 2);
+        if (idx < 0 || idx >= 32) continue;
+        lcd[idx] = byteToChar(f.hex.slice(p, p + 2));
+      }
+
+      state.line1 = lcd.slice(0, 16).join('');
+      state.line2 = lcd.slice(16, 32).join('');
+      renderFromState(state);
+    };
+
+    var connectPush = function() {
+      if (typeof EventSource === 'undefined') {
+        status.className = 'hp-status warn';
+        status.textContent = 'Status: Browser ohne EventSource, Fallback auf Polling';
+        return false;
+      }
+
+      var url = '/cgi-bin/heizungpanel_stream?token=' + encodeURIComponent(streamToken);
+      var es = new EventSource(url);
+      es.onmessage = function(ev) {
+        applyRawLine(ev.data || '');
+      };
+      es.onerror = function() {
+        status.className = 'hp-status warn';
+        status.textContent = 'Status: Stream getrennt, automatischer Reconnect aktiv';
+      };
+
+      window.setInterval(function() {
+        if (!lastFrameAt) return;
+        if ((Date.now() - lastFrameAt) > 5000) {
+          status.className = 'hp-status warn';
+          status.textContent = 'Status: Stream verbunden, aber aktuell keine Frames';
+        }
+      }, 1000);
+
+      return true;
+    };
+
     var poll = function() {
       return fs.exec('/usr/libexec/heizungpanel/state.sh', []).then(function(res) {
         if (!res || res.code !== 0) {
@@ -375,8 +526,10 @@ return view.extend({
       });
     };
 
-    poll();
-    window.setInterval(poll, pollInterval);
+    if (!connectPush()) {
+      poll();
+      window.setInterval(poll, pollInterval);
+    }
 
     return root;
   },
