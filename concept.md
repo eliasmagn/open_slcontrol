@@ -5,6 +5,11 @@
 
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Panel-UX Korrektur
+- Die Modusliste im LuCI-Panel nutzt nun ein stabiles Zweispalten-Layout (Label | Actions), damit LED-Indikatoren nicht mehr visuell verrutschen.
+- Zusätzlich sind die Schaltaktionen `Ein` und `Aus` als explizite Bedienelemente im Hauptpanel verankert.
+- Ziel bleibt unverändert: klare, robuste Bedienung bei Raw-first Runtime ohne Änderung am Transport-/Decoderpfad.
+
 ## Architektur-Update 2026-04-10 – `dev_readme` + Mode-Topic-Klarheit
 - Betriebsdoku wurde von `readme.md` nach `dev_readme.md` überführt und als kanonische Entwicklungsdoku benannt.
 - Stream-API benennt den durable Kanal jetzt explizit als `mode`/`mode_durable` neben dem transienten `mode/current` Kanal.

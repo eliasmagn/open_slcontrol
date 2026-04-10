@@ -8,3 +8,8 @@ Public entrypoint (kurz):
 - Ergänzend bleiben `<mqtt_base>/mode` (durable retained), `<mqtt_base>/mode/current` (transient), `<mqtt_base>/snapshot` (retained) und optional Legacy `<mqtt_base>/state`.
 
 👉 Kanonische Betriebs- und Deploy-Doku: [`dev_readme.md`](./dev_readme.md)
+
+## Update 2026-04-10 – Panel UI
+- Moduszeilen im LuCI-Panel wurden visuell stabilisiert: LED und Aktionsbutton sind nun sauber ausgerichtet.
+- Die fehlenden Tasten **Ein** und **Aus** wurden im linken Bedienblock ergänzt.
+- Modusaktionen sind klarer beschriftet (`Setzen` statt Symbolbutton), damit die Bedienung am Touch/Browser eindeutiger ist.
