@@ -22,9 +22,11 @@ Die App ist funktional im Read-only-Pfad:
 ## Architektur (Soll)
 1. Erfassung: `candump` auf `can_if` (Raw/State jeweils mit CAN-Reinit bei Fehlern).
 2. Parsing: `parser.uc` bleibt für den State-Topic-Pfad verfügbar, aber die LuCI-Visualisierung dekodiert eingehende Rohframes (`0x320/0x321/0x1F5`) direkt im Browser.
+   Parser-RegExe bleiben auf die tatsächlich verfügbare ucode-Engine begrenzt (keine nicht unterstützten Konstrukte wie `(?:...)`), um Bridge-Crash-Loops auf älteren Targets zu vermeiden.
 3. Verteilung: MQTT retain als Primärquelle; zusätzlich stellt ein CGI-SSE-Bridge (`/www/cgi-bin/heizungpanel_stream`) den Raw-Topic-Strom als `text/event-stream` bereit.
+   Für den lokalen Fallback hält `state_bridge.sh` den State-Cache in `/tmp` bewusst als **Single-Line Latest-State** (kein Log-Append), um RAM-/tmp-Wachstum zu verhindern.
 4. UI: LuCI nutzt primär EventSource-Push (SSE) statt festem Polling. Die LCD-Emulation rendert ASCII (`0x20..0x7E`) plus beobachtete deutsche Sonderzeichen (`0xDF -> °`, `0xE2 -> ß`, `0xF5 -> ü`, `0xE1 -> ä`, `0xEF -> ö`) clientseitig. Bei fehlendem EventSource-Support bleibt Polling-Fallback aktiv.
-   Send-Kommandos ohne hinterlegtes CAN-Mapping werden im UI als Hinweis (statt „Send failed“) ausgewiesen.
+   Das 0x320-Display wird markerbasiert zusammengesetzt (`0x81` = Clear/Neubeginn, adressierte Teilupdates, `0x83 <mode_byte>` = Abschluss), um segmentweises „Abhacken“ zu vermeiden. Send-Kommandos ohne hinterlegtes CAN-Mapping werden als lokaler UI-Hinweis ausgewiesen.
 5. Runtime-Konfig: LuCI liest `poll_interval_ms`/`write_mode` über `config.sh` aus UCI und bietet im Panel einen Konfigurations-Switch für den Send-Mode (`write_mode`). `listen_only` wird nur intern im Dienst aus `write_mode` abgeleitet (keine redundante Frontend-Konfiguration). Default-Polling ist auf 500 ms abgesenkt, um die UI-Latenz zu reduzieren.
 6. Security-Gate: `press.sh` erzwingt `write_mode` + strikte Command-Allowlist und sendet bestätigte Mapping-Codes als `0x321`-Frames über `cansend`.
 7. Display-Emulation: `display_emulator.sh` rendert die aus `0x320` rekonstruierten LCD-Zeilen live aus MQTT-Raw oder offline aus Candump/STDIN; fragmentierte Markerblöcke werden offset-basiert gemerged, optional mit 0x321-Markertrace (`--show-flags`).

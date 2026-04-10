@@ -54,6 +54,19 @@ setup_can() {
 }
 
 mkdir -p "$STATE_CACHE_DIR" >/dev/null 2>&1 || true
+: > "$STATE_CACHE" 2>/dev/null || true
+
+cache_and_forward() {
+  local line tmp
+  tmp="${STATE_CACHE}.tmp"
+
+  while IFS= read -r line; do
+    # Keep cache bounded to exactly one JSON line to prevent /tmp growth.
+    printf '%s\n' "$line" > "$tmp" 2>/dev/null || true
+    mv "$tmp" "$STATE_CACHE" 2>/dev/null || true
+    printf '%s\n' "$line"
+  done
+}
 
 while true; do
   if ! setup_can; then
@@ -63,7 +76,7 @@ while true; do
 
   CAN_IF="$CAN_IF" CAN_BITRATE="$CAN_BITRATE" candump $CANDUMP_ARGS "$CAN_IF" 2>/dev/null \
     | /usr/bin/ucode /usr/libexec/heizungpanel/parser.uc \
-    | tee "$STATE_CACHE" \
+    | cache_and_forward \
     | mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_STATE" -r -l
 
   rc=$?

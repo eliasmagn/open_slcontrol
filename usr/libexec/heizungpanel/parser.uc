@@ -39,6 +39,7 @@ let state = {
     line1: "                    ",
     line2: "                    ",
     mode_flags16: "----",
+    mode_code: "--",
     flags16: "----",
     active_bits: [],
     bit_roles: {},
@@ -228,13 +229,14 @@ function parse_frame(line) {
 
     // Format B1: "can0  320   [4]  09 20 2E 20"
     // Format B2: "(ts) can0 RX - - 320 [4] 09 20 2E 20" (candump -a -t a -x)
-    m = match(line, /(?:^|\s)([0-9A-Fa-f]+)\s+\[\s*(\d+)\s*\]\s+(.+)\s*$/);
+    // NOTE: ucode regex on target does not support non-capturing groups `(?:...)`.
+    m = match(line, /(^|[ \t])([0-9A-Fa-f]+)[ \t]+\[[ \t]*(\d+)[ \t]*\][ \t]+(.+)[ \t]*$/);
     if (!m)
         return null;
 
-    let id = uc(m[1]);
-    let want = int(m[2]);
-    let tail = m[3];
+    let id = uc(m[2]);
+    let want = int(m[3]);
+    let tail = m[4];
     // candump -a -t a -x may append ASCII visualization in single quotes.
     // Strip that suffix to avoid accidental hex matches from text like "73".
     let q = index(tail, "'");
@@ -362,9 +364,32 @@ while ((line = input.read("line")) != null) {
     }
 
     // ---- LCD (0x320) ----
-    if (id == "320" && length(data) >= 4) {
+    if (id == "320" && length(data) >= 2) {
         let off_hex = substr(data, 0, 2);
         let off = int("0x" + off_hex);
+
+        // 0x81: panel cycle start / clear framebuffer
+        if (off == 0x81) {
+            for (let i = 0; i < 40; i++)
+                lcd[i] = " ";
+            emit(false);
+            continue;
+        }
+
+        // 0x83 <mode_byte>: panel cycle end marker with mode code
+        if (off == 0x83) {
+            if (length(data) >= 4) {
+                state.mode_code = uc(substr(data, 2, 2));
+                // Mirror known mode bytes into latched mode_flags when possible.
+                if (state.mode_code == "EF")
+                    state.mode_flags16 = "7FFF";
+                else if (state.mode_code == "FB")
+                    state.mode_flags16 = "BFFF";
+            }
+            emit(false);
+            continue;
+        }
+
         let base = lcd_index_from_offset(off);
 
         if (base < 0) {

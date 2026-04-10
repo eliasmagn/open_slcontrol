@@ -98,3 +98,8 @@
 - Stand 2026-04-10: Daemon hält den letzten Zustand wieder lokal in `/tmp/heizungpanel/state.json`; `state.sh` nutzt diesen Cache vor MQTT-Fallback für verlässlichen Initialzustand.
 - Stand 2026-04-10 (Korrektur): künstliches Display-Blanking zurückgenommen; Push-Anzeige bleibt schnell, LED-Latching bleibt persistent.
 - Stand 2026-04-10: 0x320-Frontend-Rendering auf vollständige Burst-Neuzeichnung umgestellt (gesamtes 2x20 wird neu geschrieben, keine Restzeichen aus Vorwerten).
+- Stand 2026-04-10: UI-Feedback für Send-/Config-Aktionen von globalen LuCI-Alerts auf lokale Inline-Meldungen im Panel umgestellt (kurze Anzeigezeiten, kein Alert-Stacking, kein Layout-Sprung durch reservierten Meldungsbereich).
+- Stand 2026-04-10: 0x320-Reassembly auf Marker-Protokoll umgestellt (`81` Start/Clear, adressierte Teilupdates, `83 <mode_byte>` Abschluss), um segmentweises Flackern/Abhacken im Uhrzeitbetrieb zu vermeiden.
+- Stand 2026-04-10: Parser-JSON um `mode_code` erweitert; bekannte Abschlussbytes (`EF`/`FB`) werden zusätzlich als latched Modusquelle genutzt.
+- Stand 2026-04-10: State-Cache-Schreibpfad in `state_bridge.sh` auf Single-Line-Latest-State umgestellt (statt `tee`-Append), damit `/tmp/heizungpanel/state.json` nicht unendlich wächst und Systeme destabilisiert.
+- Stand 2026-04-10: Parser-RegEx für Candump-Format-B auf ucode-kompatible Syntax ohne `(?:...)` korrigiert; damit endet der state-bridge Restart-Loop durch Laufzeit-Syntaxfehler.
