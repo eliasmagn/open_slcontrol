@@ -1,7 +1,10 @@
 # open_slcontrol
 
-Diese Datei ist absichtlich nur ein kurzer Einstieg, um Doku-Drift zwischen `README.md` und `readme.md` zu vermeiden.
+OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
-👉 **Die kanonische Projektdokumentation liegt in [`readme.md`](./readme.md).**
+Dieses Repository läuft im **raw-first** Modell:
+- Browser ist der primäre Display-Decoder (Raw-SSE als Livepfad).
+- Embedded veröffentlicht nur leichte Runtime-Topics (`raw`, durable `mode`, transient `mode/current`, `snapshot`).
+- Legacy-Vollstate (`state`) bleibt optional/debug.
 
-Dort stehen der aktuelle Stand, Deploy-/Betriebsschritte, bekannte Grenzen und der Migrationsstand.
+👉 **Kanonische Laufzeit-/Deploy-Dokumentation:** [`readme.md`](./readme.md)

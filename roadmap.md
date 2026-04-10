@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
+- Stream-Selektion ergänzt: `mode/current` ist jetzt auch als expliziter Query-Alias adressierbar, ohne Default-`raw` zu ändern.
+- Runtime-Topic-Logging beschreibt die Semantik der Topics präziser (durable/retained vs transient/unretained vs legacy/optional).
+
+
 ## Update 2026-04-10 – Durable/Transient Mode-Modell end-to-end
 - Topic-Modell in Runtime, API und Doku geschlossen: `mode` (durable retained) und `mode/current` (transient unretained) sind jetzt konsistent benannt und sichtbar.
 - SSE-Observability erweitert: transienter Kanal kann separat gestreamt werden, ohne den Bootstrappfad zu beeinflussen.

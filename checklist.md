@@ -1,5 +1,10 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
+- [x] Stream-API akzeptiert jetzt auch `?mode=mode/current` als expliziten Alias für den transienten Kanal.
+- [x] Init-Topic-Summary präzisiert: `mode/current` als *transient, unretained*; `snapshot` als retained Bootstrap; `state` als legacy/optional.
+
+
 ## Update 2026-04-10 – `mode/current` Integration vervollständigt
 - [x] Init-Service übergibt `mode/current` explizit an `mode_bridge.sh` statt impliziter Ableitung.
 - [x] Runtime-Logging benennt durable `mode` vs transient `mode/current` explizit inkl. retained/transient Semantik.

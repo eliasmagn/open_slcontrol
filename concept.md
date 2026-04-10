@@ -1,5 +1,10 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
+- Stream-CGI akzeptiert jetzt zusätzlich den expliziten Selektor `mode=mode/current` (neben `mode_current`/`current`) für den transienten Debugkanal.
+- Init-Startlog nennt die Semantik jetzt explizit als `mode/current (transient, unretained)` sowie `snapshot (retained bootstrap)` und `state (legacy, optional)`.
+
+
 ## Architektur-Update 2026-04-10 – Topic-Integration `mode/current`
 - Laufzeitmodell ist jetzt durchgängig explizit: `<mqtt_base>/mode` = durable retained Betriebsarten-Latch, `<mqtt_base>/mode/current` = transient/unretained Beobachtungskanal.
 - Init-Logging führt beide Topics sichtbar, damit die aktive Topic-Semantik im Betrieb klar ist.
