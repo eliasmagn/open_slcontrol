@@ -16,6 +16,7 @@ TOPIC_RAW="$7"
 [ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
 [ -n "$TOPIC_RAW" ] || TOPIC_RAW="heizungpanel/raw"
 [ -n "$CANDUMP_ARGS" ] || CANDUMP_ARGS="-a -t a -x"
+BUILD_TAG="commit:8b755f2"
 
 setup_can() {
   [ "$CAN_SETUP" = "1" ] || return 0
@@ -49,6 +50,8 @@ setup_can() {
 
   return 0
 }
+
+logger -t heizungpanel "raw bridge start ($BUILD_TAG)"
 
 while true; do
   if ! setup_can; then

@@ -2,6 +2,7 @@
 USE_PROCD=1
 START=95
 STOP=10
+BUILD_TAG="commit:8b755f2"
 
 start_service() {
   . /lib/functions.sh
@@ -22,6 +23,8 @@ start_service() {
 
   local topic_raw="${mqtt_base}/raw"
   local topic_state="${mqtt_base}/state"
+
+  logger -t heizungpanel "service start ($BUILD_TAG)"
 
   if [ "$can_setup" = "1" ]; then
     case "$can_if" in

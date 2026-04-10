@@ -201,7 +201,13 @@ Neu seit 2026-04-10 (Display-Reassembly-Korrektur):
 - LuCI setzt das 0x320-LCD jetzt markerbasiert zusammen: `81` = neuer Bildschirminhalt/Buffer-Clear, danach adressierte Segmente, `83 <mode_byte>` = Abschlussframe.
 - Dadurch bleibt der vorherige Zwischenstand während Segmentupdates erhalten; das Display wird nicht mehr pro Teilblock neu geleert und ist bei Uhrzeitbetrieb wieder lesbar.
 - Der Parser (`usr/libexec/heizungpanel/parser.uc`) übernimmt dieselbe Semantik und liefert zusätzlich `mode_code` im JSON-State für Polling-Fallbacks.
-- Modus-Latch wird zusätzlich über bekannte Abschlussbytes (`83 EF`, `83 FB`) gespeist, damit die Betriebsartenanzeige stabiler bleibt.
+- Bekannte Abschlussbytes (`83 EF`, `83 FB`) werden als Zusatzhinweis ausgewertet; die aktive Betriebsarten-LED bleibt jedoch an `0x321 mode_flags16` gebunden.
+- Feldkorrektur Modus-Hinweis: `mode_code` (`83 EF`/`83 FB`) wird als Display-/Screenklasse dargestellt und nicht als Betriebsmodus benannt.
+- Wichtig: Bei der LED-Entscheidung hat `mode_flags16` aus `0x321` jetzt Vorrang; `mode_code` aus `0x320` wird nur als Fallback verwendet.
+- Strenger CAN-Fokus: Die Betriebsarten-LED selbst wird nur noch über `0x321 mode_flags16` aktiviert (Anlagenstatus). `mode_code` aus `0x320` wird nur als Hinweistext angezeigt und überschreibt den Latch nicht.
+- Neu: Nach Modus-Sendebefehlen wartet die UI auf eine passende `0x321`-Rückmeldung der Anlage (Bestätigungsanzeige bei Treffer, Warnhinweis bei Timeout ohne passende CAN-Bestätigung).
+- Präzisierung aus Feldfeedback: `83 EF`/`83 FB` werden als Display-/Screenklasse behandelt (z. B. Standardstatus vs. interaktiv/zweizeilig) und **nicht** als Heizungs-Betriebsmodus.
+- Version im Syslog: Service/Bridges loggen beim Start ein `BUILD_TAG` (Commit-String), sodass die deployte Fassung im Log direkt erkennbar ist.
 
 Neu seit 2026-04-10 (/tmp-Stabilitätsfix):
 - `state_bridge.sh` nutzt für `state_cache_file` kein `tee`-Append mehr, sondern schreibt nur noch den jeweils letzten Parser-State in die Cache-Datei.

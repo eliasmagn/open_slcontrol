@@ -175,8 +175,14 @@
 ## Update 2026-04-10 – Display-Reassembly/Mode-Latch korrigiert
 - [x] 0x320-Decoder in LuCI auf Markersteuerung umgestellt: `0x81` startet neuen Zyklus (Buffer-Clear), adressierte Segmente bauen den Frame auf, `0x83 <mode_byte>` schließt den Zyklus ab.
 - [x] Segment-„Abhacken“ behoben: Buffer wird nicht mehr pro Teilsegment geleert, sondern nur bei explizitem `0x81` oder nach Fallback-Timeout.
-- [x] Modus-Latch um `mode_code` erweitert (`0x83 EF/FB`), sodass Betriebsarten-LED/Modushinweis zusätzlich zum 0x321-Latch aus dem Display-Protokoll gespeist werden.
+- [x] `mode_code` (`0x83 EF/FB`) als zusätzlicher Diagnosehinweis aus dem Display-Protokoll verfügbar gemacht (ohne Vorrang gegenüber `0x321`).
 - [x] Parser (`parser.uc`) liefert `mode_code` im JSON-State und übernimmt dieselbe `0x81`/`0x83`-Semantik für Polling-Fallback.
+- [x] Feldfix `mode_code`-Deutung: `EF/FB` werden als Display-/Screenklasse behandelt (nicht als Anlagenmodus), damit Diagnosehinweise keine Betriebsarten vortäuschen.
+- [x] Priorität korrigiert: LuCI bewertet zuerst `mode_flags16` (0x321-Latch) und nutzt `mode_code` nur noch als Fallback, damit bekannte Modi nicht durch Abschlussbytes übersteuert werden.
+- [x] CAN-Priorität verschärft: Aktive Betriebsarten-LEDs werden ausschließlich aus `0x321 mode_flags16` gesetzt; `0x320 mode_code` dient nur noch als diagnostischer Hinweis.
+- [x] Moduswechsel-Bestätigung ergänzt: Nach Sendebefehl wartet LuCI bis zu 8s auf passendes `0x321`-Flag und zeigt explizit „CAN-Bestätigung“ bzw. Timeout-Warnung.
+- [x] 0x320-Deutung präzisiert: `83 EF`/`83 FB` werden im UI als Screen-/Displayklasse bezeichnet („kein Anlagenmodus“) statt als Modusname.
+- [x] Build-Tag im Syslog ergänzt: `etc/init.d/heizungpanel`, `raw_bridge.sh` und `state_bridge.sh` loggen beim Start ein Commit-Label (`BUILD_TAG`), damit die laufende Version auf dem Zielgerät nachvollziehbar ist.
 
 ## Update 2026-04-10 – /tmp-Wachstum durch State-Cache gestoppt
 - [x] `state_bridge.sh` schreibt den Cache nicht mehr per `tee` als Endlosdatei, sondern hält `/tmp/heizungpanel/state.json` strikt auf **eine** JSON-Zeile (latest state).

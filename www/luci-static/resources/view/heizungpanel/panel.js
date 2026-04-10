@@ -132,10 +132,29 @@ return view.extend({
       }
     };
 
+    var expectedModeBySendCode = {
+      dauer: '7FFF',
+      uhr: 'BFFF',
+      boiler: 'DFFF',
+      uhr_boiler: 'EFFF',
+      aussen_reg: 'F7FF',
+      pruef: 'FBFF',
+      hand: 'FDFF'
+    };
+    var pendingModeAck = null;
+
     var runSend = function(code) {
       return fs.exec('/usr/libexec/heizungpanel/press.sh', [code]).then(function(res) {
         if (res && res.code === 0) {
           showActionFeedback('ok', 'Befehl gesendet: ' + code, 1200);
+          if (expectedModeBySendCode[code]) {
+            pendingModeAck = {
+              code: code,
+              expected_flags: expectedModeBySendCode[code],
+              deadline: Date.now() + 8000,
+              warned: false
+            };
+          }
           return;
         }
 
@@ -279,9 +298,9 @@ return view.extend({
       'FBFF': { name: 'Prüfbetrieb', led: mPr.led },
       'FDFF': { name: 'Handbetrieb', led: mHand.led }
     };
-    var modeByCode = {
-      'EF': { name: 'Dauerbetrieb', led: mDauer.led },
-      'FB': { name: 'Uhrzeitbetrieb', led: mUhr.led }
+    var screenClassByCode = {
+      'EF': 'Standard-Statusscreen (vermutet)',
+      'FB': 'Erweiterter/Interaktiver Screen (vermutet)'
     };
 
     var keyByFlags = {
@@ -383,7 +402,8 @@ return view.extend({
       var flagsNorm = String(st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
       var modeFlagsNorm = String(st.mode_flags16 || st.flags16 || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
       var modeCodeNorm = String(st.mode_code || '').replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
-      var modeInfo = modeByCode[modeCodeNorm] || modeByFlags[modeFlagsNorm];
+      var modeInfoFlags = modeByFlags[modeFlagsNorm];
+      var screenClassInfo = screenClassByCode[modeCodeNorm];
       var keyInfo = keyByFlags[flagsNorm];
 
       paintLcd(l1, l2);
@@ -391,18 +411,29 @@ return view.extend({
       flags.textContent = 'frames: ' + frameCount + '  flags16: ' + (st.flags16 || '----') + '  last_1f5: ' + (st.last_1f5 || '----');
 
       clearLeds();
-      if (modeInfo) {
-        modeInfo.led.className = 'hp-led on';
-        if (modeByCode[modeCodeNorm])
-          modeHint.textContent = 'Modus aus 0x320 Abschlussbyte: ' + modeInfo.name + ' (' + modeCodeNorm + ')';
-        else
-          modeHint.textContent = 'Modus aus 0x321 (latch): ' + modeInfo.name + ' (' + modeFlagsNorm + ')';
+      if (modeInfoFlags) {
+        modeInfoFlags.led.className = 'hp-led on';
+        modeHint.textContent = 'Modus aus 0x321 (Anlage/CAN): ' + modeInfoFlags.name + ' (' + modeFlagsNorm + ')';
       } else if (keyInfo) {
         modeHint.textContent = 'Tastenereignis aus 0x321: ' + keyInfo + ' (' + flagsNorm + ')';
+      } else if (screenClassInfo) {
+        modeHint.textContent = '0x320 Abschlussbyte: ' + modeCodeNorm + ' = ' + screenClassInfo + ' (kein Anlagenmodus)';
+      } else if (modeCodeNorm) {
+        modeHint.textContent = '0x320 Abschlussbyte: ' + modeCodeNorm + ' (unbekannte Bildschirmklasse, kein Anlagenmodus)';
       } else if (flagsNorm) {
         modeHint.textContent = '0x321 aktiv, noch nicht zugeordnet: ' + flagsNorm;
       } else {
         modeHint.textContent = 'Modus aus 0x321: n/a';
+      }
+
+      if (pendingModeAck) {
+        if (modeFlagsNorm === pendingModeAck.expected_flags) {
+          showActionFeedback('ok', 'CAN-Bestätigung: Modus "' + pendingModeAck.code + '" aktiv (' + modeFlagsNorm + ')', 2500);
+          pendingModeAck = null;
+        } else if (Date.now() > pendingModeAck.deadline && !pendingModeAck.warned) {
+          showActionFeedback('warn', 'Noch keine CAN-Bestätigung für "' + pendingModeAck.code + '" (erwartet ' + pendingModeAck.expected_flags + ')', 3000);
+          pendingModeAck.warned = true;
+        }
       }
 
       if (!hasAnyPayload) {

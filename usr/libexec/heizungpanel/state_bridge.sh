@@ -17,6 +17,7 @@ TOPIC_STATE="$7"
 [ -n "$TOPIC_STATE" ] || TOPIC_STATE="heizungpanel/state"
 [ -n "$CANDUMP_ARGS" ] || CANDUMP_ARGS="-a -t a -x"
 [ -n "$STATE_CACHE" ] || STATE_CACHE="/tmp/heizungpanel/state.json"
+BUILD_TAG="commit:8b755f2"
 STATE_CACHE_DIR="$(dirname "$STATE_CACHE")"
 
 
@@ -55,6 +56,7 @@ setup_can() {
 
 mkdir -p "$STATE_CACHE_DIR" >/dev/null 2>&1 || true
 : > "$STATE_CACHE" 2>/dev/null || true
+logger -t heizungpanel "state bridge start ($BUILD_TAG)"
 
 cache_and_forward() {
   local line tmp
