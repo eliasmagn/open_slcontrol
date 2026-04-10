@@ -1,9 +1,14 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – `dev_readme` Transition + Runtime-Naming
+- [x] Kanonische Entwicklerdoku von `readme.md` nach `dev_readme.md` überführt und Verweise angepasst.
+- [x] Stream-CGI um klaren durable-Alias `mode_durable` ergänzt; `mode/current` bleibt separat transient/unretained.
+- [x] Init-Topic-Bezeichner auf `mode_durable`/`mode_current` geschärft, Logging-/Runtime-Semantik unverändert beibehalten.
+
 ## Update 2026-04-10 – Feinschliff Runtime/API/Doku `mode/current`
 - [x] Stream-CGI intern auf benannte Topic-Konstanten gehärtet; transienter Kanal bleibt explizit über `mode_current`/`current`/`mode/current` erreichbar.
 - [x] Init-Topic-Log konditional geschärft: `mode` + `mode/current` werden bei `publish_mode=1` gemeinsam ausgewiesen, sonst klar als deaktiviert geloggt.
-- [x] `README.md` als öffentliche Kurzfassung aktualisiert; `readme.md` auf kompaktes kanonisches Runtime-Modell reduziert.
+- [x] `README.md` als öffentliche Kurzfassung aktualisiert; `dev_readme.md` auf kompaktes kanonisches Runtime-Modell reduziert.
 
 
 ## Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
@@ -16,7 +21,7 @@
 - [x] Runtime-Logging benennt durable `mode` vs transient `mode/current` explizit inkl. retained/transient Semantik.
 - [x] SSE-CGI um `mode_current`/`current` erweitert, damit der flüchtige Beobachtungskanal direkt abonnierbar ist.
 - [x] `state.sh` Bootstrap-Semantik dokumentiert/gesichert: Quelle bleibt retained `mode`, nicht `mode/current`.
-- [x] `readme.md` auf kompaktes kanonisches Raw-first-Modell bereinigt (inkl. Topic-Tabelle und Bootstrapregeln).
+- [x] `dev_readme.md` auf kompaktes kanonisches Raw-first-Modell bereinigt (inkl. Topic-Tabelle und Bootstrapregeln).
 
 ## Update 2026-04-10 – Durable Mode-Latch (0x321)
 - [x] `mode_bridge.sh` so angepasst, dass retained `<mqtt_base>/mode` nur noch bei bekannten persistenten Moduswerten geschrieben wird.
@@ -47,7 +52,7 @@
 ## Update 2026-04-10 – Runtime-Trim (True Raw-first)
 - [x] `state.sh` so angepasst, dass der optionale Legacy-Topicabruf (`<mqtt_base>/state`) erst bei fehlendem `mode`/`snapshot` ausgeführt wird.
 - [x] `state_bridge.sh` als Legacy-Vollstatepfad im Startlog klar gekennzeichnet.
-- [x] Doku-Korrektur in `concept.md`/`roadmap.md`/`readme.md`: Produktionspfad bleibt browserseitiges Raw-Decoding.
+- [x] Doku-Korrektur in `concept.md`/`roadmap.md`/`dev_readme.md`: Produktionspfad bleibt browserseitiges Raw-Decoding.
 
 ## Update 2026-04-10 – Raw-first Architekturshift
 - [x] SSE-Default auf Raw umgestellt (`/cgi-bin/heizungpanel_stream` -> `<mqtt_base>/raw`).
@@ -264,7 +269,7 @@
 ## Update 2026-04-10 – Konsolidierung Restpunkte (2. Runde)
 - [x] Bridge-Startparameter entschlackt: `raw_bridge.sh` erhält nur noch `CAN_IF + MQTT-*`; `state_bridge.sh` nur `CAN_IF/CAN_BITRATE + MQTT-*` (kein totes `CAN_SETUP`/`LISTEN_ONLY` mehr).
 - [x] Parser-Umgebungsübergabe gehärtet: `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf in der Pipeline (prozesslokal, explizit).
-- [x] Doku-Drift zwischen `README.md` und `readme.md` entschärft: `README.md` verweist nur noch auf `readme.md` als kanonische Quelle.
+- [x] Doku-Drift zwischen `README.md` und `dev_readme.md` entschärft: `README.md` verweist nur noch auf `dev_readme.md` als kanonische Quelle.
 - [x] LuCI-Konfigcode bereinigt: tote Hilfsfunktion `inputRow()` und ungenutztes `require ui` aus `config.js` entfernt.
 
 ## F) Architektur-Konsolidierung (neu)
@@ -275,5 +280,5 @@
 - [ ] **Capability-Handshake einführen**: UI rendert Kommandos aus Backend-`supported_commands` statt statischer Annahmen.
 - [ ] **Packaging als Install-Quelle**: Dateiliste zwischen Paket und SSH-Deploy aus einer Quelle erzeugen.
 - [ ] **Stream-Auth in LuCI/rpcd integrieren**: Query-Token mittelfristig durch Session-gebundene Auth ersetzen.
-- [ ] **Doku konsolidieren**: Doppelpflege zwischen `README.md`/`readme.md` abbauen.
+- [ ] **Doku konsolidieren**: Doppelpflege zwischen `README.md`/`dev_readme.md` abbauen.
 - [x] **PR1 Teilschritt korrigiert auf Zielarchitektur:** LuCI-EventSource bleibt Raw-Decode-Produktionspfad; Backend-State ist optionaler Legacy-/Debugpfad.

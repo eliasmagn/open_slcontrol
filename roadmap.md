@@ -1,5 +1,9 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Doku-Transition auf `dev_readme`
+- Kanonische Entwicklungsdoku ist jetzt `dev_readme.md` (statt `readme.md`), öffentliche Kurzfassung bleibt `README.md`.
+- API-Naming wurde weiter geschärft: durable Kanal als `mode`/`mode_durable`, transienter Beobachtungskanal als `mode/current`.
+
 ## Update 2026-04-10 – Abschluss PR-Schritt `mode/current` Konsistenz
 - Runtime- und API-Fläche sind jetzt konsistent benannt: Stream-CGI führt den transienten Pfad klar als `<base>/mode/current` neben durablem `<base>/mode`.
 - Betriebslogging bildet das tatsächliche Topic-Modell konditional ab und zeigt bei aktivem Mode-Publishing beide Pfade mit retained/transient-Semantik.
@@ -169,7 +173,7 @@
 ## Stand 2026-04-10 – Konsolidierung Restpunkte (2. Runde)
 - Bridge-Parameter bereinigt: keine toten CAN-Setup-Argumente mehr in `raw_bridge.sh`/`state_bridge.sh`.
 - Parser-Env-Transfer explizit pro Aufruf: `CAN_IF`/`CAN_BITRATE` werden direkt am `ucode`-Prozess gesetzt.
-- Doku-Quelle vereinheitlicht: `README.md` dient nur als Verweis auf `readme.md` (kanonisch).
+- Doku-Quelle vereinheitlicht: `README.md` dient nur als Verweis auf `dev_readme.md` (kanonisch).
 - Kleine Code-Altlasten entfernt: `config.js` ohne ungenutztes `ui`-Require und ohne tote `inputRow()`-Funktion.
 
 ## Update 2026-04-10 – nächste PR-Serie (Architektur)

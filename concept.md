@@ -1,9 +1,14 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – `dev_readme` + Mode-Topic-Klarheit
+- Betriebsdoku wurde von `readme.md` nach `dev_readme.md` überführt und als kanonische Entwicklungsdoku benannt.
+- Stream-API benennt den durable Kanal jetzt explizit als `mode`/`mode_durable` neben dem transienten `mode/current` Kanal.
+- Init-Runtime verwendet entsprechend klare Topic-Namen (`topic_mode_durable`, `topic_mode_current`) ohne Semantikänderung.
+
 ## Architektur-Update 2026-04-10 – Runtime/API-Durchzug `mode/current`
 - `/www/cgi-bin/heizungpanel_stream` nutzt jetzt benannte Topic-Konstanten und führt `mode/current` explizit als transienten Streamkanal neben `mode`.
 - `/etc/init.d/heizungpanel` loggt die Topic-Summary konditional: bei `publish_mode=1` werden `mode` (durable, retained) und `mode/current` (transient, unretained) gemeinsam sichtbar, sonst beide als deaktiviert.
-- `README.md`/`readme.md` sind auf den aktuellen Raw-first Laufzeitpfad verdichtet und nennen Bootstrap strikt als `mode + snapshot` (ohne `mode/current`).
+- `README.md`/`dev_readme.md` sind auf den aktuellen Raw-first Laufzeitpfad verdichtet und nennen Bootstrap strikt als `mode + snapshot` (ohne `mode/current`).
 
 
 ## Architektur-Update 2026-04-10 – API/Logging-Klarstellung `mode/current`
@@ -134,7 +139,7 @@ Die App ist funktional im Read-only-Pfad:
 34. Display-Konsistenz 2026-04-10: Emulator, Parser und LuCI verwenden konsistent 2x20/40 Zeichen.
 
 35. Parser-Umgebung (Härtung 2026-04-10): `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf (`CAN_IF=... CAN_BITRATE=... /usr/bin/ucode ...`), damit die Metadaten in Pipelines robust ankommen.
-36. Doku-Quelle (Härtung 2026-04-10): `readme.md` ist kanonisch; `README.md` bleibt als kurzer Verweis, um Doppelpflege zu vermeiden.
+36. Doku-Quelle (Härtung 2026-04-10): `dev_readme.md` ist kanonisch; `README.md` bleibt als kurzer Verweis, um Doppelpflege zu vermeiden.
 
 ## Architektur-Delta 2026-04-10 (Konsolidierungspfad)
 Zur Reduktion von Drift zwischen Parser, LuCI und Emulator wird die nächste Ausbaustufe als explizite Vier-Schichten-Architektur geführt:
