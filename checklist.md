@@ -1,3 +1,8 @@
+## Update 2026-04-10 – Bootstrap-Warnung im Panel behoben
+- [x] `state.sh`-JSON-Feldzugriff gehärtet: bevorzugt `jsonfilter` für verschachtelte Keys ohne `jshn`-Warntext im stdout.
+- [x] Fallback-Pfad zusätzlich stillgelegt (`json_load/json_select/json_get_var` mit stdout/stderr-Redirection), damit keine `WARNING: Variable 'MODE' ...`-Fragmente mehr in `line1/line2` landen.
+- [x] Syntaxcheck ausgeführt: `sh -n usr/libexec/heizungpanel/state.sh`, `node --check .../panel.js`.
+
 ## Update 2026-04-10 – Kanonischer Bootstrap-Topic
 - [x] Canonical retained Topic `<mqtt_base>/bootstrap` ergänzt (leichtgewichtig, kombiniert `mode` + `snapshot`).
 - [x] `state.sh` vereinfacht: primärer Bootstrap-Read über `<mqtt_base>/bootstrap`, kompatibler Fallback auf `mode`/`snapshot`/legacy `state` beibehalten.

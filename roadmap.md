@@ -1,3 +1,8 @@
+## Update 2026-04-10 – Fix: Bootstrap-Parserwarnungen
+- Feldproblem adressiert: Beim Reload konnten Warntexte aus `jshn` (`Variable 'MODE' ...`) in den Bootstrap-Pfad rutschen und die LCD-Initialanzeige verschmutzen.
+- `state.sh` verwendet nun primär `jsonfilter` für verschachtelte Feldzugriffe ohne Warn-Ausgabe in stdout.
+- Der `jshn`-Fallback ist zusätzlich stillgelegt (`stdout/stderr`-Redirection), damit weder Displaytext noch Modus-Indikation durch Parserwarnungen verfälscht werden.
+
 ## Update 2026-04-10 – Kanonischer Bootstrap-Topic
 - Bootstrap-Hydration ist auf ein einziges kanonisches retained Payload umgestellt: `<mqtt_base>/bootstrap`.
 - Alte Mehrfach-Abfragen (`mode` + `snapshot` + optional `state`) bleiben nur als Kompatibilitäts-Fallback in `state.sh`.
