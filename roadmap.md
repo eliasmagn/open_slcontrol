@@ -5,6 +5,11 @@
 
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – UI-Feinschliff Panel
+- Bedienoberfläche im LuCI-Panel wurde nach Feldfeedback nachgeschärft (LED-/Button-Ausrichtung in den Moduszeilen).
+- Power-Bedienung (`Ein`/`Aus`) ist wieder direkt im Hauptpanel verfügbar.
+- Nächster UI-Schritt bleibt ein kurzer Gerätecheck auf echter LuCI-Instanz (Spacing/Touch-Bedienung auf Zielauflösung).
+
 ## Update 2026-04-10 – Doku-Transition auf `dev_readme`
 - Kanonische Entwicklungsdoku ist jetzt `dev_readme.md` (statt `readme.md`), öffentliche Kurzfassung bleibt `README.md`.
 - API-Naming wurde weiter geschärft: durable Kanal als `mode`/`mode_durable`, transienter Beobachtungskanal als `mode/current`.

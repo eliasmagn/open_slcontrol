@@ -99,7 +99,7 @@ return view.extend({
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
 
-    var style = el('style', { html: '.hp-wrap{max-width:720px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 18px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-debug,.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999}.hp-led.on{background:#ffd54a}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
+    var style = el('style', { html: '.hp-wrap{max-width:720px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 18px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-debug,.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;gap:10px;justify-content:center;margin-top:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
     var line2 = el('div', { class: 'l dim' }, ['                    ']);
@@ -165,10 +165,10 @@ return view.extend({
 
     function mkMode(label, code) {
       var led = el('div', { class:'hp-led' }, []);
-      var b = el('button', { class:'hp-key', type:'button', style:'width:120px;height:34px;' }, ['⟳']);
+      var b = el('button', { class:'hp-key hp-mode-btn', type:'button' }, ['Setzen']);
       b.disabled = !sendEnabled;
       b.addEventListener('click', function() { if (sendEnabled) runSend(code); });
-      return { led: led, node: el('div', { class:'hp-mode' }, [el('div', {}, [label]), el('div', {}, [led, b])]) };
+      return { led: led, node: el('div', { class:'hp-mode' }, [el('div', {}, [label]), el('div', { class:'hp-mode-actions' }, [led, b])]) };
     }
 
     var mD = mkMode('Dauerbetrieb', 'dauer');
@@ -318,7 +318,8 @@ return view.extend({
       });
     }
 
-    var left = el('div', { class:'hp-left' }, [keygrid, el('label', {}, ['Send mode ', sendSwitch]), actionFeedback]);
+    var powerRow = el('div', { class:'hp-power' }, [btn('Ein', 'ein'), btn('Aus', 'aus')]);
+    var left = el('div', { class:'hp-left' }, [keygrid, powerRow, el('label', {}, ['Send mode ', sendSwitch]), actionFeedback]);
     var right = el('div', { class:'hp-right' }, [el('div', { class:'hp-modes' }, [mD.node,mU.node,mB.node,mUB.node,mA.node,mP.node,mH.node]), modeHint]);
     var root = el('div', { class:'hp-wrap' }, [style, el('div', { class:'hp-panel' }, [display, el('div', { class:'hp-grid' }, [left, right])])]);
 

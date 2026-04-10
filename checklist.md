@@ -6,6 +6,11 @@
 
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – Panel Layout/Bedienung
+- [x] Modus-LEDs im Panel sauber ausgerichtet (eigene Actions-Spalte mit fixem LED/Button-Layout).
+- [x] Fehlende `Ein`/`Aus`-Buttons im linken Bedienbereich ergänzt.
+- [x] Modus-Aktionsbutton von Symbol (`⟳`) auf lesbares Label (`Setzen`) umgestellt.
+
 ## Update 2026-04-10 – `dev_readme` Transition + Runtime-Naming
 - [x] Kanonische Entwicklerdoku von `readme.md` nach `dev_readme.md` überführt und Verweise angepasst.
 - [x] Stream-CGI um klaren durable-Alias `mode_durable` ergänzt; `mode/current` bleibt separat transient/unretained.
