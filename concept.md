@@ -16,6 +16,7 @@ Die App ist funktional im Read-only-Pfad:
 - Der SSH/SCP-Deploy-Weg spiegelt den Legacy-Menüpfad aus einer kanonischen `menu.d`-Quelle, um redundante Pflege und Drift zwischen zwei Menüdateien zu vermeiden (2026-04-10).
 - Der SSH/SCP-Deploy-Weg startet den Dienst nach frischer Erstinstallation robust per `stop || true` + `start` (statt `restart`), um den „zweiter Push nötig“-Effekt nach Device-Reset zu vermeiden (2026-04-09).
 - Der SSH/SCP-Deploy-Weg validiert Pflichtargumente für Optionen robust und überschreibt `/etc/config/heizungpanel` standardmäßig nicht mehr ungefragt (optional via `--overwrite-config`) (2026-04-10).
+- Der SSH/SCP-Deploy-Weg reicht beim Upload die Stage-Quellen wieder korrekt an `scp` durch; damit bricht `install|push` nach Schritt `[2/4] Upload files via scp` nicht mehr mit der reinen `scp`-Usage ab (2026-04-10).
 
 ## Architektur (Soll)
 1. Erfassung: `candump` auf `can_if` (Raw/State jeweils mit CAN-Reinit bei Fehlern).

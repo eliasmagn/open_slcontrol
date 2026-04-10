@@ -69,6 +69,7 @@
 - [x] **Deploy-Fileliste ergänzt** (`set_mode.sh` und `isolate_321.sh` werden vom Install-Tool mit ausgerollt).
 - [x] **Deploy-CLI gehärtet** (Pflichtwerte für `--port/--identity/--stage` werden validiert; klare Fehlermeldung bei fehlendem Argument).
 - [x] **Config-Overwrite kontrollierbar gemacht** (`install|push` überschreibt `/etc/config/heizungpanel` nur noch mit `--overwrite-config`).
+- [x] **Deploy-SCP-Aufrufargumente repariert** (`run_scp` reicht Source/Target wieder korrekt an `scp` durch; Fix für `scp usage`-Abbruch direkt nach `[2/4] Upload files via scp`).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 
