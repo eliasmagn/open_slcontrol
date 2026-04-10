@@ -56,8 +56,23 @@ function emit_snapshot(    i, l1, l2, ts) {
   for (i = 0; i < 20; i++) l1 = l1 lcd[i]
   for (i = 20; i < 40; i++) l2 = l2 lcd[i]
   ts = now_ms()
-  printf("{\"schema_version\":1,\"ts_ms\":%d,\"line1\":\"%s\",\"line2\":\"%s\",\"mode_code\":\"%s\"}\n", ts, l1, l2, mode_code)
+  printf("{\"schema_version\":1,\"ts_ms\":%d,\"line1\":\"%s\",\"line2\":\"%s\",\"mode_code\":\"%s\"}\n", ts, json_escape(l1), json_escape(l2), json_escape(mode_code))
   fflush()
+}
+function json_escape(s,    i, c, out) {
+  out = ""
+  for (i = 1; i <= length(s); i++) {
+    c = substr(s, i, 1)
+    if (c == "\\") out = out "\\\\"
+    else if (c == "\"") out = out "\\\""
+    else if (c == "\b") out = out "\\b"
+    else if (c == "\f") out = out "\\f"
+    else if (c == "\n") out = out "\\n"
+    else if (c == "\r") out = out "\\r"
+    else if (c == "\t") out = out "\\t"
+    else out = out c
+  }
+  return out
 }
 function parse_id_hex(line,    a) {
   if (match(line, /([0-9A-Fa-f]+)#([0-9A-Fa-f]+)/, a)) {

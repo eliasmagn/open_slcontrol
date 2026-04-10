@@ -1,5 +1,10 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – JSON-safe Bootstrap/Snapshot
+- [x] `snapshot_bridge.sh` escaped `line1`/`line2`/`mode_code` vor JSON-Output, sodass `"`/`\` die Payload nicht mehr brechen.
+- [x] `state.sh` auf `jshn`-basiertes JSON-Building umgestellt (`json_add_string` + `json_dump`) statt manueller Stringinterpolation.
+- [x] `panel.js` akzeptiert Bootstrapwerte sowohl aus flachen Feldern als auch aus `mode`/`snapshot`-Objekten.
+
 ## Update 2026-04-10 – Bootstrap-Live-Übergang finalisiert (pending-clear)
 - [x] LuCI-Decoder nutzt nach Bootstrap einen vorgemerkten `0x81`-Clear statt Sofort-Clear.
 - [x] Erstes echtes `0x320`-Textsegment führt das vorgemerkte Clear einmalig aus, bevor Livezeichen geschrieben werden.

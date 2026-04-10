@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – JSON-robuste Retained-Bootstrapkette
+- Snapshot-Retain wird jetzt JSON-sicher escaped publiziert (`snapshot_bridge.sh`), damit Sonderzeichen im Displayinhalt keine ungültigen Payloads erzeugen.
+- Bootstrap-API (`state.sh`) baut JSON über `jshn` statt roher `%s`-Interpolation und bleibt damit auch bei `"`/`\` stabil.
+- LuCI-Bootstrap nimmt Werte aus flat + nested Feldern entgegen und bleibt kompatibel zu beiden Schemaformen.
+
 ## Update 2026-04-10 – Bootstrap/Livestream ohne Früh-Clear und ohne Restzeichen
 - Start-`0x81` wird nach Bootstrap nicht mehr sofort auf den LCD-Puffer angewendet, sondern bis zum ersten echten `0x320`-Textblock vorgemerkt.
 - Beim ersten Live-Textblock wird einmalig gecleart und direkt mit Livebytes fortgesetzt.

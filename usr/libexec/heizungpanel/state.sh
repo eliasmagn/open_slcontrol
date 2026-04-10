@@ -32,13 +32,6 @@ extract_json_field() {
   printf '%s' "$__val"
 }
 
-json_escape() {
-  local s="$1"
-  s="${s//\\/\\\\}"
-  s="${s//\"/\\\"}"
-  printf '%s' "$s"
-}
-
 mqtt_get_retained() {
   local topic="$1"
   mosquitto_sub -h "$HOST" -p "$PORT" -t "$topic" -C 1 -W "$MQTT_WAIT" 2>/dev/null
@@ -85,16 +78,33 @@ if [ -n "$SNAP_LINE1" ] || [ -n "$SNAP_LINE2" ] || [ "$MODE_FLAGS" != "----" ]; 
     [ "$AGE" -ge 0 ] || AGE=0
   fi
 
-  MODE_FLAGS_ESC="$(json_escape "$MODE_FLAGS")"
-  MODE_NAME_ESC="$(json_escape "$MODE_NAME")"
-  MODE_TS_ESC="$(json_escape "$MODE_TS")"
-  SNAP_LINE1_ESC="$(json_escape "$SNAP_LINE1")"
-  SNAP_LINE2_ESC="$(json_escape "$SNAP_LINE2")"
-  SNAP_MODE_CODE_ESC="$(json_escape "$SNAP_MODE_CODE")"
-  SNAP_TS_ESC="$(json_escape "$SNAP_TS")"
+  json_init
+  json_add_string status "ok"
+  json_add_int schema_version 2
+  json_add_string source "bootstrap"
+  json_add_int age_ms "$AGE"
 
-  printf '{"status":"ok","schema_version":2,"source":"bootstrap","age_ms":%s,"mode":{"flags16":"%s","mode_name":"%s","ts_ms":"%s"},"snapshot":{"line1":"%s","line2":"%s","mode_code":"%s","ts_ms":"%s"},"mode_flags16":"%s","line1":"%s","line2":"%s","mode_code":"%s"}\n' \
-    "$AGE" "$MODE_FLAGS_ESC" "$MODE_NAME_ESC" "$MODE_TS_ESC" "$SNAP_LINE1_ESC" "$SNAP_LINE2_ESC" "$SNAP_MODE_CODE_ESC" "$SNAP_TS_ESC" "$MODE_FLAGS_ESC" "$SNAP_LINE1_ESC" "$SNAP_LINE2_ESC" "$SNAP_MODE_CODE_ESC"
+  json_add_object mode
+  json_add_string flags16 "$MODE_FLAGS"
+  json_add_string mode_name "$MODE_NAME"
+  json_add_string ts_ms "$MODE_TS"
+  json_close_object
+
+  json_add_object snapshot
+  json_add_string line1 "$SNAP_LINE1"
+  json_add_string line2 "$SNAP_LINE2"
+  json_add_string mode_code "$SNAP_MODE_CODE"
+  json_add_string ts_ms "$SNAP_TS"
+  json_close_object
+
+  # Flat compatibility fields for older frontend code paths.
+  json_add_string mode_flags16 "$MODE_FLAGS"
+  json_add_string line1 "$SNAP_LINE1"
+  json_add_string line2 "$SNAP_LINE2"
+  json_add_string mode_code "$SNAP_MODE_CODE"
+
+  json_dump
+  printf '\n'
   exit 0
 fi
 

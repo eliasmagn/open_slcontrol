@@ -270,14 +270,16 @@ return view.extend({
 
     function applyBootstrap(st) {
       if (!st || st.status !== 'ok') return;
-      var lineA = st.line1 || '';
-      var lineB = st.line2 || '';
+      var snap = st.snapshot || {};
+      var mode = st.mode || {};
+      var lineA = (typeof st.line1 === 'string') ? st.line1 : (snap.line1 || '');
+      var lineB = (typeof st.line2 === 'string') ? st.line2 : (snap.line2 || '');
       hydrateLcdFromLines(lineA, lineB);
       bootstrapHydrated = true;
       liveTextSeen = false;
       pendingLiveClear = false;
-      modeFlags = (st.mode_flags16 || '----').toUpperCase();
-      modeCode = (st.mode_code || '--').toUpperCase();
+      modeFlags = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
+      modeCode = (st.mode_code || snap.mode_code || '--').toUpperCase();
       if (!liveHasRendered) {
         renderLive();
         if (modeByFlags[modeFlags]) {
