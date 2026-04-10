@@ -28,17 +28,26 @@ extract_json_field() {
   local key="$2"
   local first rest
 
+  [ -n "$raw" ] || return 1
+
+  # Preferred path: jsonfilter resolves nested keys without emitting jshn warnings
+  # into stdout when intermediate objects are missing.
+  if command -v jsonfilter >/dev/null 2>&1; then
+    printf '%s' "$raw" | jsonfilter -q -e "@.${key}" 2>/dev/null
+    return 0
+  fi
+
   json_cleanup
-  json_load "$raw" 2>/dev/null || return 1
+  json_load "$raw" >/dev/null 2>&1 || return 1
 
   first="${key%%.*}"
   rest="${key#*.}"
   if [ "$first" != "$key" ]; then
-    json_select "$first" 2>/dev/null || return 1
-    json_get_var __val "$rest"
+    json_select "$first" >/dev/null 2>&1 || return 1
+    json_get_var __val "$rest" >/dev/null 2>&1
     json_select .. >/dev/null 2>&1 || true
   else
-    json_get_var __val "$key"
+    json_get_var __val "$key" >/dev/null 2>&1
   fi
 
   printf '%s' "$__val"

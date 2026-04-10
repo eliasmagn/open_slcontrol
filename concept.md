@@ -5,6 +5,11 @@
 
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Sauberer Bootstrap ohne `jshn`-Warnlecks
+- Für Bootstrap-Feldzugriffe in `state.sh` wird primär `jsonfilter` verwendet, um fehlende Zwischenobjekte robust und ohne Warntext im stdout zu behandeln.
+- Der bestehende `jshn`-Fallback bleibt als Kompatibilitätspfad erhalten, schreibt aber keine Warnungen mehr in den Nutzdatenstrom.
+- Zielwirkung: Der initiale LuCI-Panelzustand (LCD + LED-Hinweise) bleibt bei Reloads deterministisch und frei von Diagnosefragmenten.
+
 ## Architektur-Update 2026-04-10 – Panel-UX Korrektur
 - Die Modusliste im LuCI-Panel nutzt nun ein stabiles Zweispalten-Layout (Label | Actions), damit LED-Indikatoren nicht mehr visuell verrutschen.
 - Zusätzlich sind die Schaltaktionen `Ein` und `Aus` als explizite Bedienelemente im Hauptpanel verankert.

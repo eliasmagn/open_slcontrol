@@ -2,6 +2,11 @@
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
+## Update 2026-04-10 – Fix für „WARNING: Variable 'MODE'...“ im Panel
+- Ursache: Beim Bootstrap-Lesen konnten `jshn`-Warnungen bei fehlenden/nicht-objektförmigen JSON-Pfaden in stdout erscheinen und als Textartefakte im LCD-Panel landen.
+- Fix: `state.sh` liest verschachtelte Felder bevorzugt via `jsonfilter` und unterdrückt im Fallback sämtliche `jshn`-Warn-Ausgaben.
+- Ergebnis: Nach Panel-Reload bleibt die 2x20-Anzeige sauber; Modus-/LED-Status werden nicht mehr durch Warnstrings überlagert.
+
 Public entrypoint (kurz):
 - **Raw-first Runtime**: Browser decodiert primär aus `<mqtt_base>/raw`.
 - Bootstrap ist kanonisch als retained `<mqtt_base>/bootstrap` verfügbar (kombiniert aus durable `mode` + `snapshot`).
