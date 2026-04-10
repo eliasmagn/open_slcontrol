@@ -38,6 +38,7 @@ mqtt_get_retained() {
 }
 
 MODE_JSON="$(mqtt_get_retained "$BASE/mode")"
+# NOTE: bootstrap intentionally uses durable retained <base>/mode, never transient <base>/mode/current.
 SNAP_JSON="$(mqtt_get_retained "$BASE/snapshot")"
 
 MODE_FLAGS="$(extract_json_field "$MODE_JSON" flags16 2>/dev/null || true)"

@@ -1,5 +1,10 @@
 # Konzept – open_slcontrol
 
+## Architektur-Update 2026-04-10 – Topic-Integration `mode/current`
+- Laufzeitmodell ist jetzt durchgängig explizit: `<mqtt_base>/mode` = durable retained Betriebsarten-Latch, `<mqtt_base>/mode/current` = transient/unretained Beobachtungskanal.
+- Init-Logging führt beide Topics sichtbar, damit die aktive Topic-Semantik im Betrieb klar ist.
+- SSE-Endpoint kann den transienten Kanal gezielt streamen (`mode_current`/`current`) ohne Bootstrap-Semantik zu verändern.
+
 ## Architektur-Update 2026-04-10 – Durable Mode-Latch
 - Der retained Topic `<mqtt_base>/mode` ist ausdrücklich ein **langlebiger Betriebsarten-Latch** und darf nicht durch transiente/unbekannte `0x321`-Zwischenwerte überschrieben werden.
 - `mode_bridge.sh` publiziert retained deshalb nur für bekannte persistente Modi (`7FFF/BFFF/DFFF/EFFF/F7FF/FBFF/FDFF`).

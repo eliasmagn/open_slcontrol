@@ -1,5 +1,12 @@
 # Checklist – Aufgaben und Fortschritt
 
+## Update 2026-04-10 – `mode/current` Integration vervollständigt
+- [x] Init-Service übergibt `mode/current` explizit an `mode_bridge.sh` statt impliziter Ableitung.
+- [x] Runtime-Logging benennt durable `mode` vs transient `mode/current` explizit inkl. retained/transient Semantik.
+- [x] SSE-CGI um `mode_current`/`current` erweitert, damit der flüchtige Beobachtungskanal direkt abonnierbar ist.
+- [x] `state.sh` Bootstrap-Semantik dokumentiert/gesichert: Quelle bleibt retained `mode`, nicht `mode/current`.
+- [x] `readme.md` auf kompaktes kanonisches Raw-first-Modell bereinigt (inkl. Topic-Tabelle und Bootstrapregeln).
+
 ## Update 2026-04-10 – Durable Mode-Latch (0x321)
 - [x] `mode_bridge.sh` so angepasst, dass retained `<mqtt_base>/mode` nur noch bei bekannten persistenten Moduswerten geschrieben wird.
 - [x] Transiente/unbekannte `0x321`-Werte überschreiben retained mode nicht mehr.

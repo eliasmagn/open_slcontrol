@@ -1,5 +1,10 @@
 # Roadmap – open_slcontrol
 
+## Update 2026-04-10 – Durable/Transient Mode-Modell end-to-end
+- Topic-Modell in Runtime, API und Doku geschlossen: `mode` (durable retained) und `mode/current` (transient unretained) sind jetzt konsistent benannt und sichtbar.
+- SSE-Observability erweitert: transienter Kanal kann separat gestreamt werden, ohne den Bootstrappfad zu beeinflussen.
+- Bootstrap-Regel bleibt strikt: retained `mode` + retained `snapshot`; `mode/current` bleibt Debug/Observability.
+
 ## Update 2026-04-10 – Mode-Retention stabilisiert (durable statt transient)
 - Retained Mode-Topic ist jetzt auf langlebige Betriebsarten gelatcht; unbekannte/transiente `0x321`-Werte überschreiben den retained Status nicht mehr.
 - Optionaler Diagnosekanal `<mqtt_base>/mode/current` ergänzt (unretained), um den letzten rohen `0x321`-Wechsel sichtbar zu halten.

@@ -41,6 +41,7 @@ case "$MODE" in
   ''|raw) TOPIC="$MQTT_BASE/raw" ;;
   state) TOPIC="$MQTT_BASE/state" ;;
   mode) TOPIC="$MQTT_BASE/mode" ;;
+  mode_current|current) TOPIC="$MQTT_BASE/mode/current" ;;
   snapshot) TOPIC="$MQTT_BASE/snapshot" ;;
   *) TOPIC="$MQTT_BASE/raw" ;;
 esac
