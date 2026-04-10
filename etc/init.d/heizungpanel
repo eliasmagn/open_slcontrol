@@ -99,5 +99,5 @@ start_service() {
     procd_close_instance
   fi
 
-  logger -t heizungpanel "MQTT publishing: raw=${publish_raw}:${topic_raw} mode(durable,retained)=${publish_mode}:${topic_mode} mode/current(transient)=${publish_mode}:${topic_mode_current} snapshot=${publish_snapshot}:${topic_snapshot} state(legacy)=${publish_state}:${topic_state}"
+  logger -t heizungpanel "MQTT publishing: raw=${publish_raw}:${topic_raw} mode(durable,retained)=${publish_mode}:${topic_mode} mode/current(transient,unretained)=${publish_mode}:${topic_mode_current} snapshot(retained bootstrap)=${publish_snapshot}:${topic_snapshot} state(legacy,optional)=${publish_state}:${topic_state}"
 }

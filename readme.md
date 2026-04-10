@@ -2,7 +2,7 @@
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
-## Runtime-Modell (kanonisch, Stand 2026-04-10)
+## Runtime-Modell (kanonisch, Stand 2026-04-10, konsolidiert)
 
 **Raw-first bleibt der Standardpfad.**
 
@@ -58,7 +58,7 @@ In der Default-Konfiguration:
 
 - `?mode=raw` (Default)
 - `?mode=mode` (durable retained)
-- `?mode=mode_current` oder `?mode=current` (transient)
+- `?mode=mode_current`, `?mode=current` oder `?mode=mode/current` (transient)
 - `?mode=snapshot`
 - `?mode=state` (legacy)
 
