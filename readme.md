@@ -40,6 +40,7 @@ Stabiler Read-only-Betrieb mit Runtime-Konfiguration und Security-Gate plus **M2
 - Deploy-Helper-Härtung: Install überschreibt `/etc/config/heizungpanel` standardmäßig nicht mehr; mit `--overwrite-config` kann ein erzwungenes Überschreiben aktiviert werden.
 - Deploy-Helper-Fix: Service-Start nach frischem Reset/Erstinstallation gehärtet (`stop || true` + `start` statt `restart`), damit kein zweiter Push mehr nötig ist, wenn `ubus service delete ... (Not found)` beim ersten Lauf auftritt.
 - Deploy-Helper-Fix: `tools/device_ssh_deploy.sh` rollt jetzt zusätzlich `usr/libexec/heizungpanel/set_mode.sh` und `usr/libexec/heizungpanel/isolate_321.sh` mit aus.
+- Deploy-Helper-Fix: `run_scp` übergibt wieder korrekt Upload-Quellen und Ziel an `scp`; damit schlägt `install|push` bei Schritt `[2/4] Upload files via scp` nicht mehr mit der nackten `scp usage`-Ausgabe fehl.
 
 ## Neue Telemetrie-Felder (Parser v0)
 Zusätzlich zu `line1`, `line2`, `flags16`, `last_1f5`:

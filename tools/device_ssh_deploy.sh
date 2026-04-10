@@ -82,14 +82,26 @@ run_ssh() {
 run_scp() {
   # Force legacy SCP protocol (-O) to support OpenWrt/Dropbear targets
   # that do not provide an SFTP server binary/subsystem.
-  set -- scp -O -P "$SSH_PORT"
+  if [ -n "$SSH_KEY" ] && [ "$USE_MUX" -eq 1 ] && [ -n "$MUX_CONTROL_PATH" ]; then
+    scp -O -P "$SSH_PORT" -i "$SSH_KEY" \
+      -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH" \
+      "$@"
+    return
+  fi
+
   if [ -n "$SSH_KEY" ]; then
-    set -- "$@" -i "$SSH_KEY"
+    scp -O -P "$SSH_PORT" -i "$SSH_KEY" "$@"
+    return
   fi
+
   if [ "$USE_MUX" -eq 1 ] && [ -n "$MUX_CONTROL_PATH" ]; then
-    set -- "$@" -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH"
+    scp -O -P "$SSH_PORT" \
+      -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH" \
+      "$@"
+    return
   fi
-  "$@"
+
+  scp -O -P "$SSH_PORT" "$@"
 }
 
 require_opt_value() {
