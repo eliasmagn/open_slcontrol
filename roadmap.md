@@ -118,3 +118,19 @@
 - Parser-Env-Transfer explizit pro Aufruf: `CAN_IF`/`CAN_BITRATE` werden direkt am `ucode`-Prozess gesetzt.
 - Doku-Quelle vereinheitlicht: `README.md` dient nur als Verweis auf `readme.md` (kanonisch).
 - Kleine Code-Altlasten entfernt: `config.js` ohne ungenutztes `ui`-Require und ohne tote `inputRow()`-Funktion.
+
+## Update 2026-04-10 – nächste PR-Serie (Architektur)
+1. **PR 1 – Decoder-Single-Source-of-Truth**
+   - Kanonischen Decoder im Backend fixieren.
+   - LuCI-Raw-Decoder als Debugpfad markieren und schrittweise auf normalisierten State umstellen.
+2. **PR 2 – Control-/Konfig-API-Konsolidierung**
+   - Bestehende Konfigskripte hinter einer einheitlichen API zusammenführen.
+3. **PR 3 – CAN-Ownership-Zentralisierung**
+   - Eindeutige Ownership für CAN-Link-Lifecycle inkl. Recoveries.
+4. **PR 4 – Packaging + Doku-Konsolidierung**
+   - Install-Dateiliste als Single Source.
+   - Einstiegsdoku auf eine kanonische Datei reduzieren.
+
+### Bereits umgesetzt als Vorarbeit
+- `state.sh` nutzt jetzt strukturelle JSON-Validierung und liefert versionierte State-Metafelder (`schema_version`, `source`, `age_ms`, `seq`).
+- Stand 2026-04-10 (PR1 Teilschritt): SSE-Standardpfad liefert jetzt normalisierten State statt Raw-Frames; Browser-Raw-Decode ist damit nicht mehr Produktionspfad.

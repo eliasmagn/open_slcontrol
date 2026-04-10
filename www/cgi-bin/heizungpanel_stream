@@ -36,6 +36,13 @@ if [ -n "$TOKEN_EXPECTED" ] && [ "$TOKEN_GIVEN" != "$TOKEN_EXPECTED" ]; then
   exit 0
 fi
 
+MODE="$(qs_get mode)"
+if [ "$MODE" = "raw" ]; then
+  TOPIC="$MQTT_BASE/raw"
+else
+  TOPIC="$MQTT_BASE/state"
+fi
+
 echo "Content-Type: text/event-stream"
 echo "Cache-Control: no-cache"
 echo "Connection: keep-alive"
@@ -45,7 +52,7 @@ echo "event: hello"
 echo "data: stream-open"
 echo
 
-exec mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$MQTT_BASE/raw" 2>/dev/null \
+exec mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC" 2>/dev/null \
   | while IFS= read -r line; do
       [ -n "$line" ] || continue
       printf 'data: %s\n\n' "$line"
