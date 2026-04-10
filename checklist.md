@@ -62,9 +62,13 @@
 - [x] **Deploy-Helper für Dropbear/OpenWrt ohne SFTP-Subsystem gehärtet** (`scp -O`; Fix für `ash: /usr/libexec/sftp-server: not found`).
 - [x] **Deploy-Helper fragt Passwort pro Lauf nur einmal ab** (SSH-Multiplexing via `ControlMaster/ControlPersist`, optional deaktivierbar mit `--no-mux`).
 - [x] **LuCI-Menü-Deployment ergänzt** (`/usr/share/luci/menu.d/luci-app-heizungpanel.json`) damit der Menüpunkt unter `Services` nach Neuinstallation sichtbar ist.
+- [x] **Deploy-Menükompatibilität erweitert** (`/usr/share/luci-app-heizungpanel.json` wird beim Install/Uninstall ebenfalls mitgeführt), damit unterschiedliche LuCI-Menüladepfade auf Zielgeräten unterstützt bleiben.
+- [x] **Deploy-Menüquelle entkoppelt** (Legacy-Menüpfad wird aus kanonischem `menu.d`-JSON gespiegelt), damit kein Inhalts-Drift zwischen zwei separaten Repo-Dateien entsteht.
 - [x] **LuCI-Dispatcher-Cache-Refresh beim Deploy ergänzt** (`/tmp/luci-indexcache`, `/tmp/luci-modulecache`).
 - [x] **First-Install-Start nach Device-Reset gehärtet** (Deploy nutzt jetzt `stop || true` + `start` statt `restart`, damit der Dienst nach frischem Flash nicht erst beim zweiten Push sauber anläuft).
 - [x] **Deploy-Fileliste ergänzt** (`set_mode.sh` und `isolate_321.sh` werden vom Install-Tool mit ausgerollt).
+- [x] **Deploy-CLI gehärtet** (Pflichtwerte für `--port/--identity/--stage` werden validiert; klare Fehlermeldung bei fehlendem Argument).
+- [x] **Config-Overwrite kontrollierbar gemacht** (`install|push` überschreibt `/etc/config/heizungpanel` nur noch mit `--overwrite-config`).
 - [x] README/readme um aktuellen Stand ergänzt.
 - [x] Roadmap mit M1/M2-Progress gepflegt.
 

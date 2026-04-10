@@ -51,8 +51,11 @@
 - Stand 2026-04-09: SCP-Protokollfix im Deploy-Helper umgesetzt (`scp -O`), damit Deploy auf OpenWrt/Dropbear ohne SFTP-Subsystem funktioniert.
 - Stand 2026-04-09: SSH-Verbindungs-Multiplexing im Deploy-Helper aktiviert, damit Passwortabfragen pro Lauf auf eine Abfrage reduziert werden (abschaltbar via `--no-mux`).
 - Stand 2026-04-09: Deploy liefert jetzt zusätzlich die LuCI-Menüdatei nach `/usr/share/luci/menu.d/luci-app-heizungpanel.json`, damit der Eintrag unter `Services` nach Reset/Neuinstallation sichtbar ist.
+- Stand 2026-04-10: Deploy synchronisiert zusätzlich `/usr/share/luci-app-heizungpanel.json` (Install + Remove), damit aktuelle und ältere LuCI-Menüladepfade gleichermaßen abgedeckt sind.
+- Stand 2026-04-10: Deploy spiegelt den Legacy-Menüpfad aus einer kanonischen `menu.d`-Quelle, um Redundanz/Drift zwischen zwei getrennten Menüdateien zu vermeiden.
 - Stand 2026-04-09: Deploy löscht LuCI-Index-/Modulcache, damit Menüänderungen ohne manuellen Reboot übernommen werden.
 - Stand 2026-04-09: Deploy startet den Dienst auf frischen Geräten robust mit `stop || true` + `start` (statt `restart`), damit nach Device-Reset kein zweiter Push nötig ist.
+- Stand 2026-04-10: Deploy-CLI validiert fehlende Pflichtwerte robuster (`--port`, `--identity`, `--stage`) und bietet `--overwrite-config` für bewusstes Überschreiben von `/etc/config/heizungpanel`.
 
 ## M4 – Optionaler Write-Mode (nach Mapping/Validierung)
 - Mappingbasierter Sendepfad auf Basis Allowlist.

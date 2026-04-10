@@ -10,11 +10,12 @@ SSH_KEY=""
 REMOTE_STAGE="/tmp/open_slcontrol_deploy"
 ACTION=""
 NO_RESTART=0
+OVERWRITE_CONFIG=0
 USE_MUX=1
 STAGE_LOCAL=""
 MUX_DIR=""
 MUX_ACTIVE=0
-SSH_MUX_OPTS=""
+MUX_CONTROL_PATH=""
 
 cleanup() {
   if [ "$MUX_ACTIVE" -eq 1 ] && [ -n "$REMOTE" ]; then
@@ -22,10 +23,9 @@ cleanup() {
     if [ -n "$SSH_KEY" ]; then
       set -- "$@" -i "$SSH_KEY"
     fi
-    if [ -n "$SSH_MUX_OPTS" ]; then
-      set -- "$@" $SSH_MUX_OPTS
+    if [ -n "$MUX_CONTROL_PATH" ]; then
+      set -- "$@" -o "ControlPath=$MUX_CONTROL_PATH"
     fi
-    # shellcheck disable=SC2086
     "$@" -O exit "$REMOTE" >/dev/null 2>&1 || true
   fi
   [ -n "$STAGE_LOCAL" ] && rm -rf "$STAGE_LOCAL"
@@ -49,6 +49,7 @@ Options:
   -s, --stage <path>     Remote staging directory (default: /tmp/open_slcontrol_deploy)
       --no-mux           Disable SSH connection multiplexing (prompts password each call)
       --no-restart       Do not restart/disable service after action
+      --overwrite-config Always overwrite /etc/config/heizungpanel on install
   -h, --help             Show this help
 
 Examples:
@@ -65,29 +66,39 @@ require_cmd() {
   fi
 }
 
-build_ssh_cmd() {
+run_ssh() {
+  remote_cmd="$1"
   set -- ssh -p "$SSH_PORT"
   if [ -n "$SSH_KEY" ]; then
     set -- "$@" -i "$SSH_KEY"
   fi
-  if [ -n "$SSH_MUX_OPTS" ]; then
-    set -- "$@" $SSH_MUX_OPTS
+  if [ "$USE_MUX" -eq 1 ] && [ -n "$MUX_CONTROL_PATH" ]; then
+    set -- "$@" -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH"
   fi
-  set -- "$@" "$REMOTE"
-  printf '%s\n' "$*"
+  set -- "$@" "$REMOTE" "$remote_cmd"
+  "$@"
 }
 
-build_scp_cmd() {
+run_scp() {
   # Force legacy SCP protocol (-O) to support OpenWrt/Dropbear targets
   # that do not provide an SFTP server binary/subsystem.
   set -- scp -O -P "$SSH_PORT"
   if [ -n "$SSH_KEY" ]; then
     set -- "$@" -i "$SSH_KEY"
   fi
-  if [ -n "$SSH_MUX_OPTS" ]; then
-    set -- "$@" $SSH_MUX_OPTS
+  if [ "$USE_MUX" -eq 1 ] && [ -n "$MUX_CONTROL_PATH" ]; then
+    set -- "$@" -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH"
   fi
-  printf '%s\n' "$*"
+  "$@"
+}
+
+require_opt_value() {
+  opt="$1"
+  if [ "$#" -lt 2 ] || [ -z "${2:-}" ]; then
+    echo "Missing value for option: $opt" >&2
+    usage
+    exit 1
+  fi
 }
 
 create_stage_tree() {
@@ -124,6 +135,12 @@ www/cgi-bin/heizungpanel_stream
     cp "$src" "$dst"
   done
 
+  # Keep one canonical menu source in repo (menu.d) and mirror it to the
+  # legacy path in staging for compatibility targets.
+  mkdir -p "$STAGE_LOCAL/usr/share"
+  cp "$STAGE_LOCAL/usr/share/luci/menu.d/luci-app-heizungpanel.json" \
+    "$STAGE_LOCAL/usr/share/luci-app-heizungpanel.json"
+
 }
 
 setup_mux() {
@@ -133,15 +150,14 @@ setup_mux() {
 
   require_cmd mktemp
   MUX_DIR="$(mktemp -d)"
-  SSH_MUX_OPTS="-o ControlMaster=auto -o ControlPersist=300 -o ControlPath=$MUX_DIR/ctl"
+  MUX_CONTROL_PATH="$MUX_DIR/ctl"
 
   echo "[0/4] Establish SSH master connection (single password prompt)"
   set -- ssh -fN -p "$SSH_PORT"
   if [ -n "$SSH_KEY" ]; then
     set -- "$@" -i "$SSH_KEY"
   fi
-  # shellcheck disable=SC2086
-  "$@" $SSH_MUX_OPTS "$REMOTE"
+  "$@" -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH" "$REMOTE"
   MUX_ACTIVE=1
 }
 
@@ -152,24 +168,25 @@ run_install() {
 
   setup_mux
   create_stage_tree
-  SSH_CMD="$(build_ssh_cmd)"
-  SCP_CMD="$(build_scp_cmd)"
+  if [ "$OVERWRITE_CONFIG" -eq 1 ]; then
+    CONFIG_COPY_CMD="cp '$REMOTE_STAGE/etc/config/heizungpanel' /etc/config/heizungpanel"
+  else
+    CONFIG_COPY_CMD="[ -f /etc/config/heizungpanel ] || cp '$REMOTE_STAGE/etc/config/heizungpanel' /etc/config/heizungpanel"
+  fi
 
   echo "[1/4] Prepare remote stage: $REMOTE_STAGE"
-  # shellcheck disable=SC2086
-  $SSH_CMD "rm -rf '$REMOTE_STAGE' && mkdir -p '$REMOTE_STAGE'"
+  run_ssh "rm -rf '$REMOTE_STAGE' && mkdir -p '$REMOTE_STAGE'"
 
   echo "[2/4] Upload files via scp"
-  # shellcheck disable=SC2086
-  $SCP_CMD -r "$STAGE_LOCAL/etc" "$STAGE_LOCAL/usr" "$STAGE_LOCAL/www" "$REMOTE:$REMOTE_STAGE/"
+  run_scp -r "$STAGE_LOCAL/etc" "$STAGE_LOCAL/usr" "$STAGE_LOCAL/www" "$REMOTE:$REMOTE_STAGE/"
 
   echo "[3/4] Install files on target"
-  # shellcheck disable=SC2086
-  $SSH_CMD "cp '$REMOTE_STAGE/etc/init.d/heizungpanel' /etc/init.d/heizungpanel && \
-    cp '$REMOTE_STAGE/etc/config/heizungpanel' /etc/config/heizungpanel && \
+  run_ssh "cp '$REMOTE_STAGE/etc/init.d/heizungpanel' /etc/init.d/heizungpanel && \
+    $CONFIG_COPY_CMD && \
     mkdir -p /usr/libexec/heizungpanel /usr/share/rpcd/acl.d /usr/share/luci/menu.d /www/luci-static/resources/view/heizungpanel /www/cgi-bin && \
     cp '$REMOTE_STAGE'/usr/libexec/heizungpanel/* /usr/libexec/heizungpanel/ && \
     cp '$REMOTE_STAGE/usr/share/rpcd/acl.d/luci-app-heizungpanel.json' /usr/share/rpcd/acl.d/luci-app-heizungpanel.json && \
+    cp '$REMOTE_STAGE/usr/share/luci-app-heizungpanel.json' /usr/share/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/usr/share/luci/menu.d/luci-app-heizungpanel.json' /usr/share/luci/menu.d/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/panel.js' /www/luci-static/resources/view/heizungpanel/panel.js && \
     cp '$REMOTE_STAGE/www/cgi-bin/heizungpanel_stream' /www/cgi-bin/heizungpanel_stream && \
@@ -177,8 +194,7 @@ run_install() {
 
   if [ "$NO_RESTART" -eq 0 ]; then
     echo "[4/4] Reload services"
-    # shellcheck disable=SC2086
-    $SSH_CMD "/etc/init.d/rpcd reload >/dev/null 2>&1 || true; \
+    run_ssh "/etc/init.d/rpcd reload >/dev/null 2>&1 || true; \
       /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; \
       rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true; \
       /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; \
@@ -195,12 +211,11 @@ run_uninstall() {
   require_cmd ssh
 
   setup_mux
-  SSH_CMD="$(build_ssh_cmd)"
   echo "[1/2] Remove files from target"
-  # shellcheck disable=SC2086
-  $SSH_CMD "rm -f /etc/init.d/heizungpanel \
+  run_ssh "rm -f /etc/init.d/heizungpanel \
     /etc/config/heizungpanel \
     /usr/share/rpcd/acl.d/luci-app-heizungpanel.json \
+    /usr/share/luci-app-heizungpanel.json \
     /usr/share/luci/menu.d/luci-app-heizungpanel.json \
     /www/luci-static/resources/view/heizungpanel/panel.js \
     /www/cgi-bin/heizungpanel_stream && \
@@ -208,8 +223,7 @@ run_uninstall() {
 
   if [ "$NO_RESTART" -eq 0 ]; then
     echo "[2/2] Stop/reload services"
-    # shellcheck disable=SC2086
-    $SSH_CMD "/etc/init.d/heizungpanel stop >/dev/null 2>&1 || true; /etc/init.d/heizungpanel disable >/dev/null 2>&1 || true; /etc/init.d/rpcd reload >/dev/null 2>&1 || true; /etc/init.d/uhttpd reload >/dev/null 2>&1 || true"
+    run_ssh "/etc/init.d/heizungpanel stop >/dev/null 2>&1 || true; /etc/init.d/heizungpanel disable >/dev/null 2>&1 || true; /etc/init.d/rpcd reload >/dev/null 2>&1 || true; /etc/init.d/uhttpd reload >/dev/null 2>&1 || true"
   else
     echo "[2/2] Skipping service actions (--no-restart set)"
   fi
@@ -234,19 +248,26 @@ shift 2
 while [ "$#" -gt 0 ]; do
   case "$1" in
     -p|--port)
+      require_opt_value "$1" "${2:-}"
       SSH_PORT="$2"
       shift 2
       ;;
     -i|--identity)
+      require_opt_value "$1" "${2:-}"
       SSH_KEY="$2"
       shift 2
       ;;
     -s|--stage)
+      require_opt_value "$1" "${2:-}"
       REMOTE_STAGE="$2"
       shift 2
       ;;
     --no-restart)
       NO_RESTART=1
+      shift
+      ;;
+    --overwrite-config)
+      OVERWRITE_CONFIG=1
       shift
       ;;
     --no-mux)
