@@ -1,3 +1,8 @@
+## Update 2026-04-10 – Kanonischer Bootstrap-Topic
+- Bootstrap-Hydration ist auf ein einziges kanonisches retained Payload umgestellt: `<mqtt_base>/bootstrap`.
+- Alte Mehrfach-Abfragen (`mode` + `snapshot` + optional `state`) bleiben nur als Kompatibilitäts-Fallback in `state.sh`.
+- Nächster Fokus bleibt UI/UX-Feinschliff (Button-/LED-Layout), ohne Raw-first Architekturpfad zu verlassen.
+
 # Roadmap – open_slcontrol
 
 ## Update 2026-04-10 – Doku-Transition auf `dev_readme`

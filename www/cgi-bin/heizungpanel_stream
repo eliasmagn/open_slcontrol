@@ -14,6 +14,7 @@ TOPIC_STATE="${MQTT_BASE}/state"
 TOPIC_MODE_DURABLE="${MQTT_BASE}/mode"
 TOPIC_MODE_CURRENT="${TOPIC_MODE_DURABLE}/current"
 TOPIC_SNAPSHOT="${MQTT_BASE}/snapshot"
+TOPIC_BOOTSTRAP="${MQTT_BASE}/bootstrap"
 
 qs_get() {
   local key="$1"
@@ -49,6 +50,7 @@ case "$MODE" in
   mode|mode_durable) TOPIC="$TOPIC_MODE_DURABLE" ;;
   mode_current|current|mode/current) TOPIC="$TOPIC_MODE_CURRENT" ;;
   snapshot) TOPIC="$TOPIC_SNAPSHOT" ;;
+  bootstrap) TOPIC="$TOPIC_BOOTSTRAP" ;;
   *) TOPIC="$TOPIC_RAW" ;;
 esac
 

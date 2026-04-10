@@ -122,6 +122,7 @@ etc/config/heizungpanel
 usr/libexec/heizungpanel/raw_bridge.sh
 usr/libexec/heizungpanel/mode_bridge.sh
 usr/libexec/heizungpanel/snapshot_bridge.sh
+usr/libexec/heizungpanel/bootstrap_bridge.sh
 usr/libexec/heizungpanel/state_bridge.sh
 usr/libexec/heizungpanel/state.sh
 usr/libexec/heizungpanel/parser.uc
