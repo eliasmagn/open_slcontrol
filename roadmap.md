@@ -180,6 +180,9 @@
 - Stand 2026-04-10: CAN-Quellenpriorität finalisiert – aktive Betriebsarten-LEDs werden ausschließlich aus `0x321` gesetzt; `0x320 mode_code` bleibt diagnostisch und setzt keinen Latch.
 - Stand 2026-04-10: Moduswechsel-ACK im LuCI ergänzt – nach Sendekommando wird eine passende `0x321`-Bestätigung der Anlage aktiv überwacht (Erfolg/Timeout-Hinweis).
 - Stand 2026-04-10: `0x320`-Abschlussbytes (`83 EF`/`83 FB`) in LuCI als Screenklasse gekennzeichnet („kein Anlagenmodus“), um Fehlinterpretation als Heizungsmodus zu vermeiden.
+- Stand 2026-04-10: Persistenzregel präzisiert – beim UI-Start wird nur der LED-Modusstatus aus retained Daten übernommen; LCD-Text wird nicht mehr aus Bootstrap-State vorgefüllt, sondern ausschließlich aus Live-Rawframes aufgebaut.
+- Stand 2026-04-11: 0x321-Semantik nachgeschärft – `FFFF` wird als transienter Lauf-/Pollstatus geführt (current stream), während der retained Betriebsmodus und LED-Latch nur durch bekannte Modus-Flags aktualisiert werden.
+- Stand 2026-04-11: LuCI um RE-Arbeitsbereich erweitert – Mappingtabellen (IDs/Commands) plus auswählbarer Live-Sensorgraph aus `0x259`, um die offene Byte-/Indexzuordnung direkt im Betrieb visuell zu validieren.
 - Stand 2026-04-10: Build-Traceability ergänzt – Init + Bridges loggen nun ein `BUILD_TAG` (Commit-String) beim Start in Syslog.
 
 - Stand 2026-04-10: Offene Konsolidierungspunkte geschlossen – Deploy-Dateisatz enthält die Konfig-Assets/Skripte, Konfig-Speichern läuft atomar (ein Commit/ein Restart), CAN-Setup hat genau einen Owner (Init), Parser-Env ist explizit exportiert und der Display-Emulator ist auf 2x20 synchronisiert.

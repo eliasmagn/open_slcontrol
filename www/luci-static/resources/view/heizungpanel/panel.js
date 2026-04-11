@@ -99,7 +99,7 @@ return view.extend({
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
 
-    var style = el('style', { html: '.hp-wrap{max-width:720px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 18px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-debug,.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;gap:10px;justify-content:center;margin-top:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
+    var style = el('style', { html: '.hp-wrap{max-width:960px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 18px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-debug,.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;gap:10px;justify-content:center;margin-top:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}.hp-map{margin-top:14px;padding:12px;border-radius:10px;background:rgba(255,255,255,.04)}.hp-map h3{margin:0 0 8px 0;font-size:14px}.hp-map table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}.hp-map th,.hp-map td{border:1px solid rgba(255,255,255,.15);padding:4px 6px;text-align:left}.hp-map th{background:rgba(255,255,255,.08)}.hp-sensor-pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}.hp-sensor-pick label{font-size:12px;background:rgba(255,255,255,.06);padding:4px 6px;border-radius:6px}.hp-graph{background:#111;border:1px solid #666;border-radius:6px;width:100%;height:220px}.hp-legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;margin-top:6px}' }, []);
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
     var line2 = el('div', { class: 'l dim' }, ['                    ']);
@@ -109,6 +109,41 @@ return view.extend({
     var modeHint = el('div', { class:'hp-sub' }, ['Modus aus 0x321: n/a']);
 
     var actionFeedback = el('div', { class:'hp-inline-msg', 'aria-live':'polite' }, ['']);
+    var sensorSeries = {};
+    var sensorEnabled = {};
+    var sensorColors = ['#ffd54a', '#81d4fa', '#ffab91', '#a5d6a7', '#ce93d8', '#ffcc80', '#80cbc4', '#ef9a9a'];
+    var graphCanvas = el('canvas', { class: 'hp-graph', width: '900', height: '220' }, []);
+    var graphLegend = el('div', { class: 'hp-legend' }, []);
+
+    var idAssignments = [
+      ['0x1F5', '501', 'Zeit-/Statuskanal', 'teilvalidiert'],
+      ['0x258', '600', 'Soll-/Befehlsrahmen I/O', 'hoch validiert'],
+      ['0x259', '601', 'Rückmeldung/Messrahmen I/O', 'hoch validiert'],
+      ['0x320', '800', 'Displaydaten/Displaystatus', 'hoch validiert'],
+      ['0x321', '801', 'Panel/Tasten-Rückkanal', 'hoch validiert']
+    ];
+    var commandMapRows = [
+      ['dauer', '321#7FFF', 'Dauerbetrieb'],
+      ['uhr', '321#BFFF', 'Uhrzeitbetrieb'],
+      ['boiler', '321#DFFF', 'Boilerbetrieb'],
+      ['uhr_boiler', '321#EFFF', 'Uhr+Boilerbetrieb'],
+      ['aussen_reg', '321#F7FF', 'Außentemperatur-Regelung'],
+      ['pruef', '321#FBFF', 'Prüfbetrieb'],
+      ['hand', '321#FDFF', 'Handbetrieb'],
+      ['v', '321#FFFB', 'Navigation V'],
+      ['z', '321#FF7F', 'Navigation Z'],
+      ['quit', '321#FFBF', 'Quit/Zurück'],
+      ['(rx)', '321#FFFF', 'Alive/Poll-Status (transient)']
+    ];
+    var sensorCatalog = [
+      { idx: '00', label: 'Index 00 – Kanalgruppe' }, { idx: '01', label: 'Index 01 – Boiler/Pumpe Kandidat' },
+      { idx: '02', label: 'Index 02 – Kanalgruppe/Sonderfall' }, { idx: '03', label: 'Index 03 – Mischer/Vorlauf Kandidat' },
+      { idx: '04', label: 'Index 04 – Relais/Sonderobjekt' }, { idx: '05', label: 'Index 05 – Relais/Pumpenobjekt' },
+      { idx: '06', label: 'Index 06 – Relais/Sonderobjekt' }, { idx: '07', label: 'Index 07 – Relais/Pumpenobjekt' },
+      { idx: '08', label: 'Index 08 – Statusobjekt' }, { idx: '09', label: 'Index 09 – Relais/Sonderobjekt' },
+      { idx: '0A', label: 'Index 0A – Relais/Sonderobjekt' }, { idx: '0B', label: 'Index 0B – Statusobjekt' },
+      { idx: '0C', label: 'Index 0C – Sensorobjekt' }
+    ];
 
     var display = el('div', { class: 'hp-display' }, [
       el('div', { class: 'hp-sub' }, ['LCD 2x20 (Browser-dekodiert aus Raw 0x320/0x321)']),
@@ -183,6 +218,7 @@ return view.extend({
       'DFFF': { name: 'Boilerbetrieb', led: mB.led }, 'EFFF': { name: 'Uhr+Boilerbetrieb', led: mUB.led },
       'F7FF': { name: 'Außentemperatur-Regelung', led: mA.led }, 'FBFF': { name: 'Prüfbetrieb', led: mP.led }, 'FDFF': { name: 'Handbetrieb', led: mH.led }
     };
+    var transient321ByFlags = { 'FFFF': 'Anlage aktiv (Pollframe)' };
 
     function clearLeds() { [mD,mU,mB,mUB,mA,mP,mH].forEach(function(m) { m.led.className = 'hp-led'; }); }
     function setRenderedDisplay(a, b) {
@@ -193,6 +229,7 @@ return view.extend({
     var lcd = []; for (var i = 0; i < 40; i++) lcd[i] = ' ';
     var modeCode = '--';
     var modeFlags = '----';
+    var latchedModeFlags = '----';
     var liveHasRendered = false;
     var bootstrapHydrated = false;
     var liveTextSeen = false;
@@ -212,11 +249,23 @@ return view.extend({
       flags.textContent = 'flags16: ' + modeFlags + '  mode_code: ' + modeCode;
       lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString();
       clearLeds();
+      if (modeByFlags[latchedModeFlags]) {
+        modeByFlags[latchedModeFlags].led.className = 'hp-led on';
+      }
       if (modeByFlags[modeFlags]) {
-        modeByFlags[modeFlags].led.className = 'hp-led on';
         modeHint.textContent = 'Modus aus 0x321: ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+      } else if (transient321ByFlags[modeFlags]) {
+        if (modeByFlags[latchedModeFlags]) {
+          modeHint.textContent = '0x321: ' + transient321ByFlags[modeFlags] + ' (' + modeFlags + '), Betriebsmodus: ' + modeByFlags[latchedModeFlags].name + ' (' + latchedModeFlags + ')';
+        } else {
+          modeHint.textContent = '0x321: ' + transient321ByFlags[modeFlags] + ' (' + modeFlags + ')';
+        }
       } else {
-        modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + ')';
+        if (modeByFlags[latchedModeFlags]) {
+          modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + '), letzter Betriebsmodus: ' + modeByFlags[latchedModeFlags].name + ' (' + latchedModeFlags + ')';
+        } else {
+          modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + ')';
+        }
       }
       if (pendingModeAck && modeFlags === pendingModeAck.expected_flags) {
         showActionFeedback('ok', 'CAN-Bestätigung: ' + pendingModeAck.code + ' -> ' + modeFlags, 1500);
@@ -230,12 +279,19 @@ return view.extend({
 
       if (f.id === '321' && f.data.length >= 4) {
         modeFlags = f.data.slice(0, 4).toUpperCase();
+        if (modeByFlags[modeFlags]) {
+          latchedModeFlags = modeFlags;
+        }
         renderLive();
         status.className = 'hp-status ok';
         status.textContent = 'Status: Raw-Stream aktiv';
         return;
       }
 
+      if (f.id === '259' && f.data.length >= 12) {
+        ingestSensorFrame(f.data);
+        return;
+      }
       if (f.id !== '320' || f.data.length < 2) return;
       var lead = f.data.slice(0, 2).toUpperCase();
       if (lead === '81') {
@@ -268,28 +324,90 @@ return view.extend({
       }
     }
 
+    function ingestSensorFrame(data) {
+      var idx = data.slice(0, 2).toUpperCase();
+      var raw = data.slice(8, 12).toUpperCase();
+      var rawNum = parseInt(raw, 16);
+      if (isNaN(rawNum)) return;
+      if (!sensorSeries[idx]) sensorSeries[idx] = [];
+      sensorSeries[idx].push({ ts: Date.now(), v: rawNum / 10.0, raw: raw });
+      if (sensorSeries[idx].length > 120) sensorSeries[idx].shift();
+      drawSensorGraph();
+    }
+
+    function drawSensorGraph() {
+      var ctx = graphCanvas.getContext('2d');
+      var w = graphCanvas.width, h = graphCanvas.height;
+      ctx.fillStyle = '#111'; ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = '#444'; ctx.strokeRect(0, 0, w, h);
+
+      var keys = Object.keys(sensorEnabled).filter(function(k) { return sensorEnabled[k] && sensorSeries[k] && sensorSeries[k].length > 1; });
+      graphLegend.innerHTML = '';
+      if (!keys.length) {
+        ctx.fillStyle = '#aaa';
+        ctx.fillText('Keine Sensorkurve gewählt oder noch keine 0x259-Daten.', 16, 26);
+        return;
+      }
+
+      var min = Infinity, max = -Infinity, i, j;
+      for (i = 0; i < keys.length; i++) {
+        var arr = sensorSeries[keys[i]];
+        for (j = 0; j < arr.length; j++) {
+          if (arr[j].v < min) min = arr[j].v;
+          if (arr[j].v > max) max = arr[j].v;
+        }
+      }
+      if (min === max) { min -= 1; max += 1; }
+      var yScale = (h - 24) / (max - min);
+      var xStep = (w - 20) / 119;
+
+      ctx.fillStyle = '#ddd';
+      ctx.fillText('Min: ' + min.toFixed(1) + '  Max: ' + max.toFixed(1), 10, h - 6);
+
+      for (i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var vals = sensorSeries[key];
+        var color = sensorColors[i % sensorColors.length];
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        for (j = 0; j < vals.length; j++) {
+          var x = 10 + ((120 - vals.length + j) * xStep);
+          var y = h - 16 - ((vals[j].v - min) * yScale);
+          if (j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        graphLegend.appendChild(el('div', {}, [el('span', { style: 'display:inline-block;width:10px;height:10px;background:' + color + ';margin-right:4px' }, []), key + ' (' + vals[vals.length - 1].v.toFixed(1) + ')']));
+      }
+    }
+
+    function mkTable(headers, rows) {
+      var thead = el('thead', {}, [el('tr', {}, headers.map(function(h) { return el('th', {}, [h]); }))]);
+      var bodyRows = rows.map(function(r) { return el('tr', {}, r.map(function(c) { return el('td', {}, [c]); })); });
+      return el('table', {}, [thead, el('tbody', {}, bodyRows)]);
+    }
+
     function applyBootstrap(st) {
       if (!st || st.status !== 'ok') return;
-      var snap = st.snapshot || {};
       var mode = st.mode || {};
-      var lineA = (typeof st.line1 === 'string') ? st.line1 : (snap.line1 || '');
-      var lineB = (typeof st.line2 === 'string') ? st.line2 : (snap.line2 || '');
-      hydrateLcdFromLines(lineA, lineB);
       bootstrapHydrated = true;
       liveTextSeen = false;
       pendingLiveClear = false;
       modeFlags = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
-      modeCode = (st.mode_code || snap.mode_code || '--').toUpperCase();
-      if (!liveHasRendered) {
-        renderLive();
-        if (modeByFlags[modeFlags]) {
-          modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
-        } else {
-          modeHint.textContent = 'Modus (retained): unbekannt (' + modeFlags + ')';
-        }
+      latchedModeFlags = modeFlags;
+      modeCode = '--';
+
+      // Persistent bootstrap is intentionally mode-only.
+      // Display text is rendered exclusively from live Raw frames.
+      clearLeds();
+      if (modeByFlags[modeFlags]) {
+        modeByFlags[modeFlags].led.className = 'hp-led on';
+        modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+      } else {
+        modeHint.textContent = 'Modus (retained): unbekannt (' + modeFlags + ')';
       }
+      flags.textContent = 'flags16: ' + modeFlags + '  mode_code: --';
       status.className = 'hp-status warn';
-      status.textContent = 'Status: Bootstrap geladen, warte auf Raw-Liveframes';
+      status.textContent = 'Status: Modus-Bootstrap geladen, Display wartet auf Raw-Liveframes';
     }
 
     function loadBootstrap() {
@@ -321,7 +439,23 @@ return view.extend({
     var powerRow = el('div', { class:'hp-power' }, [btn('Ein', 'ein'), btn('Aus', 'aus')]);
     var left = el('div', { class:'hp-left' }, [keygrid, powerRow, el('label', {}, ['Send mode ', sendSwitch]), actionFeedback]);
     var right = el('div', { class:'hp-right' }, [el('div', { class:'hp-modes' }, [mD.node,mU.node,mB.node,mUB.node,mA.node,mP.node,mH.node]), modeHint]);
-    var root = el('div', { class:'hp-wrap' }, [style, el('div', { class:'hp-panel' }, [display, el('div', { class:'hp-grid' }, [left, right])])]);
+    var sensorPick = el('div', { class: 'hp-sensor-pick' }, sensorCatalog.map(function(s, i) {
+      var c = el('input', { type: 'checkbox' }, []);
+      if (i < 3) { c.checked = true; sensorEnabled[s.idx] = true; }
+      c.addEventListener('change', function() { sensorEnabled[s.idx] = c.checked; drawSensorGraph(); });
+      return el('label', {}, [c, ' ', s.idx, ' ', s.label]);
+    }));
+    var mappingSection = el('div', { class: 'hp-map' }, [
+      el('h3', {}, ['Reverse-Engineering Mapping']),
+      el('div', { class: 'hp-sub' }, ['ID-Zuordnung, Button-/Command-Mapping und auswählbare Sensortrends aus 0x259.']),
+      mkTable(['ID', 'Dez', 'Rolle', 'Status'], idAssignments),
+      mkTable(['Command', 'CAN-Frame', 'Bedeutung'], commandMapRows),
+      el('h3', {}, ['Sensor-Graph (0x259)']),
+      sensorPick,
+      graphCanvas,
+      graphLegend
+    ]);
+    var root = el('div', { class:'hp-wrap' }, [style, el('div', { class:'hp-panel' }, [display, el('div', { class:'hp-grid' }, [left, right]), mappingSection])]);
 
     loadBootstrap().then(function() {
       if (!startRawStream()) {
@@ -337,6 +471,8 @@ return view.extend({
         pendingModeAck = null;
       }
     }, 500);
+
+    drawSensorGraph();
 
     return root;
   },

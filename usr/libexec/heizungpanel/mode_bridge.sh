@@ -32,7 +32,12 @@ function mode_name(flags) {
   if (flags == "F7FF") return "aussen_reg"
   if (flags == "FBFF") return "pruef"
   if (flags == "FDFF") return "hand"
+  if (flags == "FFFF") return "running_poll"
   return "unknown"
+}
+function is_persistent_mode(flags) {
+  return (flags == "7FFF" || flags == "BFFF" || flags == "DFFF" || flags == "EFFF" ||
+          flags == "F7FF" || flags == "FBFF" || flags == "FDFF")
 }
 function emit_current(flags,    ts, name) {
   ts = now_ms()
@@ -85,8 +90,7 @@ function parse_len_bytes(line,    m, n, i, tok, want, count, out) {
   last_flags = flags
   emit_current(flags)
 
-  name = mode_name(flags)
-  if (name != "unknown")
+  if (is_persistent_mode(flags))
     emit_mode(flags)
 }' | while IFS="$(printf '\t')" read -r kind payload; do
       [ -n "$payload" ] || continue
