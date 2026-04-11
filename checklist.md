@@ -249,6 +249,8 @@
 - [x] Feldregel umgesetzt: Beim Panel-Bootstrap werden keine retained `line1/line2` mehr in das LCD gerendert; nur LED-Modusstatus bleibt aus persistentem `mode_flags16`.
 - [x] `mode_bridge.sh` erweitert: `321 FFFF` wird als transienter Lauf-/Pollzustand (`running_poll`) auf `mode/current` klassifiziert, ohne retained Betriebsmodus zu überschreiben.
 - [x] LuCI-LED-Latch gehärtet: LEDs bleiben auf letztem bekannten Betriebsmodus, auch wenn transiente `0x321`-Frames (z. B. `FFFF`) eintreffen; diese erscheinen nur als Statushinweis.
+- [x] Reverse-Engineering-Bereich im Panel ergänzt: Tabellen für ID-Zuordnung und Command->CAN-Frames direkt unterhalb des virtuellen Panels.
+- [x] Sensor-Graph ergänzt: auswählbare Kurven je `0x259`-Index mit Live-Update aus Raw-Stream (Trenddarstellung zur Mapping-Validierung).
 
 ## Update 2026-04-10 – LuCI-Alerts entschärft (UX)
 - [x] Wiederholte globale LuCI-Toastmeldungen bei Tastenklicks entfernt (kein „OK: v“-Stacking mehr am Seitenanfang).

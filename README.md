@@ -28,3 +28,10 @@ Public entrypoint (kurz):
 - `mode_bridge.sh` klassifiziert jetzt `321 FFFF` explizit als transienten Lauf-/Poll-Status (`running_poll`) im `mode/current`-Stream.
 - Retained Betriebsart (`<mqtt_base>/mode`) bleibt weiterhin strikt auf bekannte persistente Modi begrenzt, damit LED-Latches nicht von Pollframes überschrieben werden.
 - Im LuCI-Panel bleiben LEDs auf dem zuletzt gelatchten Betriebsmodus; eingehende transiente `0x321`-Werte (z. B. `FFFF`) werden als Statushinweis angezeigt, während das LCD weiter ausschließlich aus Raw-Displayframes (`0x320`) aufgebaut wird.
+
+## Update 2026-04-11 – Mapping + Sensor-Graph im Panel
+- Unterhalb des virtuellen Panels gibt es jetzt einen neuen **Reverse-Engineering Mapping**-Bereich mit:
+  - ID-Zuordnung (`0x1F5/0x258/0x259/0x320/0x321`),
+  - Button-/Command-zu-CAN-Frame-Tabelle (inkl. `321#FFFF` als RX-Pollstatus),
+  - auswählbarem Sensor-Graph auf Basis live eingehender `0x259`-Frames.
+- Der Graph ist bewusst raw-nah: je `0x259`-Index werden Verlaufspunkte aus `data[4..5]` als Trend dargestellt, um Mapping-Hypothesen im Livebetrieb schnell visuell zu prüfen.
