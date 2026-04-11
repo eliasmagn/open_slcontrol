@@ -246,6 +246,7 @@
 - [x] `state_bridge.sh` schreibt den letzten Parser-State wieder in `/tmp/heizungpanel/state.json` (`tee`), `state.sh` liest primär aus diesem Cache und fällt auf MQTT zurück.
 - [x] Korrektur nach Feldfeedback: Display-Blanking wieder entfernt; Push-Rendering bleibt aktiv, nur Betriebsart-LEDs bleiben persistent (Latch).
 - [x] JS-Renderer schreibt pro 0x320-Frame-Burst das komplette 2x20-Display neu (Start immer mit leerem 40-Char-Buffer), damit keine alten Zeichenreste/Ziffern sichtbar bleiben.
+- [x] Feldregel umgesetzt: Beim Panel-Bootstrap werden keine retained `line1/line2` mehr in das LCD gerendert; nur LED-Modusstatus bleibt aus persistentem `mode_flags16`.
 
 ## Update 2026-04-10 – LuCI-Alerts entschärft (UX)
 - [x] Wiederholte globale LuCI-Toastmeldungen bei Tastenklicks entfernt (kein „OK: v“-Stacking mehr am Seitenanfang).

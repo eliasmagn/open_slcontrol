@@ -270,26 +270,25 @@ return view.extend({
 
     function applyBootstrap(st) {
       if (!st || st.status !== 'ok') return;
-      var snap = st.snapshot || {};
       var mode = st.mode || {};
-      var lineA = (typeof st.line1 === 'string') ? st.line1 : (snap.line1 || '');
-      var lineB = (typeof st.line2 === 'string') ? st.line2 : (snap.line2 || '');
-      hydrateLcdFromLines(lineA, lineB);
       bootstrapHydrated = true;
       liveTextSeen = false;
       pendingLiveClear = false;
       modeFlags = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
-      modeCode = (st.mode_code || snap.mode_code || '--').toUpperCase();
-      if (!liveHasRendered) {
-        renderLive();
-        if (modeByFlags[modeFlags]) {
-          modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
-        } else {
-          modeHint.textContent = 'Modus (retained): unbekannt (' + modeFlags + ')';
-        }
+      modeCode = '--';
+
+      // Persistent bootstrap is intentionally mode-only.
+      // Display text is rendered exclusively from live Raw frames.
+      clearLeds();
+      if (modeByFlags[modeFlags]) {
+        modeByFlags[modeFlags].led.className = 'hp-led on';
+        modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+      } else {
+        modeHint.textContent = 'Modus (retained): unbekannt (' + modeFlags + ')';
       }
+      flags.textContent = 'flags16: ' + modeFlags + '  mode_code: --';
       status.className = 'hp-status warn';
-      status.textContent = 'Status: Bootstrap geladen, warte auf Raw-Liveframes';
+      status.textContent = 'Status: Modus-Bootstrap geladen, Display wartet auf Raw-Liveframes';
     }
 
     function loadBootstrap() {

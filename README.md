@@ -18,3 +18,8 @@ Public entrypoint (kurz):
 - Moduszeilen im LuCI-Panel wurden visuell stabilisiert: LED und Aktionsbutton sind nun sauber ausgerichtet.
 - Die fehlenden Tasten **Ein** und **Aus** wurden im linken Bedienblock ergänzt.
 - Modusaktionen sind klarer beschriftet (`Setzen` statt Symbolbutton), damit die Bedienung am Touch/Browser eindeutiger ist.
+
+## Update 2026-04-10 – Display-Bootstrap korrigiert
+- Korrektur gemäß Feldanforderung: Das LCD-Display wird beim Seitenstart **nicht** mehr aus retained/persistenten Bootstrap-Daten vorbefüllt.
+- Persistenz bleibt bewusst nur für den Betriebsartenstatus (LED-Latch über `mode_flags16`) aktiv.
+- Das Display rendert ausschließlich aus Live-Rawframes (`0x320`), sobald diese eintreffen.

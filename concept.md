@@ -139,22 +139,23 @@ Die App ist funktional im Read-only-Pfad:
 20. Persistenter Modusstatus: Parser führt `mode_flags16` als gelatchten Betriebsartenstatus; LuCI-LEDs orientieren sich daran statt an kurzlebigen Event-Flags.
 21. Daemon-seitige Zustandsvorhaltung: `state_bridge.sh` schreibt den letzten JSON-State nach `/tmp/heizungpanel/state.json`, sodass beim ersten Öffnen des Webinterface sofort ein bekannter Zustand vorliegt (auch wenn MQTT gerade keine frische Antwort liefert).
 22. Korrektur 2026-04-10: Display bleibt im Push-Betrieb ohne künstliches Blanking; persistiert wird nur der Betriebsartenstatus der LEDs (Latch), nicht ein zusätzlicher Display-Flicker-Effekt.
-23. Lesbarkeits-/Safety-Korrektur 2026-04-10: Im Frontend wird pro 0x320-Burst immer ein kompletter 2x20-Frame aus einem zuvor geleerten 40-Char-Buffer aufgebaut und dann als Ganzes gerendert (keine Restzeichen).
-24. Feldkorrektur 2026-04-10: `mode_code`-Hinweise (`0x83 EF/FB`) werden nicht mehr als Betriebsarten interpretiert, sondern als Display-/Screenzustand (Diagnose).
-25. Prioritätsregel 2026-04-10: Für die LED-Anzeige hat gelatchtes `mode_flags16` aus `0x321` Vorrang; `mode_code` aus `0x320` wird nur noch als Fallback genutzt, wenn kein bekannter `mode_flags16`-Status vorliegt.
-26. CAN-Quellenpriorität 2026-04-10: Der gelatchte `0x321`-Status der Anlage ist die einzige Quelle für aktive Betriebsarten-LEDs; `0x320 mode_code` bleibt rein diagnostisch (Hinweis/Fallbacktext), schreibt keinen Modus-Latch mehr.
-27. Sendebestätigung 2026-04-10: Nach Modus-Sendebefehlen wartet das Frontend auf ein passendes `0x321 flags16` als Anlagen-Bestätigung und meldet Erfolg/Timeout sichtbar im Panel.
-28. Hypothese 2026-04-10 (Feldfeedback): `0x320`-Abschlussbytes `83 EF`/`83 FB` werden als **Display-/Screenklassen** interpretiert (z. B. Standardstatus vs. interaktiv/zweizeilig), nicht als Heizungs-Betriebsmodus.
-29. Build-Identifikation 2026-04-10: Init- und Bridge-Skripte tragen ein `BUILD_TAG`-Commit-Label und loggen dieses beim Start via `logger -t heizungpanel`, damit die laufende Version im Syslog sichtbar ist.
+23. Feldkorrektur 2026-04-10 (Persistenzregel): Beim UI-Start wird kein retained Snapshot mehr in das LCD gerendert; persistent bleibt ausschließlich der Betriebsarten-Latch (LEDs über `mode_flags16`), während Displaytext nur aus Live-Raw (`0x320`) entsteht.
+24. Lesbarkeits-/Safety-Korrektur 2026-04-10: Im Frontend wird pro 0x320-Burst immer ein kompletter 2x20-Frame aus einem zuvor geleerten 40-Char-Buffer aufgebaut und dann als Ganzes gerendert (keine Restzeichen).
+25. Feldkorrektur 2026-04-10: `mode_code`-Hinweise (`0x83 EF/FB`) werden nicht mehr als Betriebsarten interpretiert, sondern als Display-/Screenzustand (Diagnose).
+26. Prioritätsregel 2026-04-10: Für die LED-Anzeige hat gelatchtes `mode_flags16` aus `0x321` Vorrang; `mode_code` aus `0x320` wird nur noch als Fallback genutzt, wenn kein bekannter `mode_flags16`-Status vorliegt.
+27. CAN-Quellenpriorität 2026-04-10: Der gelatchte `0x321`-Status der Anlage ist die einzige Quelle für aktive Betriebsarten-LEDs; `0x320 mode_code` bleibt rein diagnostisch (Hinweis/Fallbacktext), schreibt keinen Modus-Latch mehr.
+28. Sendebestätigung 2026-04-10: Nach Modus-Sendebefehlen wartet das Frontend auf ein passendes `0x321 flags16` als Anlagen-Bestätigung und meldet Erfolg/Timeout sichtbar im Panel.
+29. Hypothese 2026-04-10 (Feldfeedback): `0x320`-Abschlussbytes `83 EF`/`83 FB` werden als **Display-/Screenklassen** interpretiert (z. B. Standardstatus vs. interaktiv/zweizeilig), nicht als Heizungs-Betriebsmodus.
+30. Build-Identifikation 2026-04-10: Init- und Bridge-Skripte tragen ein `BUILD_TAG`-Commit-Label und loggen dieses beim Start via `logger -t heizungpanel`, damit die laufende Version im Syslog sichtbar ist.
 
-30. Konsolidierung 2026-04-10: Deploy muss immer die dedizierte Konfigseite und ihre Backend-Skripte mit ausrollen (`config.js`, `config_get.sh`, `config_set.sh`), damit Dev-Deploy und Paketstand identisch bleiben.
-31. Konfig-Transaktion 2026-04-10: Änderungen werden als Batch validiert und in einem atomaren UCI-Commit mit genau einem Dienst-Restart angewendet (keine Feld-für-Feld-Restarts).
-32. CAN-Ownership 2026-04-10: Das CAN-Interface wird ausschließlich im Init-Skript konfiguriert; Bridges arbeiten als reine Consumer/Publisher ohne eigenes Link-Reconfigure.
-33. Decoder-Umgebung 2026-04-10: `state_bridge.sh` exportiert `CAN_IF`/`CAN_BITRATE` pro Prozess, damit `parser.uc` die Metadaten unabhängig von Pipeline-Scopes zuverlässig erhält.
-34. Display-Konsistenz 2026-04-10: Emulator, Parser und LuCI verwenden konsistent 2x20/40 Zeichen.
+31. Konsolidierung 2026-04-10: Deploy muss immer die dedizierte Konfigseite und ihre Backend-Skripte mit ausrollen (`config.js`, `config_get.sh`, `config_set.sh`), damit Dev-Deploy und Paketstand identisch bleiben.
+32. Konfig-Transaktion 2026-04-10: Änderungen werden als Batch validiert und in einem atomaren UCI-Commit mit genau einem Dienst-Restart angewendet (keine Feld-für-Feld-Restarts).
+33. CAN-Ownership 2026-04-10: Das CAN-Interface wird ausschließlich im Init-Skript konfiguriert; Bridges arbeiten als reine Consumer/Publisher ohne eigenes Link-Reconfigure.
+34. Decoder-Umgebung 2026-04-10: `state_bridge.sh` exportiert `CAN_IF`/`CAN_BITRATE` pro Prozess, damit `parser.uc` die Metadaten unabhängig von Pipeline-Scopes zuverlässig erhält.
+35. Display-Konsistenz 2026-04-10: Emulator, Parser und LuCI verwenden konsistent 2x20/40 Zeichen.
 
-35. Parser-Umgebung (Härtung 2026-04-10): `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf (`CAN_IF=... CAN_BITRATE=... /usr/bin/ucode ...`), damit die Metadaten in Pipelines robust ankommen.
-36. Doku-Quelle (Härtung 2026-04-10): `dev_readme.md` ist kanonisch; `README.md` bleibt als kurzer Verweis, um Doppelpflege zu vermeiden.
+36. Parser-Umgebung (Härtung 2026-04-10): `state_bridge.sh` setzt `CAN_IF`/`CAN_BITRATE` direkt am `ucode`-Aufruf (`CAN_IF=... CAN_BITRATE=... /usr/bin/ucode ...`), damit die Metadaten in Pipelines robust ankommen.
+37. Doku-Quelle (Härtung 2026-04-10): `dev_readme.md` ist kanonisch; `README.md` bleibt als kurzer Verweis, um Doppelpflege zu vermeiden.
 
 ## Architektur-Delta 2026-04-10 (Konsolidierungspfad)
 Zur Reduktion von Drift zwischen Parser, LuCI und Emulator wird die nächste Ausbaustufe als explizite Vier-Schichten-Architektur geführt:
