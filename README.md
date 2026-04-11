@@ -1,3 +1,9 @@
+## Update 2026-04-11 – Git-Update Unterseite (ZIP)
+- Neue LuCI-Unterseite **Git Update** unter `Services -> Heizungpanel -> Git Update`.
+- Die Seite kann jetzt einen **Branch oder Commit als ZIP** laden und die App direkt auf dem Router aktualisieren.
+- Backend-Skript `git_update.sh` lädt per `uclient-fetch`/`wget`/`curl`, entpackt das Archiv, installiert alle relevanten Dateien und startet die Dienste neu.
+- Optional kann `/etc/config/heizungpanel` beim Update bewusst mit überschrieben werden.
+
 # open_slcontrol
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.

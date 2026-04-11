@@ -2,14 +2,31 @@
   "luci-app-heizungpanel": {
     "description": "Grant access to heizungpanel LuCI application",
     "read": {
-      "cgi-io": [ "exec" ],
+      "cgi-io": [
+        "exec"
+      ],
       "file": {
-        "/usr/libexec/heizungpanel/state.sh": [ "exec" ],
-        "/usr/libexec/heizungpanel/press.sh": [ "exec" ],
-        "/usr/libexec/heizungpanel/config.sh": [ "exec" ],
-        "/usr/libexec/heizungpanel/config_get.sh": [ "exec" ],
-        "/usr/libexec/heizungpanel/config_set.sh": [ "exec" ],
-        "/usr/libexec/heizungpanel/set_mode.sh": [ "exec" ]
+        "/usr/libexec/heizungpanel/state.sh": [
+          "exec"
+        ],
+        "/usr/libexec/heizungpanel/press.sh": [
+          "exec"
+        ],
+        "/usr/libexec/heizungpanel/config.sh": [
+          "exec"
+        ],
+        "/usr/libexec/heizungpanel/config_get.sh": [
+          "exec"
+        ],
+        "/usr/libexec/heizungpanel/config_set.sh": [
+          "exec"
+        ],
+        "/usr/libexec/heizungpanel/set_mode.sh": [
+          "exec"
+        ],
+        "/usr/libexec/heizungpanel/git_update.sh": [
+          "exec"
+        ]
       }
     }
   }

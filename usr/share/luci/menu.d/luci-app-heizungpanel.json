@@ -6,7 +6,9 @@
       "type": "firstchild"
     },
     "depends": {
-      "acl": [ "luci-app-heizungpanel" ]
+      "acl": [
+        "luci-app-heizungpanel"
+      ]
     }
   },
   "admin/services/heizungpanel/panel": {
@@ -17,7 +19,9 @@
       "path": "heizungpanel/panel"
     },
     "depends": {
-      "acl": [ "luci-app-heizungpanel" ]
+      "acl": [
+        "luci-app-heizungpanel"
+      ]
     }
   },
   "admin/services/heizungpanel/config": {
@@ -28,7 +32,22 @@
       "path": "heizungpanel/config"
     },
     "depends": {
-      "acl": [ "luci-app-heizungpanel" ]
+      "acl": [
+        "luci-app-heizungpanel"
+      ]
+    }
+  },
+  "admin/services/heizungpanel/update": {
+    "title": "Git Update",
+    "order": 30,
+    "action": {
+      "type": "view",
+      "path": "heizungpanel/git_update"
+    },
+    "depends": {
+      "acl": [
+        "luci-app-heizungpanel"
+      ]
     }
   }
 }

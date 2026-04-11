@@ -1,3 +1,8 @@
+## Update 2026-04-11 – Remote Update aus Git-ZIP
+- **Neu abgeschlossen:** In-App-Updatepfad über LuCI-Unterseite für Branch-/Commit-basierte ZIP-Installationen.
+- **Nutzen:** Schnellere Feldupdates ohne separaten Entwickler-Laptop/SSH-Deployskript.
+- **Nächster Schritt:** Optional Integritätsprüfung (z. B. erwarteter Repo-Name/SHA-Hinweis in UI) ergänzen.
+
 ## Update 2026-04-10 – Fix: Bootstrap-Parserwarnungen
 - Feldproblem adressiert: Beim Reload konnten Warntexte aus `jshn` (`Variable 'MODE' ...`) in den Bootstrap-Pfad rutschen und die LCD-Initialanzeige verschmutzen.
 - `state.sh` verwendet nun primär `jsonfilter` für verschachtelte Feldzugriffe ohne Warn-Ausgabe in stdout.

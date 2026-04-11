@@ -1,3 +1,12 @@
+## Update 2026-04-11 – Git-Update Funktion (Branch/Commit als ZIP)
+- [x] Neue LuCI-Unterseite `Git Update` erstellt (`heizungpanel/git_update`).
+- [x] UI-Felder ergänzt: Repository, Branch/Commit, optionale direkte ZIP-URL, optional `overwrite-config`.
+- [x] Neues Backend-Skript `git_update.sh` erstellt: Download, Unzip, Dateivalidierung, Installation, Service-Reload/Restart.
+- [x] ACL erweitert: Ausführung von `git_update.sh` via LuCI/rpcd freigegeben.
+- [x] Menü erweitert: neuer Eintrag `Services -> Heizungpanel -> Git Update`.
+- [x] Deploy-Skript aktualisiert, damit neue Dateien (`git_update.js`, `git_update.sh`) mit ausgerollt werden.
+- [x] Lokale Syntaxchecks ausgeführt (`sh -n`, `node --check`).
+
 ## Update 2026-04-10 – Bootstrap-Warnung im Panel behoben
 - [x] `state.sh`-JSON-Feldzugriff gehärtet: bevorzugt `jsonfilter` für verschachtelte Keys ohne `jshn`-Warntext im stdout.
 - [x] Fallback-Pfad zusätzlich stillgelegt (`json_load/json_select/json_get_var` mit stdout/stderr-Redirection), damit keine `WARNING: Variable 'MODE' ...`-Fragmente mehr in `line1/line2` landen.
