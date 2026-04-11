@@ -1,3 +1,8 @@
+## Architektur-Update 2026-04-11 – Self-Update via Git-ZIP
+- Das System besitzt jetzt eine dedizierte LuCI-Updateoberfläche, die einen Git-Branch oder Commit als ZIP beziehen kann.
+- Die Installation erfolgt dateibasiert über eine feste Allowlist der App-Artefakte (kein blindes Full-Overlay).
+- Zielbild: reproduzierbare, feldtaugliche Updates direkt auf dem OpenWrt-Gerät mit optionalem Config-Erhalt.
+
 ## Architektur-Update 2026-04-10 – Kanonischer Bootstrap-Topic
 - Neues kleines Runtime-Topic `<mqtt_base>/bootstrap` eingeführt (retained, kanonisch): enthält nur `mode{flags16,mode_name,ts_ms}` und `snapshot{line1,line2,mode_code,ts_ms}`.
 - `state.sh` nutzt jetzt primär dieses kombinierte Bootstrap-Payload und fällt nur bei Bedarf auf `mode`+`snapshot` (und optional legacy `state`) zurück.
