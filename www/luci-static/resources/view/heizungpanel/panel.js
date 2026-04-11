@@ -183,6 +183,7 @@ return view.extend({
       'DFFF': { name: 'Boilerbetrieb', led: mB.led }, 'EFFF': { name: 'Uhr+Boilerbetrieb', led: mUB.led },
       'F7FF': { name: 'Außentemperatur-Regelung', led: mA.led }, 'FBFF': { name: 'Prüfbetrieb', led: mP.led }, 'FDFF': { name: 'Handbetrieb', led: mH.led }
     };
+    var transient321ByFlags = { 'FFFF': 'Anlage aktiv (Pollframe)' };
 
     function clearLeds() { [mD,mU,mB,mUB,mA,mP,mH].forEach(function(m) { m.led.className = 'hp-led'; }); }
     function setRenderedDisplay(a, b) {
@@ -193,6 +194,7 @@ return view.extend({
     var lcd = []; for (var i = 0; i < 40; i++) lcd[i] = ' ';
     var modeCode = '--';
     var modeFlags = '----';
+    var latchedModeFlags = '----';
     var liveHasRendered = false;
     var bootstrapHydrated = false;
     var liveTextSeen = false;
@@ -212,11 +214,23 @@ return view.extend({
       flags.textContent = 'flags16: ' + modeFlags + '  mode_code: ' + modeCode;
       lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString();
       clearLeds();
+      if (modeByFlags[latchedModeFlags]) {
+        modeByFlags[latchedModeFlags].led.className = 'hp-led on';
+      }
       if (modeByFlags[modeFlags]) {
-        modeByFlags[modeFlags].led.className = 'hp-led on';
         modeHint.textContent = 'Modus aus 0x321: ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+      } else if (transient321ByFlags[modeFlags]) {
+        if (modeByFlags[latchedModeFlags]) {
+          modeHint.textContent = '0x321: ' + transient321ByFlags[modeFlags] + ' (' + modeFlags + '), Betriebsmodus: ' + modeByFlags[latchedModeFlags].name + ' (' + latchedModeFlags + ')';
+        } else {
+          modeHint.textContent = '0x321: ' + transient321ByFlags[modeFlags] + ' (' + modeFlags + ')';
+        }
       } else {
-        modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + ')';
+        if (modeByFlags[latchedModeFlags]) {
+          modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + '), letzter Betriebsmodus: ' + modeByFlags[latchedModeFlags].name + ' (' + latchedModeFlags + ')';
+        } else {
+          modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + ')';
+        }
       }
       if (pendingModeAck && modeFlags === pendingModeAck.expected_flags) {
         showActionFeedback('ok', 'CAN-Bestätigung: ' + pendingModeAck.code + ' -> ' + modeFlags, 1500);
@@ -230,6 +244,9 @@ return view.extend({
 
       if (f.id === '321' && f.data.length >= 4) {
         modeFlags = f.data.slice(0, 4).toUpperCase();
+        if (modeByFlags[modeFlags]) {
+          latchedModeFlags = modeFlags;
+        }
         renderLive();
         status.className = 'hp-status ok';
         status.textContent = 'Status: Raw-Stream aktiv';
@@ -275,6 +292,7 @@ return view.extend({
       liveTextSeen = false;
       pendingLiveClear = false;
       modeFlags = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
+      latchedModeFlags = modeFlags;
       modeCode = '--';
 
       // Persistent bootstrap is intentionally mode-only.

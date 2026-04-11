@@ -23,3 +23,8 @@ Public entrypoint (kurz):
 - Korrektur gemäß Feldanforderung: Das LCD-Display wird beim Seitenstart **nicht** mehr aus retained/persistenten Bootstrap-Daten vorbefüllt.
 - Persistenz bleibt bewusst nur für den Betriebsartenstatus (LED-Latch über `mode_flags16`) aktiv.
 - Das Display rendert ausschließlich aus Live-Rawframes (`0x320`), sobald diese eintreffen.
+
+## Update 2026-04-11 – 0x321-Tracking präzisiert
+- `mode_bridge.sh` klassifiziert jetzt `321 FFFF` explizit als transienten Lauf-/Poll-Status (`running_poll`) im `mode/current`-Stream.
+- Retained Betriebsart (`<mqtt_base>/mode`) bleibt weiterhin strikt auf bekannte persistente Modi begrenzt, damit LED-Latches nicht von Pollframes überschrieben werden.
+- Im LuCI-Panel bleiben LEDs auf dem zuletzt gelatchten Betriebsmodus; eingehende transiente `0x321`-Werte (z. B. `FFFF`) werden als Statushinweis angezeigt, während das LCD weiter ausschließlich aus Raw-Displayframes (`0x320`) aufgebaut wird.

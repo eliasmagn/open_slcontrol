@@ -247,6 +247,8 @@
 - [x] Korrektur nach Feldfeedback: Display-Blanking wieder entfernt; Push-Rendering bleibt aktiv, nur Betriebsart-LEDs bleiben persistent (Latch).
 - [x] JS-Renderer schreibt pro 0x320-Frame-Burst das komplette 2x20-Display neu (Start immer mit leerem 40-Char-Buffer), damit keine alten Zeichenreste/Ziffern sichtbar bleiben.
 - [x] Feldregel umgesetzt: Beim Panel-Bootstrap werden keine retained `line1/line2` mehr in das LCD gerendert; nur LED-Modusstatus bleibt aus persistentem `mode_flags16`.
+- [x] `mode_bridge.sh` erweitert: `321 FFFF` wird als transienter Lauf-/Pollzustand (`running_poll`) auf `mode/current` klassifiziert, ohne retained Betriebsmodus zu überschreiben.
+- [x] LuCI-LED-Latch gehärtet: LEDs bleiben auf letztem bekannten Betriebsmodus, auch wenn transiente `0x321`-Frames (z. B. `FFFF`) eintreffen; diese erscheinen nur als Statushinweis.
 
 ## Update 2026-04-10 – LuCI-Alerts entschärft (UX)
 - [x] Wiederholte globale LuCI-Toastmeldungen bei Tastenklicks entfernt (kein „OK: v“-Stacking mehr am Seitenanfang).
