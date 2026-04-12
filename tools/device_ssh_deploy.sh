@@ -140,6 +140,8 @@ usr/share/rpcd/acl.d/luci-app-heizungpanel.json
 usr/share/luci/menu.d/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
 www/luci-static/resources/view/heizungpanel/config.js
+www/luci-static/resources/view/heizungpanel/sensors.js
+www/luci-static/resources/view/heizungpanel/mapping.js
 www/luci-static/resources/view/heizungpanel/git_update.js
 www/cgi-bin/heizungpanel_stream
 "
@@ -210,6 +212,8 @@ run_install() {
     cp '$REMOTE_STAGE/usr/share/luci/menu.d/luci-app-heizungpanel.json' /usr/share/luci/menu.d/luci-app-heizungpanel.json && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/panel.js' /www/luci-static/resources/view/heizungpanel/panel.js && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/config.js' /www/luci-static/resources/view/heizungpanel/config.js && \
+    cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/sensors.js' /www/luci-static/resources/view/heizungpanel/sensors.js && \
+    cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/mapping.js' /www/luci-static/resources/view/heizungpanel/mapping.js && \
     cp '$REMOTE_STAGE/www/luci-static/resources/view/heizungpanel/git_update.js' /www/luci-static/resources/view/heizungpanel/git_update.js && \
     cp '$REMOTE_STAGE/www/cgi-bin/heizungpanel_stream' /www/cgi-bin/heizungpanel_stream && \
     chmod 755 /etc/init.d/heizungpanel /usr/libexec/heizungpanel/*.sh /www/cgi-bin/heizungpanel_stream"
@@ -247,6 +251,8 @@ run_uninstall() {
     /usr/share/luci/menu.d/luci-app-heizungpanel.json \
     /www/luci-static/resources/view/heizungpanel/panel.js \
     /www/luci-static/resources/view/heizungpanel/config.js \
+    /www/luci-static/resources/view/heizungpanel/sensors.js \
+    /www/luci-static/resources/view/heizungpanel/mapping.js \
     /www/luci-static/resources/view/heizungpanel/git_update.js \
     /www/cgi-bin/heizungpanel_stream && \
     rm -rf /usr/libexec/heizungpanel"

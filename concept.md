@@ -1,3 +1,10 @@
+## Architektur-Update 2026-04-11 – Operator/UI-Split und LED-Semantik
+- Das LuCI-Hauptpanel ist wieder als Operator-Oberfläche definiert (LCD + Tasten + Ein/Aus + Betriebsarten + kurzes Statusfeedback).
+- Engineering-Artefakte (Reverse-Mapping und 0x259-Sensorgraph) sind auf dedizierte Unterseiten verschoben, damit die Bedienoberfläche klar bleibt.
+- Bootstrap-Regel geschärft: retained `line1/line2` dienen nicht als vorgerenderter LCD-Liveinhalt; Live-LCD bleibt strikt browserseitig aus Raw `0x320`.
+- LED-Regel bleibt unverändert robust: Betriebsarten-LEDs stammen aus durablem `mode_flags16`-Latch, transiente `0x321`-Zwischenwerte (z. B. `FFFF`) sind nicht-latchend.
+- Ein/Aus-LEDs sind als Live-Indikatoren aus aktuellem `0x321` sichtbar; es wird kein neues künstliches Persistenzmodell eingeführt.
+
 ## Architektur-Update 2026-04-11 – Self-Update via Git-ZIP
 - Das System besitzt jetzt eine dedizierte LuCI-Updateoberfläche, die einen Git-Branch oder Commit als ZIP beziehen kann.
 - Die Installation erfolgt dateibasiert über eine feste Allowlist der App-Artefakte (kein blindes Full-Overlay).

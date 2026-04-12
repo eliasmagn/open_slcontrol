@@ -1,3 +1,13 @@
+## Update 2026-04-11 – PR47-Korrektur (Operator-Panel wieder schlank)
+- [x] Hauptpanel wieder als Operator-Ansicht fokussiert (LCD + Controls + Ein/Aus + Mode-LEDs + Status), ohne Engineering-Tabellen/Graphen.
+- [x] Retained LCD-Bootstrapanzeige entfernt: `line1/line2` werden nicht mehr als Liveinhalt vorgerendert.
+- [x] Persistent-latched Mode-LED-Logik beibehalten: durable `mode_flags16` bleibt LED-Quelle.
+- [x] Transientes `321 FFFF` explizit nur als transienter Hinweis behandelt (überschreibt den Latch nicht).
+- [x] Ein/Aus-LEDs im Hauptpanel ergänzt (live aus aktuellem `0x321`-Frame).
+- [x] Neue LuCI-Seite `Sensor Graph` ergänzt und ins Menü aufgenommen.
+- [x] Neue LuCI-Seite `Mapping` ergänzt und ins Menü aufgenommen.
+- [x] README/concept/roadmap auf neuen UI-Zuschnitt aktualisiert.
+
 ## Update 2026-04-11 – Git-Update Funktion (Branch/Commit als ZIP)
 - [x] Neue LuCI-Unterseite `Git Update` erstellt (`heizungpanel/git_update`).
 - [x] UI-Felder ergänzt: Repository, Branch/Commit, optionale direkte ZIP-URL, optional `overwrite-config`.

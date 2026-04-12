@@ -1,3 +1,10 @@
+## Update 2026-04-11 – UI-Split nach PR47-Korrektur
+- **Abgeschlossen:** Operator-Panel wieder entschlackt und auf Bedienung fokussiert.
+- **Abgeschlossen:** Engineering-Inhalte aus dem Hauptpanel ausgelagert auf eigene LuCI-Seiten (`Sensor Graph`, `Mapping`).
+- **Abgeschlossen:** LCD-Bootstraptext deaktiviert (kein retained `line1/line2` als scheinbar „live“).
+- **Abgeschlossen:** Durable Mode-LED-Latch beibehalten; `321 FFFF` bleibt transient und nicht-latchend.
+- **Neu sichtbar:** Ein/Aus-LED-Indikatoren im Hauptpanel (live, ohne künstliche Persistenz).
+
 ## Update 2026-04-11 – Remote Update aus Git-ZIP
 - **Neu abgeschlossen:** In-App-Updatepfad über LuCI-Unterseite für Branch-/Commit-basierte ZIP-Installationen.
 - **Nutzen:** Schnellere Feldupdates ohne separaten Entwickler-Laptop/SSH-Deployskript.

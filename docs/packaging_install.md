@@ -12,6 +12,8 @@ Reproduzierbarer Install-/Upgradepfad für `luci-app-heizungpanel` über OpenWrt
   - `usr/libexec/heizungpanel/parser.uc`
 - LuCI/RPCD:
   - `www/luci-static/resources/view/heizungpanel/panel.js`
+  - `www/luci-static/resources/view/heizungpanel/sensors.js`
+  - `www/luci-static/resources/view/heizungpanel/mapping.js`
   - `usr/share/luci/menu.d/luci-app-heizungpanel.json`
   - `usr/share/rpcd/acl.d/luci-app-heizungpanel.json`
 - Feed-Stub:
