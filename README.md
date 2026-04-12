@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Protokollmodell geschärft (Panel/LED/Graph-Profile)
+- Panel trennt jetzt explizit: `0x321 durable mode latch`, `0x321 transient events`, `0x320 display text`, `0x320 83xx display/status`, `0x258/0x259 engineering process image`.
+- Bootstrap nutzt wieder Snapshot-Displayinhalt als initialen Decoderzustand, statt absichtlich leerer Dimmzeilen.
+- Ein/Aus-LEDs werden nicht mehr aus transienten `0x321`-Navigationsevents abgeleitet; `0x320 83xx` ist eigener Statuskanal (mit expliziter Unsicherheitsmarkierung, solange Bits unbestätigt sind).
+- Sensorseite arbeitet mit vordefinierten **Graph-Profilen** (statt nur einer globalen Generic-Konfig) und speichert `sensor_profile` plus aktive Parameter in UCI.
+
 ## Update 2026-04-12 – Runtime verschlankt (Single-Bridge + Bootstrap on demand)
 - Laufzeit-Bridges wurden auf **einen** kombinierten Prozess reduziert: `runtime_bridge.sh` liest `candump` einmal und publiziert daraus `raw`, `mode`, `mode/current` und `snapshot`.
 - Die dauerhafte `bootstrap_bridge.sh`-Republish-Stufe entfällt; Bootstrap wird in `state.sh` leichtgewichtig **on demand** aus retained `mode` + `snapshot` zusammengesetzt.

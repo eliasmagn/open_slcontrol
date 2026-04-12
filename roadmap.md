@@ -1,3 +1,9 @@
+## Update 2026-04-12 – M2 UX/Productization Fortschritt
+- **Abgeschlossen:** Operator-Panel nutzt jetzt ein explizites Protokollmodell statt gemischter Felder/Heuristiken.
+- **Abgeschlossen:** Bootstrap zeigt wieder den letzten gültigen Snapshot-Displayinhalt als Startzustand.
+- **Abgeschlossen:** Graph-Konfiguration von „einem globalen Sensorfeld“ auf Profile mit Seed-Defaults erweitert.
+- **Offen (nächste Iteration):** Bitgenaue LED-Semantik aus `0x320 83xx` per Feldcaptures von unknown -> likely/confirmed heben.
+
 ## Update 2026-04-12 – Runtime-Effizienz (umgesetzt)
 - **Abgeschlossen:** Bridge-Fanout reduziert: ein gemeinsamer Runtime-Bridgeprozess statt separater `raw`/`mode`/`snapshot` Subpipelines.
 - **Abgeschlossen:** Always-on Bootstrap-Republisher entfernt; Bootstrap bleibt semantisch erhalten via on-demand Assembly in `state.sh`.

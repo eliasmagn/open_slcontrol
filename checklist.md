@@ -1,3 +1,10 @@
+## Update 2026-04-12 – Architekturpflege Panel/Profiles
+- [x] Protokollmodell im Panel aufgetrennt (`0x321 durable`, `0x321 transient`, `0x320 text`, `0x320 83xx status`).
+- [x] Fehlmodell für Ein/Aus korrigiert: keine LED-Ableitung mehr aus transienten `FFFB/FF7F`-Events.
+- [x] `0x320 83xx` als eigener Display/LED-Statuskanal im UI modelliert (inkl. Unsicherheitskennzeichnung).
+- [x] Bootstrap-UX korrigiert: Snapshot-Displaytext wird bei Start wieder gezeigt, falls vorhanden.
+- [x] Sensorseite auf Profilmodell mit Seeds umgestellt (UCI-Feld `sensor_profile` ergänzt).
+
 ## Update 2026-04-12 – Runtime-Prozesslast reduziert
 - [x] `runtime_bridge.sh` eingeführt und bisherige raw/mode/snapshot Runtime-Fanout-Stufen auf einen Prozess zusammengeführt.
 - [x] `bootstrap_bridge.sh` aus Runtime entfernt; Bootstrap wird on demand in `state.sh` aus retained `mode` + `snapshot` aufgebaut.

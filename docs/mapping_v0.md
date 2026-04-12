@@ -1,3 +1,8 @@
+## Update 2026-04-12 – 0x320 `83xx` Statuskanal (v0.1 Arbeitsannahme)
+- `0x320 83xx` wird als **Display-/LED-/Status-Commitkanal** geführt, nicht als Heizungsmodus-Latch.
+- Bekannte Screen-Klassen-Indikatoren (`EF`, `FB`) bleiben diagnostisch als Displayklasse markiert.
+- Ein/Aus-LED-Bitzuordnung innerhalb `83xx` ist noch **unknown**; UI darf deshalb keine sicheren On/Off-Behauptungen aus unbestätigten Bits ableiten.
+
 # Mapping v0 (aus Dump vom 2026-04-09)
 
 > Zweck: erster versionierter Stand für Protokoll-Engineering (read-only), inkl. Confidence-Modell.
