@@ -1,3 +1,10 @@
+## Architektur-Update 2026-04-12 – Mapping als Runtime-Daten, Graph als Engineering-Modell
+- Die Mapping-Schicht ist nun als **konfigurierbare UCI-Datenebene** modelliert (`mapping_*`) statt als statische Code-Tabelle.
+- Der Write-Pfad (`press.sh`) liest Mapping zur Laufzeit aus UCI, nutzt nur validierte 4-hex-Payloads und bleibt strikt hinter `write_mode`.
+- Der Sensorpfad ist explizit als **index-/feldbasiertes Engineering-Modell** geführt: Quelle (`0x258`/`0x259`/paired), Feld, Skalierung, Offset, Confidence.
+- Bei `confidence=unknown` wird keine physikalische Bedeutung behauptet; Darstellung bleibt als Raw-Engineering markiert.
+- SSE-Lifecycle ist browser- und CGI-seitig entkoppelt bereinigt, damit kurze UI-Navigation keine dauerhaften `mosquitto_sub`-Lecks erzeugt.
+
 ## Architektur-Update 2026-04-12 – Update-Apply auf App-Scope begrenzt
 - Der On-Device-Update-Apply ist jetzt strikt auf app-verwaltete Installationspfade begrenzt und schreibt nicht mehr pauschal gesamte Top-Level-Bäume nach `/`.
 - Dadurch bleibt die Rename-Robustheit innerhalb der Heizungpanel-Verzeichnisse erhalten, ohne systemfremde Dateien zu riskieren.

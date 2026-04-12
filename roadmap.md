@@ -1,3 +1,10 @@
+## Update 2026-04-12 – M2 Abschlussblock: konfigurierbares Mapping + ehrlicher Engineering-Graph
+- **Abgeschlossen:** Mapping ist jetzt nicht mehr rein dokumentarisch, sondern als echte UCI-Runtime-Konfiguration im LuCI verfügbar.
+- **Abgeschlossen:** Write-Pfad nutzt konfigurierte `mapping_*`-Einträge und bleibt weiter über `write_mode` gegatet.
+- **Abgeschlossen:** Sensorgraph zeigt kein implizites "Byte1=Sensor" mehr, sondern ein explizites Engineering-Modell mit konfigurierbarer Feld-/Skalierungslogik.
+- **Abgeschlossen:** SSE-/CGI-Lifecycle auf Disconnect/Navigation gehärtet, um Prozessakkumulation zu vermeiden.
+- **Nächster Schritt:** verbleibende unknown-Mappings (`ein`, `aus`, `minus`) mit Single-Aktion-Captures auf confirmed/likely heben.
+
 ## Update 2026-04-12 – Korrektur Update-Apply Scope
 - **Abgeschlossen:** Update-Apply von globalem Baum-Overlay auf app-spezifische Zielpfade zurückgeführt.
 - **Abgeschlossen:** Sicherheitsziel geschärft: keine unbeabsichtigten Writes auf systemfremde `/etc`-/`/usr`-/`/www`-Dateien.

@@ -1,3 +1,13 @@
+## Update 2026-04-12 – Mapping-Konfiguration, Engineering-Graph und SSE-Leak-Fix
+- **Mapping-Seite ist jetzt aktiv konfigurierbar**: `mapping_*`-Einträge werden in UCI gespeichert und von `press.sh` zur Laufzeit verwendet.
+- **Default-Klassen umgesetzt**:
+  - confirmed defaults: `uhr`, `boiler`, `uhr_boiler`, `dauer`, `v`, `z`, `quit`
+  - likely defaults: `hand`, `aussen_reg`, `pruef`, `plus`
+  - unmapped placeholder: `ein`, `aus`, `minus` (leer bis Feldbestätigung)
+- **Sensor Graph auf Engineering-Modell umgestellt**: Quelle (`0x258`/`0x259`/paired), Index, Feld, Skalierung, Offset, Unit, Label, Confidence und Autoscale/Fixrange sind konfigurierbar.
+- **SSE/CGI-Lifecycle gehärtet**: Frontends schließen EventSource bei `pagehide/beforeunload`; CGI beendet `mosquitto_sub` bei Client-Disconnect sauber.
+- **Konfigdrift reduziert**: neue Mapping-/Graph-Felder sind in `config_get.sh`/`config_set.sh` und UCI-Defaults geführt.
+
 ## Update 2026-04-12 – Git Update: nur app-verwaltete Pfade (kein globales /etc-/usr-/www-Overlay)
 - Der Updater kopiert jetzt **nicht** pauschal alle Dateien unter `etc/usr/www`, sondern nur klar app-verwaltete Ziele (Init/Config, `usr/libexec/heizungpanel`, LuCI-View-Ordner, ACL/Menu, CGI).
 - Damit werden Risiken durch fremde Repo-Dateien (z. B. `etc/passwd`) vermieden, während Renames innerhalb der App-Verzeichnisse weiterhin robust mitgenommen werden.
