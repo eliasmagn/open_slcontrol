@@ -264,3 +264,8 @@
 ### Bereits umgesetzt als Vorarbeit
 - `state.sh` nutzt jetzt strukturelle JSON-Validierung und liefert versionierte State-Metafelder (`schema_version`, `source`, `age_ms`, `seq`).
 - Stand 2026-04-10 (PR1 Teilschritt korrigiert): SSE-Standardpfad bleibt Raw-Frames; Browser-Raw-Decode ist der Produktionspfad. Backend-State bleibt optional/Legacy.
+
+## Fortschritt 2026-04-12 – UX-Härtung ohne Runtime-Mehrlast
+- Bootstrap->Live-Handoff im Operator-Panel stabilisiert (kein Früh-Blanking durch frühe Clear/Commit-Frames).
+- wording im Operator-Panel beruhigt; Protokolldetails bleiben korrekt, aber weniger debug-lastig dargestellt.
+- Keine zusätzlichen Runtime-Daemons oder MQTT-Helferstufen eingeführt.

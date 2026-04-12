@@ -221,3 +221,8 @@ Kurzfristig umgesetzt: `state.sh` behandelt den State jetzt als versionierte API
 - LuCI-Pushpfad bleibt clientseitig raw-dekodiert (`0x320/0x321`) als Produktionspfad.
 - Der SSE-Stream liefert standardmäßig `heizungpanel/raw`; `mode=state` bleibt nur optional für Legacy-/Debugzwecke.
 - On-device-Vorhaltung bleibt minimal (`mode` + `snapshot` retained); Vollstate-Decoding ist explizit sekundär.
+
+## Architektur-Update 2026-04-12 – Bootstrap/Livestream UX-Härtung
+- UI-Start nutzt weiterhin das lokale Bootstrap-Artefakt, hält dessen Text aber stabil bis echte Live-Textsegmente eintreffen.
+- Frühe `0x320 81`/`0x320 83xx`-Frames führen nicht mehr zu vorzeitigem Leeren des Displays.
+- Diese Härtung erfolgt rein im Browser-Decoder, ohne zusätzliche Runtime-Prozesse auf OpenWrt.

@@ -366,3 +366,8 @@
 - [ ] **Stream-Auth in LuCI/rpcd integrieren**: Query-Token mittelfristig durch Session-gebundene Auth ersetzen.
 - [ ] **Doku konsolidieren**: Doppelpflege zwischen `README.md`/`dev_readme.md` abbauen.
 - [x] **PR1 Teilschritt korrigiert auf Zielarchitektur:** LuCI-EventSource bleibt Raw-Decode-Produktionspfad; Backend-State ist optionaler Legacy-/Debugpfad.
+
+## Update 2026-04-12 – Panel-Handoff/Operator-Polish
+- [x] Bootstrap-Text bleibt sichtbar bis erste echte Live-Textsegmente eintreffen.
+- [x] Frühe `0x320 81`/`0x320 83xx` löschen den Startzustand nicht mehr vorzeitig.
+- [x] Operator-Panel-Texte beruhigt (weniger Debug-Ton), Engineering-Detail bleibt ausgelagert.

@@ -83,7 +83,7 @@ function decodeDisplayStatus83(payloadHex) {
     screenClass: screenClass,
     powerEin: 'unknown',
     powerAus: 'unknown',
-    note: '0x320 83xx wird als Display/LED-Statuskanal geführt; Ein/Aus-Bits noch nicht bestätigt.'
+    note: 'Displaystatus aus 0x320 83xx; Ein/Aus-Bits sind noch nicht sicher bestätigt.'
   };
 }
 
@@ -118,16 +118,16 @@ return view.extend({
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
     var line2 = el('div', { class: 'l dim' }, ['                    ']);
-    var status = el('div', { class: 'hp-status warn' }, ['Status: warte auf Raw-Frames ...']);
+    var status = el('div', { class: 'hp-status warn' }, ['Status: Verbinde ...']);
     var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
-    var modeHint = el('div', { class:'hp-sub' }, ['0x321 durable mode latch: n/a']);
-    var displayStatusHint = el('div', { class:'hp-sub' }, ['0x320 83xx display/status: n/a']);
-    var transientHint = el('div', { class:'hp-sub' }, ['0x321 transient events: n/a']);
+    var modeHint = el('div', { class:'hp-sub' }, ['Betriebsart: n/a']);
+    var displayStatusHint = el('div', { class:'hp-sub' }, ['Displaystatus: n/a']);
+    var transientHint = el('div', { class:'hp-sub' }, ['Letztes Bedienereignis: n/a']);
 
     var actionFeedback = el('div', { class:'hp-inline-msg', 'aria-live':'polite' }, ['']);
 
     var display = el('div', { class: 'hp-display' }, [
-      el('div', { class: 'hp-sub' }, ['LCD 2x20 (Browser-Dekoder: 0x320 Textsegmente + 0x320 83xx Commit)']),
+      el('div', { class: 'hp-sub' }, ['LCD 2x20 Live-Anzeige (Raw-first im Browser)']),
       line1, line2, modeHint, displayStatusHint, transientHint, status, lastUpdate
     ]);
 
@@ -216,6 +216,8 @@ return view.extend({
     var transient321Flags = '----';
     var displayStatus83 = decodeDisplayStatus83('');
     var liveTextSeen = false;
+    var bootstrapTextActive = false;
+    var pendingClearAfterBootstrap = false;
 
     function updatePowerLed(node, state) {
       if (state === 'on') node.className = 'hp-led power on';
@@ -227,13 +229,13 @@ return view.extend({
       clearLeds();
       if (modeByFlags[durableMode321Flags]) {
         modeByFlags[durableMode321Flags].led.className = 'hp-led on';
-        modeHint.textContent = '0x321 durable mode latch: ' + modeByFlags[durableMode321Flags].name + ' (' + durableMode321Flags + ')';
+        modeHint.textContent = 'Betriebsart: ' + modeByFlags[durableMode321Flags].name + ' (' + durableMode321Flags + ')';
       } else {
-        modeHint.textContent = '0x321 durable mode latch: unbekannt (' + durableMode321Flags + ')';
+        modeHint.textContent = 'Betriebsart: unbekannt (' + durableMode321Flags + ')';
       }
 
-      transientHint.textContent = '0x321 transient current/button events: ' + transient321Flags + (transient321Flags === 'FFFF' ? ' (poll/reply, nicht latchend)' : '');
-      displayStatusHint.textContent = '0x320 83xx display/status: raw=' + displayStatus83.raw + ', screen=' + displayStatus83.screenClass + ' · ' + displayStatus83.note;
+      transientHint.textContent = 'Letztes Bedienereignis: ' + transient321Flags + (transient321Flags === 'FFFF' ? ' (Poll/Reply, nicht gelatcht)' : '');
+      displayStatusHint.textContent = 'Displaystatus (0x320 83xx): raw=' + displayStatus83.raw + ', klasse=' + displayStatus83.screenClass + ' · ' + displayStatus83.note;
 
       updatePowerLed(einLed, displayStatus83.powerEin);
       updatePowerLed(ausLed, displayStatus83.powerAus);
@@ -254,23 +256,28 @@ return view.extend({
         if (modeByFlags[transient321Flags]) durableMode321Flags = transient321Flags;
         renderProtocolModel();
         status.className = 'hp-status ok';
-        status.textContent = 'Status: Raw-Stream aktiv';
+        status.textContent = 'Status: Live verbunden';
         return;
       }
 
       if (f.id !== '320' || f.data.length < 2) return;
       var lead = f.data.slice(0, 2).toUpperCase();
       if (lead === '81') {
+        if (bootstrapTextActive && !liveTextSeen) {
+          pendingClearAfterBootstrap = true;
+          return;
+        }
         for (var i = 0; i < 40; i++) lcd[i] = ' ';
         return;
       }
       if (lead === '83') {
         displayStatus83 = decodeDisplayStatus83(f.data.slice(2));
-        setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
-        liveTextSeen = true;
+        if (!bootstrapTextActive || liveTextSeen) {
+          setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
+        }
         renderProtocolModel();
         status.className = 'hp-status ok';
-        status.textContent = 'Status: Raw-Stream aktiv';
+        status.textContent = 'Status: Live verbunden';
         return;
       }
       if (f.data.length < 4) return;
@@ -279,8 +286,23 @@ return view.extend({
       var idx = lcdIndex(off);
       if (idx < 0) return;
 
+      if (!liveTextSeen) {
+        if (bootstrapTextActive && pendingClearAfterBootstrap) {
+          for (var c = 0; c < 40; c++) lcd[c] = ' ';
+          pendingClearAfterBootstrap = false;
+        }
+        liveTextSeen = true;
+        bootstrapTextActive = false;
+      }
+
       for (var j = 2; (j + 1) < f.data.length && idx < 40; j += 2) {
         lcd[idx++] = byteToChar(f.data.slice(j, j + 2));
+      }
+
+      if (liveTextSeen) {
+        setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
+        status.className = 'hp-status ok';
+        status.textContent = 'Status: Live verbunden';
       }
     }
 
@@ -298,6 +320,10 @@ return view.extend({
       var l1 = snapshot.line1 || st.line1 || '';
       var l2 = snapshot.line2 || st.line2 || '';
       var hasText = !!(String(l1).trim() || String(l2).trim());
+      bootstrapTextActive = hasText;
+      pendingClearAfterBootstrap = false;
+      liveTextSeen = false;
+
       if (hasText) {
         var p1 = pad20(l1), p2 = pad20(l2);
         for (var i = 0; i < 20; i++) lcd[i] = p1.charAt(i);
@@ -308,8 +334,8 @@ return view.extend({
       renderProtocolModel();
       status.className = 'hp-status warn';
       status.textContent = hasText ?
-        'Status: Bootstrap-Snapshot aktiv, warte auf Raw-Liveframes' :
-        'Status: Bootstrap ohne Text, warte auf Raw-Liveframes';
+        'Status: Letztes Bild geladen, Live-Verbindung wird aufgebaut' :
+        'Status: Warte auf Live-Daten';
 
       if (!hasText && !liveTextSeen) {
         setRenderedDisplay('', '', true);
@@ -338,7 +364,7 @@ return view.extend({
       es.onmessage = function(ev) { applyRawLine(ev.data || ''); };
       es.onerror = function() {
         status.className = 'hp-status warn';
-        status.textContent = 'Status: Raw-Stream getrennt, Reconnect aktiv';
+        status.textContent = 'Status: Verbindung unterbrochen, Reconnect aktiv';
       };
       return true;
     }
@@ -351,7 +377,7 @@ return view.extend({
     }
 
     var powerRow = el('div', { class:'hp-power' }, [
-      el('div', { class:'hp-sub' }, ['Ein/Aus (aus 0x320 83xx Display-Status, aktuell teilweise unklar)']),
+      el('div', { class:'hp-sub' }, ['Ein/Aus-Indikator (aus Displaystatus 0x320 83xx, aktuell teilweise unklar)']),
       el('div', { class:'hp-power-row' }, [einLed, btn('Ein', 'ein')]),
       el('div', { class:'hp-power-row' }, [ausLed, btn('Aus', 'aus')])
     ]);
@@ -365,7 +391,7 @@ return view.extend({
     loadBootstrap().then(function() {
       if (!startRawStream()) {
         status.className = 'hp-status warn';
-        status.textContent = 'Status: EventSource fehlt, bootstrap-only Polling aktiv';
+        status.textContent = 'Status: Live-Stream nicht verfügbar, Fallback-Polling aktiv';
         pollTimer = window.setInterval(pollDebugState, pollInterval);
       }
     });

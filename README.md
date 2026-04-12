@@ -40,3 +40,8 @@ Damit sinken Prozesszahl, MQTT-Client-Fan-out und Shell-Pipeline-Komplexität de
 - [`concept.md`](./concept.md) – Architekturkonzept
 - [`checklist.md`](./checklist.md) – Aufgabenstatus
 - [`roadmap.md`](./roadmap.md) – Meilensteinfortschritt
+
+## UI-UX Hinweis (Bootstrap -> Live)
+- Wenn ein Bootstrap-Text vorhanden ist, bleibt er sichtbar, bis echte Live-Textsegmente aus `0x320` eintreffen.
+- Frühe `0x320 81`/`0x320 83xx`-Frames löschen den Starttext nicht mehr vorzeitig.
+- Das Operator-Panel bleibt bewusst ruhig formuliert; Engineering-Details bleiben auf den Engineering-Seiten.

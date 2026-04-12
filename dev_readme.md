@@ -46,3 +46,8 @@
 - `usr/libexec/heizungpanel/state.sh`
 - `usr/libexec/heizungpanel/state_bridge.sh` (optional)
 - `www/cgi-bin/heizungpanel_stream`
+
+## Panel-Handoff (Bootstrap -> Live)
+- Bootstraptext wird sofort angezeigt (falls vorhanden).
+- Frühe Clear/Commit-Frames (`0x320 81` / `0x320 83xx`) werden defensiv behandelt, bis echte Live-Textsegmente vorliegen.
+- Erst mit realen Textupdates übernimmt der Live-Decoder sichtbar den Anzeigezustand.
