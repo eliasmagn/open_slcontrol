@@ -1,3 +1,13 @@
+## Update 2026-04-12 – Mapping/Graph/SSE Runtime-Korrektur
+- [x] Mapping-Seite von statischem Status auf echte UCI-Konfiguration umgestellt.
+- [x] `press.sh` auf runtime-konfigurierbare Mapping-Keys (`mapping_*`) umgestellt.
+- [x] Confirmed-/Likely-/Placeholder-Defaults gemäß Protokollfakten modelliert.
+- [x] Sensorgraph auf konfigurierbares Engineering-Datenmodell (source/index/field/scale/unit/confidence) umgestellt.
+- [x] Graph-Transparenz hergestellt: unknown-Semantik wird explizit als Raw-Engineering gekennzeichnet.
+- [x] EventSource-Lifecycle in `panel.js` und `sensors.js` um `pagehide/beforeunload` ergänzt.
+- [x] SSE-CGI beendet Child-Prozess (`mosquitto_sub`) bei Disconnect über Cleanup/Trap.
+- [x] UCI-Konfigfläche erweitert (`mapping_*`, `sensor_*`) inkl. Validation in `config_set.sh`.
+
 ## Update 2026-04-12 – Git-Update Sicherheitskorrektur für Zielpfade
 - [x] Globales Baum-Kopieren (`etc/usr/www` komplett) zurückgenommen.
 - [x] Kopierlogik auf app-verwaltete Pfade eingeschränkt (Init/Config, `usr/libexec/heizungpanel`, LuCI-Views, ACL/Menu, CGI).

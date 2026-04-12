@@ -26,19 +26,35 @@ if [ "$WRITE_MODE" != "1" ]; then
   exit 2
 fi
 
-PAYLOAD=""
-case "$CODE" in
-  v)          PAYLOAD="FFFB" ;;
-  z)          PAYLOAD="FF7F" ;;
-  boiler)     PAYLOAD="DFFF" ;;
-  uhr)        PAYLOAD="BFFF" ;;
-  dauer)      PAYLOAD="7FFF" ;;
-  uhr_boiler) PAYLOAD="EFFF" ;;
-  aussen_reg) PAYLOAD="F7FF" ;;
-  hand)       PAYLOAD="FDFF" ;;
-  pruef)      PAYLOAD="FBFF" ;;
-  quit)       PAYLOAD="FFBF" ;;
-  *)          PAYLOAD="" ;;
+mapping_default_for() {
+  case "$1" in
+    uhr)          echo "BFFF" ;;
+    boiler)       echo "DFFF" ;;
+    uhr_boiler)   echo "EFFF" ;;
+    dauer)        echo "7FFF" ;;
+    v)            echo "FFFB" ;;
+    z)            echo "FF7F" ;;
+    quit)         echo "FFBF" ;;
+    hand)         echo "FDFF" ;;
+    aussen_reg)   echo "F7FF" ;;
+    pruef)        echo "FBFF" ;;
+    plus)         echo "FFDF" ;;
+    ein|aus|minus) echo "" ;;
+    *)            echo "" ;;
+  esac
+}
+
+PAYLOAD="$(uci -q get "heizungpanel.main.mapping_${CODE}")"
+[ -n "$PAYLOAD" ] || PAYLOAD="$(mapping_default_for "$CODE")"
+PAYLOAD="$(echo "$PAYLOAD" | tr '[:lower:]' '[:upper:]')"
+
+case "$PAYLOAD" in
+  '') ;;
+  [0-9A-F][0-9A-F][0-9A-F][0-9A-F]) ;;
+  *)
+    echo "Invalid mapping payload configured for '$CODE': '$PAYLOAD' (expected 4 hex chars)." >&2
+    exit 7
+    ;;
 esac
 
 if [ -z "$PAYLOAD" ]; then

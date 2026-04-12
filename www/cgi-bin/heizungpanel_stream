@@ -16,6 +16,16 @@ TOPIC_MODE_CURRENT="${TOPIC_MODE_DURABLE}/current"
 TOPIC_SNAPSHOT="${MQTT_BASE}/snapshot"
 TOPIC_BOOTSTRAP="${MQTT_BASE}/bootstrap"
 
+SUB_PID=""
+FIFO_PATH=""
+
+cleanup() {
+  [ -n "$SUB_PID" ] && kill "$SUB_PID" >/dev/null 2>&1 || true
+  [ -n "$FIFO_PATH" ] && rm -f "$FIFO_PATH" >/dev/null 2>&1 || true
+}
+
+trap cleanup EXIT INT TERM PIPE HUP
+
 qs_get() {
   local key="$1"
   local in="${QUERY_STRING:-}"
@@ -63,8 +73,15 @@ echo "event: hello"
 echo "data: stream-open"
 echo
 
-exec mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC" 2>/dev/null \
-  | while IFS= read -r line; do
-      [ -n "$line" ] || continue
-      printf 'data: %s\n\n' "$line"
-    done
+FIFO_PATH="/tmp/heizungpanel_stream.$$.$RANDOM.fifo"
+mkfifo "$FIFO_PATH" || exit 1
+
+mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC" 2>/dev/null > "$FIFO_PATH" &
+SUB_PID="$!"
+
+while IFS= read -r line; do
+  [ -n "$line" ] || continue
+  printf 'data: %s\n\n' "$line" || break
+done < "$FIFO_PATH"
+
+exit 0

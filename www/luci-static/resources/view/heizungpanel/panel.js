@@ -293,10 +293,18 @@ return view.extend({
       });
     }
 
+    var es = null;
+    function closeStream() {
+      if (es) {
+        es.close();
+        es = null;
+      }
+    }
+
     function startRawStream() {
       if (typeof EventSource === 'undefined') return false;
       var url = '/cgi-bin/heizungpanel_stream?mode=raw&token=' + encodeURIComponent(streamToken);
-      var es = new EventSource(url);
+      es = new EventSource(url);
       es.onmessage = function(ev) { applyRawLine(ev.data || ''); };
       es.onerror = function() {
         status.className = 'hp-status warn';
@@ -321,20 +329,32 @@ return view.extend({
     var right = el('div', { class:'hp-right' }, [el('div', { class:'hp-modes' }, [mD.node,mU.node,mB.node,mUB.node,mA.node,mP.node,mH.node]), modeHint]);
     var root = el('div', { class:'hp-wrap' }, [style, el('div', { class:'hp-panel' }, [display, el('div', { class:'hp-grid' }, [left, right])])]);
 
+    var pollTimer = null;
+    var ackTimer = null;
+
     loadBootstrap().then(function() {
       if (!startRawStream()) {
         status.className = 'hp-status warn';
         status.textContent = 'Status: EventSource fehlt, bootstrap-only Polling aktiv';
-        window.setInterval(pollDebugState, pollInterval);
+        pollTimer = window.setInterval(pollDebugState, pollInterval);
       }
     });
 
-    window.setInterval(function() {
+    ackTimer = window.setInterval(function() {
       if (pendingModeAck && Date.now() > pendingModeAck.deadline) {
         showActionFeedback('warn', 'Keine CAN-Bestätigung für ' + pendingModeAck.code + ' innerhalb 8s', 2000);
         pendingModeAck = null;
       }
     }, 500);
+
+    function teardown() {
+      closeStream();
+      if (pollTimer) { window.clearInterval(pollTimer); pollTimer = null; }
+      if (ackTimer) { window.clearInterval(ackTimer); ackTimer = null; }
+    }
+
+    window.addEventListener('beforeunload', teardown);
+    window.addEventListener('pagehide', teardown);
 
     return root;
   },
