@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Updatepfad für Dateiumbenennungen stabilisiert
+- **Abgeschlossen:** In-App-Update von fester Dateiliste auf baumbasiertes Kopieren (`etc/`, `usr/`, `www/`) umgestellt.
+- **Abgeschlossen:** Stale-Datei-Risiko reduziert durch gezielte Bereinigung der verwalteten App-Verzeichnisse vor dem Kopieren.
+- **Abgeschlossen:** Archiv-Sanity-Checks für Kernartefakte ergänzt.
+
 ## Update 2026-04-12 – Self-Update Robustheit (Archivformat)
 - **Abgeschlossen:** Git-Updatepfad auf tar.gz standardisiert, damit auf Zielsystemen das bereits vorhandene `tar` genutzt wird.
 - **Abgeschlossen:** ZIP/`unzip`-Pfad aus dem Runtime-Update entfernt; Extraktion erfolgt über `tar -xzf`.

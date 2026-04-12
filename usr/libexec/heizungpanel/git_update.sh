@@ -106,54 +106,35 @@ tar -xzf "$ARCHIVE_PATH" -C "$EXTRACT_DIR" || fail "Unable to extract tar archiv
 SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
 [ -n "$SRC_ROOT" ] || fail "Archive has no top-level directory" 4
 
-FILES="
-etc/init.d/heizungpanel
-etc/config/heizungpanel
-usr/libexec/heizungpanel/raw_bridge.sh
-usr/libexec/heizungpanel/mode_bridge.sh
-usr/libexec/heizungpanel/snapshot_bridge.sh
-usr/libexec/heizungpanel/bootstrap_bridge.sh
-usr/libexec/heizungpanel/state_bridge.sh
-usr/libexec/heizungpanel/state.sh
-usr/libexec/heizungpanel/parser.uc
-usr/libexec/heizungpanel/press.sh
-usr/libexec/heizungpanel/config.sh
-usr/libexec/heizungpanel/config_get.sh
-usr/libexec/heizungpanel/config_set.sh
-usr/libexec/heizungpanel/set_mode.sh
-usr/libexec/heizungpanel/m2_capture.sh
-usr/libexec/heizungpanel/display_emulator.sh
-usr/libexec/heizungpanel/mapping_validate.sh
-usr/libexec/heizungpanel/isolate_321.sh
-usr/libexec/heizungpanel/git_update.sh
-usr/share/rpcd/acl.d/luci-app-heizungpanel.json
-usr/share/luci/menu.d/luci-app-heizungpanel.json
-www/luci-static/resources/view/heizungpanel/panel.js
-www/luci-static/resources/view/heizungpanel/config.js
-www/luci-static/resources/view/heizungpanel/sensors.js
-www/luci-static/resources/view/heizungpanel/mapping.js
-www/luci-static/resources/view/heizungpanel/git_update.js
-www/cgi-bin/heizungpanel_stream
-"
+# Minimal sanity checks: expected app entrypoints must exist.
+[ -f "$SRC_ROOT/etc/init.d/heizungpanel" ] || fail "Archive missing etc/init.d/heizungpanel" 5
+[ -f "$SRC_ROOT/usr/libexec/heizungpanel/git_update.sh" ] || fail "Archive missing usr/libexec/heizungpanel/git_update.sh" 5
+[ -f "$SRC_ROOT/www/cgi-bin/heizungpanel_stream" ] || fail "Archive missing www/cgi-bin/heizungpanel_stream" 5
 
-for rel in $FILES; do
-  src="$SRC_ROOT/$rel"
-  [ -f "$src" ] || fail "Missing required file in archive: $rel" 5
+# Reset managed directories so removed/renamed files don't remain on target.
+rm -rf /usr/libexec/heizungpanel /www/luci-static/resources/view/heizungpanel
+mkdir -p /usr/libexec/heizungpanel /www/luci-static/resources/view/heizungpanel
+
+# Copy app tree from extracted archive (future-proof for renamed/new files).
+for top in etc usr www; do
+  [ -d "$SRC_ROOT/$top" ] || continue
+  find "$SRC_ROOT/$top" -type f | while IFS= read -r src; do
+    rel="${src#$SRC_ROOT/}"
+    dst="/$rel"
+
+    if [ "$rel" = "etc/config/heizungpanel" ] && [ "$OVERWRITE_CONFIG" -ne 1 ] && [ -f "$dst" ]; then
+      continue
+    fi
+
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+  done
 done
 
-for rel in $FILES; do
-  src="$SRC_ROOT/$rel"
-  dst="/$rel"
-
-  if [ "$rel" = "etc/config/heizungpanel" ] && [ "$OVERWRITE_CONFIG" -ne 1 ] && [ -f "$dst" ]; then
-    continue
-  fi
-
-  mkdir -p "$(dirname "$dst")"
-  cp "$src" "$dst"
-done
-
-cp "/usr/share/luci/menu.d/luci-app-heizungpanel.json" "/usr/share/luci-app-heizungpanel.json"
+# Mirror canonical menu file into the legacy location for compatibility targets.
+if [ -f "/usr/share/luci/menu.d/luci-app-heizungpanel.json" ]; then
+  cp "/usr/share/luci/menu.d/luci-app-heizungpanel.json" "/usr/share/luci-app-heizungpanel.json"
+fi
 
 chmod 755 /etc/init.d/heizungpanel /www/cgi-bin/heizungpanel_stream
 find /usr/libexec/heizungpanel -maxdepth 1 -type f -name '*.sh' -exec chmod 755 {} \;

@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Git-Update Rename-/Datei-Drift-Fix
+- [x] Starre Datei-Allowlist im In-App-Update durch baumbasiertes Kopieren (`etc/`, `usr/`, `www/`) ersetzt.
+- [x] Vor Update-Anwendung werden verwaltete Zielordner bereinigt (`/usr/libexec/heizungpanel`, `/www/luci-static/resources/view/heizungpanel`).
+- [x] Sanity-Checks auf zentrale Einstiegspunkte im Archiv ergänzt (`init.d`, `git_update.sh`, `heizungpanel_stream`).
+- [x] Schutz für `/etc/config/heizungpanel` (overwrite optional) unverändert beibehalten.
+
 ## Update 2026-04-12 – Git-Update Archivformat
 - [x] Update-Backend von ZIP auf tar.gz umgestellt (`codeload .../tar.gz/<ref>` + `tar -xzf`).
 - [x] Abhängigkeit `unzip` entfernt; vorhandenes `tar` wird verwendet.

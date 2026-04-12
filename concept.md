@@ -1,3 +1,8 @@
+## Architektur-Update 2026-04-12 – Self-Update gegen Rename-Drift gehärtet
+- Das On-Device-Update übernimmt nicht mehr nur eine feste Dateiliste, sondern synchronisiert den vollständigen App-Baum unter `etc/`, `usr/`, `www/`.
+- Vor der Anwendung werden die zentral verwalteten Laufzeit-/LuCI-Verzeichnisse bereinigt, damit entfernte oder umbenannte Dateien nicht als Altzustand aktiv bleiben.
+- Ergebnis: robustere Feldupdates bei Refactorings/Dateiumbenennungen ohne manuelle Allowlist-Pflege.
+
 ## Architektur-Update 2026-04-12 – Deploy-Archivformat tar.gz
 - Der In-App-Updatepfad bezieht Quellstände jetzt standardmäßig als GitHub `tar.gz`-Archiv statt ZIP.
 - Extraktion erfolgt mit vorhandenem Systemwerkzeug `tar`, um zusätzliche `unzip`-Abhängigkeiten auf OpenWrt zu vermeiden.

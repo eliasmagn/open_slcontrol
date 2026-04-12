@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Git Update kopiert jetzt App-Baum statt fester Dateiliste
+- `git_update.sh` nutzt nach dem Download nicht mehr nur eine starre Allowlist, sondern kopiert den gesamten App-Baum unter `etc/`, `usr/`, `www/` aus dem Archiv.
+- Vor dem Kopieren werden die verwalteten Verzeichnisse `/usr/libexec/heizungpanel` und `/www/luci-static/resources/view/heizungpanel` geleert, damit umbenannte/entfernte Dateien nicht als Altlasten verbleiben.
+- Damit sind Renames und neue Dateien in künftigen Updates robuster abgedeckt; `/etc/config/heizungpanel` bleibt weiterhin optional überschreibbar.
+
 ## Update 2026-04-12 – Git Update auf tar.gz umgestellt
 - Das Self-Update nutzt jetzt tar.gz-Archive (GitHub codeload `tar.gz`) statt ZIP/`unzip`.
 - `git_update.sh` extrahiert mit vorhandenem `tar` (`tar -xzf`) und benötigt kein `unzip` mehr.
