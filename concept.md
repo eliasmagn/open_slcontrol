@@ -1,3 +1,9 @@
+## Architektur-Update 2026-04-12 – Profilpersistenz + saubere Kanaltrennung
+- Das UI-Modell führt jetzt getrennte Laufzeitkanäle (`0x321 durable/transient`, `0x320 text`, `0x320 83xx status`, `0x258/0x259 engineering image`) ohne Feldüberladung.
+- `0x320 83xx` ist explizit ein Display-/LED-/Status-Kanal; bekannte `EF/FB` bleiben Screen-Klassenmarker, Ein/Aus-Bits bleiben bis Feldbestätigung `unknown`.
+- Engineering-Graphen sind von einer globalen Einzelkonfiguration auf ein Multi-Profil-Modell mit persistenten Profilwerten (`sensor_profiles_json`) erweitert.
+- Browser bleibt primärer Decoder, Embedded-Runtime bleibt leichtgewichtig (keine Rückverlagerung des Voll-Decodings).
+
 ## Architektur-Update 2026-04-12 – Trennung Protokollmodell / UI-Modell
 - Das Frontend trennt die Laufzeitsemantik jetzt explizit in fünf Kanäle: `0x321 durable latch`, `0x321 transient event`, `0x320 text reconstruction`, `0x320 83xx display/LED/status`, `0x258/0x259 engineering process image`.
 - `0x320 83xx` wird als eigener Statuspfad geführt (nicht mehr nur als lose `mode_code`-Hilfsvariable).

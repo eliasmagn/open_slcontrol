@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Nächster M2-Schritt abgeschlossen
+- **Abgeschlossen:** Graphsystem nutzt jetzt mehrere persistente Engineering-Profile statt einer globalen Einzelkonfiguration.
+- **Abgeschlossen:** Operator-Panel trennt durable/transiente 0x321-Semantik sichtbar vom 0x320-Display-/Statuspfad.
+- **Abgeschlossen:** Bootstrap zeigt wieder Snapshot-Text als Startinhalt (kein absichtliches Blank bei vorhandenem Snapshot).
+- **Offen:** Bitgenaue Ein/Aus-Bestätigung in `0x320 83xx` via kontrollierte Einzelaktions-Captures.
+
 ## Update 2026-04-12 – M2 UX/Productization Fortschritt
 - **Abgeschlossen:** Operator-Panel nutzt jetzt ein explizites Protokollmodell statt gemischter Felder/Heuristiken.
 - **Abgeschlossen:** Bootstrap zeigt wieder den letzten gültigen Snapshot-Displayinhalt als Startzustand.

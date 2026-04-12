@@ -1,3 +1,10 @@
+## Update 2026-04-12 – M2 Productization Follow-up
+- [x] Operator-Panel visuell entschlackt, Protokollkanäle klar getrennt benannt und gerendert.
+- [x] Ein/Aus-LED-Modell korrigiert: kein Ableiten aus transienten `0x321`-Events mehr; Quelle ist ausschließlich `0x320 83xx`.
+- [x] Bootstrap-Rendern zeigt Snapshot-LCD wieder direkt, sofern gültiger Text vorhanden ist.
+- [x] Sensorgraph auf persistente Multi-Profil-Konfiguration erweitert (`sensor_profiles_json` + Seed-Profile).
+- [x] Zusätzliche Seed-Profile für plausible `0x258/0x259`-Kanäle ergänzt, inklusive Confidence-Markierung.
+
 ## Update 2026-04-12 – Architekturpflege Panel/Profiles
 - [x] Protokollmodell im Panel aufgetrennt (`0x321 durable`, `0x321 transient`, `0x320 text`, `0x320 83xx status`).
 - [x] Fehlmodell für Ein/Aus korrigiert: keine LED-Ableitung mehr aus transienten `FFFB/FF7F`-Events.

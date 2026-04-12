@@ -74,16 +74,27 @@ function parseCandump(line) {
 
 function decodeDisplayStatus83(payloadHex) {
   var raw = String(payloadHex || '').toUpperCase();
+  var b0 = raw.length >= 2 ? hex2dec(raw.slice(0, 2)) : -1;
+  var bits = [];
+  if (b0 >= 0) {
+    for (var i = 7; i >= 0; i--) {
+      bits.push((b0 & (1 << i)) ? '1' : '0');
+    }
+  }
+
   var screenClass = 'unknown';
   if (raw === 'EF') screenClass = 'class_EF';
   else if (raw === 'FB') screenClass = 'class_FB';
 
   return {
     raw: raw || '--',
+    byte0: b0,
+    bits: bits.join(''),
     screenClass: screenClass,
     powerEin: 'unknown',
     powerAus: 'unknown',
-    note: '0x320 83xx wird als Display/LED-Statuskanal geführt; Ein/Aus-Bits noch nicht bestätigt.'
+    confidence: 'unknown',
+    note: '0x320 83xx ist Display/LED/Status-Commit. Ein/Aus-Bits noch nicht feldbestätigt.'
   };
 }
 
@@ -114,21 +125,23 @@ return view.extend({
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
 
-    var style = el('style', { html: '.hp-wrap{max-width:760px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 14px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;flex-direction:column;gap:8px;margin-top:10px}.hp-power-row{display:flex;justify-content:center;align-items:center;gap:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-led.power.on{background:#9fff82}.hp-led.power.unknown{background:#6e7f91}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
+    var style = el('style', { html: '.hp-wrap{max-width:760px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 14px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;flex-direction:column;gap:8px;margin-top:10px}.hp-power-row{display:flex;justify-content:center;align-items:center;gap:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-led.power.on{background:#9fff82}.hp-led.power.unknown{background:#6e7f91}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}.hp-proto{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.15)}' }, []);
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
     var line2 = el('div', { class: 'l dim' }, ['                    ']);
     var status = el('div', { class: 'hp-status warn' }, ['Status: warte auf Raw-Frames ...']);
     var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
-    var modeHint = el('div', { class:'hp-sub' }, ['0x321 durable mode latch: n/a']);
-    var displayStatusHint = el('div', { class:'hp-sub' }, ['0x320 83xx display/status: n/a']);
-    var transientHint = el('div', { class:'hp-sub' }, ['0x321 transient events: n/a']);
+    var modeHint = el('div', { class:'hp-sub' }, ['Betriebsart: n/a']);
+    var status83Hint = el('div', { class:'hp-sub' }, ['Display/LED-Status (0x320 83xx): n/a']);
 
     var actionFeedback = el('div', { class:'hp-inline-msg', 'aria-live':'polite' }, ['']);
 
     var display = el('div', { class: 'hp-display' }, [
-      el('div', { class: 'hp-sub' }, ['LCD 2x20 (Browser-Dekoder: 0x320 Textsegmente + 0x320 83xx Commit)']),
-      line1, line2, modeHint, displayStatusHint, transientHint, status, lastUpdate
+      el('div', { class: 'hp-sub' }, ['LCD 2x20 (Browser-Dekoder aus 0x320 Text + 0x320 83xx Commit)']),
+      line1, line2,
+      el('div', { class: 'hp-proto' }, [modeHint, status83Hint]),
+      status,
+      lastUpdate
     ]);
 
     var expectedModeBySendCode = { dauer:'7FFF', uhr:'BFFF', boiler:'DFFF', uhr_boiler:'EFFF', aussen_reg:'F7FF', pruef:'FBFF', hand:'FDFF' };
@@ -212,9 +225,8 @@ return view.extend({
     }
 
     var lcd = []; for (var i = 0; i < 40; i++) lcd[i] = ' ';
-    var durableMode321Flags = '----';
-    var transient321Flags = '----';
-    var displayStatus83 = decodeDisplayStatus83('');
+    var channel321 = { durableFlags: '----', transientFlags: '----' };
+    var channel320 = { displayStatus83: decodeDisplayStatus83('') };
     var liveTextSeen = false;
 
     function updatePowerLed(node, state) {
@@ -225,22 +237,21 @@ return view.extend({
 
     function renderProtocolModel() {
       clearLeds();
-      if (modeByFlags[durableMode321Flags]) {
-        modeByFlags[durableMode321Flags].led.className = 'hp-led on';
-        modeHint.textContent = '0x321 durable mode latch: ' + modeByFlags[durableMode321Flags].name + ' (' + durableMode321Flags + ')';
+      if (modeByFlags[channel321.durableFlags]) {
+        modeByFlags[channel321.durableFlags].led.className = 'hp-led on';
+        modeHint.textContent = 'Betriebsart (0x321 durable): ' + modeByFlags[channel321.durableFlags].name + ' (' + channel321.durableFlags + ')';
       } else {
-        modeHint.textContent = '0x321 durable mode latch: unbekannt (' + durableMode321Flags + ')';
+        modeHint.textContent = 'Betriebsart (0x321 durable): unbekannt (' + channel321.durableFlags + ')';
       }
 
-      transientHint.textContent = '0x321 transient current/button events: ' + transient321Flags + (transient321Flags === 'FFFF' ? ' (poll/reply, nicht latchend)' : '');
-      displayStatusHint.textContent = '0x320 83xx display/status: raw=' + displayStatus83.raw + ', screen=' + displayStatus83.screenClass + ' · ' + displayStatus83.note;
+      status83Hint.textContent = 'Display/LED-Status (0x320 83xx): raw=' + channel320.displayStatus83.raw + ', bits=' + (channel320.displayStatus83.bits || '--------') + ', class=' + channel320.displayStatus83.screenClass + ' · ' + channel320.displayStatus83.note;
 
-      updatePowerLed(einLed, displayStatus83.powerEin);
-      updatePowerLed(ausLed, displayStatus83.powerAus);
+      updatePowerLed(einLed, channel320.displayStatus83.powerEin);
+      updatePowerLed(ausLed, channel320.displayStatus83.powerAus);
       lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString();
 
-      if (pendingModeAck && durableMode321Flags === pendingModeAck.expected_flags) {
-        showActionFeedback('ok', 'CAN-Bestätigung: ' + pendingModeAck.code + ' -> ' + durableMode321Flags, 1500);
+      if (pendingModeAck && channel321.durableFlags === pendingModeAck.expected_flags) {
+        showActionFeedback('ok', 'CAN-Bestätigung: ' + pendingModeAck.code + ' -> ' + channel321.durableFlags, 1500);
         pendingModeAck = null;
       }
     }
@@ -250,8 +261,8 @@ return view.extend({
       if (!f) return;
 
       if (f.id === '321' && f.data.length >= 4) {
-        transient321Flags = f.data.slice(0, 4).toUpperCase();
-        if (modeByFlags[transient321Flags]) durableMode321Flags = transient321Flags;
+        channel321.transientFlags = f.data.slice(0, 4).toUpperCase();
+        if (modeByFlags[channel321.transientFlags]) channel321.durableFlags = channel321.transientFlags;
         renderProtocolModel();
         status.className = 'hp-status ok';
         status.textContent = 'Status: Raw-Stream aktiv';
@@ -265,7 +276,7 @@ return view.extend({
         return;
       }
       if (lead === '83') {
-        displayStatus83 = decodeDisplayStatus83(f.data.slice(2));
+        channel320.displayStatus83 = decodeDisplayStatus83(f.data.slice(2));
         setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
         liveTextSeen = true;
         renderProtocolModel();
@@ -289,10 +300,11 @@ return view.extend({
       var mode = st.mode || {};
       var snapshot = st.snapshot || {};
       var initialMode = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
-      if (modeByFlags[initialMode]) durableMode321Flags = initialMode;
-      transient321Flags = '----';
+      if (modeByFlags[initialMode]) channel321.durableFlags = initialMode;
+      channel321.transientFlags = '----';
+
       if (snapshot.mode_code || st.mode_code) {
-        displayStatus83 = decodeDisplayStatus83((snapshot.mode_code || st.mode_code || '').toUpperCase());
+        channel320.displayStatus83 = decodeDisplayStatus83((snapshot.mode_code || st.mode_code || '').toUpperCase());
       }
 
       var l1 = snapshot.line1 || st.line1 || '';
@@ -351,7 +363,7 @@ return view.extend({
     }
 
     var powerRow = el('div', { class:'hp-power' }, [
-      el('div', { class:'hp-sub' }, ['Ein/Aus (aus 0x320 83xx Display-Status, aktuell teilweise unklar)']),
+      el('div', { class:'hp-sub' }, ['Ein/Aus LEDs aus 0x320 83xx Statuskanal (aktuell noch unbestätigte Bits).']),
       el('div', { class:'hp-power-row' }, [einLed, btn('Ein', 'ein')]),
       el('div', { class:'hp-power-row' }, [ausLed, btn('Aus', 'aus')])
     ]);
