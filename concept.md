@@ -1,3 +1,17 @@
+## Architektur-Update 2026-04-12 – Prozessreduktion auf Minimalpfad
+- Embedded-Runtime ist auf einen einzigen Ingestprozess zusammengezogen: Raw-Publish + kleine lokale Bootstrap-Datei aus derselben CAN-Quelle.
+- Router-interne MQTT-Republish-Fanout-Stufen für `mode`/`snapshot` wurden entfernt.
+- Browser bleibt primärer Decoder; Bootstrap ist nur ein kleiner Startzustand.
+
+## Architektur-Update 2026-04-12 – ruhigeres Operator-Statusmodell
+- Operator-Hints wurden sprachlich beruhigt, ohne die getrennten Protokollkanäle (durable/transient/83xx) zusammenzuwerfen.
+- Verbindungsstatus unterscheidet jetzt sichtbar zwischen „live verbunden, noch Bootstrap-Anzeige“ und „echter Raw-Text aktiv“.
+
+## Architektur-Update 2026-04-12 – konservative Bootstrap/LCD-Logik
+- Decoder im Browser behält Snapshot-Text als Startzustand, bis valide Raw-Textsegmente (`0x320` Offset-Payload) eintreffen.
+- Marker `0x320 81` wird im Startfenster als vorgemerkter Clear behandelt statt als sofortiges Blank.
+- `0x320 83xx` bleibt als separater Display-/Statuskanal modelliert; Semantik wird weiterhin vorsichtig als `unknown` geführt.
+
 ## Architektur-Update 2026-04-12 – Trennung Protokollmodell / UI-Modell
 - Das Frontend trennt die Laufzeitsemantik jetzt explizit in fünf Kanäle: `0x321 durable latch`, `0x321 transient event`, `0x320 text reconstruction`, `0x320 83xx display/LED/status`, `0x258/0x259 engineering process image`.
 - `0x320 83xx` wird als eigener Statuspfad geführt (nicht mehr nur als lose `mode_code`-Hilfsvariable).

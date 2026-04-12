@@ -1,3 +1,17 @@
+## Update 2026-04-12 – Runtime drastisch vereinfacht (Raw + lokales Bootstrap)
+- Laufzeit auf einen Hauptpfad reduziert: `runtime_bridge.sh` liest CAN einmal und publiziert nur noch `raw` auf MQTT.
+- Abgeleitete Dauerdaten (`mode`/`snapshot`) werden nicht mehr als dauerhafte MQTT-Fanout-Topics publiziert, sondern als kleine lokale Datei (`/tmp/heizungpanel/bootstrap.json`) gehalten.
+- `state.sh` liefert Bootstrap primär direkt aus dieser lokalen Datei; MQTT-Retained-Abfragen bleiben nur als Fallback für Altzustände.
+
+## Update 2026-04-12 – Operator-Panel wording beruhigt
+- Operator-Hinweise im Hauptpanel sind jetzt weniger debug-lastig (Betriebsart, Event, Displaystatus in nutzerfreundlicher Sprache).
+- Während Live bereits verbunden ist, aber noch kein erster Textblock vorliegt, zeigt der Status klar den Bootstrap-Übergang statt irreführend sofort "Raw-Stream aktiv".
+
+## Update 2026-04-12 – Bootstrap-Härtung ohne Architekturwechsel
+- Operator-Panel hält gültigen Bootstrap-Text stabil sichtbar, bis echte `0x320`-Textsegmente empfangen werden.
+- Frühe `0x320 81`/`0x320 83xx`-Frames löschen die Anzeige nicht mehr vorzeitig; Clear wird bis zum ersten Live-Textblock vorgemerkt.
+- `0x320 83xx` bleibt als eigener Display-/Statuskanal mit explizitem `confidence=unknown` ausgewiesen.
+
 ## Update 2026-04-12 – Protokollmodell geschärft (Panel/LED/Graph-Profile)
 - Panel trennt jetzt explizit: `0x321 durable mode latch`, `0x321 transient events`, `0x320 display text`, `0x320 83xx display/status`, `0x258/0x259 engineering process image`.
 - Bootstrap nutzt wieder Snapshot-Displayinhalt als initialen Decoderzustand, statt absichtlich leerer Dimmzeilen.
@@ -59,8 +73,8 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 Public entrypoint (kurz):
 - **Raw-first Runtime**: Browser decodiert primär aus `<mqtt_base>/raw`.
-- Bootstrap wird on demand in `state.sh` aus retained `<mqtt_base>/mode` + `<mqtt_base>/snapshot` zusammengesetzt (kein always-on Bootstrap-Republisher).
-- Ergänzend bleiben `<mqtt_base>/mode` (durable retained), `<mqtt_base>/mode/current` (transient), `<mqtt_base>/snapshot` (retained) und optional Legacy `<mqtt_base>/state`.
+- Bootstrap kommt primär aus lokaler Datei `/tmp/heizungpanel/bootstrap.json`, die der Runtime-Ingestpfad direkt mitführt.
+- `state.sh` nutzt retained `<mqtt_base>/mode` + `<mqtt_base>/snapshot` nur noch als Kompatibilitäts-Fallback; optional bleibt Legacy `<mqtt_base>/state`.
 
 👉 Kanonische Betriebs- und Deploy-Doku: [`dev_readme.md`](./dev_readme.md)
 

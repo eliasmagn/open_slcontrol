@@ -1,3 +1,19 @@
+## Update 2026-04-12 – Runtime-Simplifizierung (aggressiv)
+- [x] `runtime_bridge.sh` als einziger Always-on-Ingestpfad belassen (CAN einmal lesen).
+- [x] Router-interne Derived-MQTT-Fanout-Stufen (`mode`/`snapshot`) aus dem Dauerbetrieb entfernt.
+- [x] `state.sh` auf lokale Bootstrap-Datei als Primärquelle umgestellt.
+- [x] Unbenutzte Alt-Brücken (`raw_bridge.sh`, `mode_bridge.sh`, `snapshot_bridge.sh`) gelöscht.
+
+## Update 2026-04-12 – Operator-UI Feinschliff (klein, konservativ)
+- [x] Main-Panel-Hinweise weniger debug-lastig formuliert (gleiches Modell, ruhigere Sprache).
+- [x] Status unterscheidet nun „Live verbunden + Bootstrap aktiv“ von „Raw-Text bereits aktiv“.
+
+## Update 2026-04-12 – kleine sichere Korrektur (Panel-Start + Statuskanal)
+- [x] Operator-Panel: Bootstrap-Text bleibt sichtbar bis erster echter Live-Textblock.
+- [x] Operator-Panel: Frühes `0x320 81`/`0x320 83xx` erzeugt keinen unnötigen Leerstart mehr.
+- [x] Operator-Panel: `0x320 83xx`-Hinweis enthält explizit `confidence=unknown` statt impliziter Sicherheit.
+- [ ] Offene Feldvalidierung: Bitdeutung Ein/Aus innerhalb `0x320 83xx` von unknown -> likely/confirmed heben.
+
 ## Update 2026-04-12 – Architekturpflege Panel/Profiles
 - [x] Protokollmodell im Panel aufgetrennt (`0x321 durable`, `0x321 transient`, `0x320 text`, `0x320 83xx status`).
 - [x] Fehlmodell für Ein/Aus korrigiert: keine LED-Ableitung mehr aus transienten `FFFB/FF7F`-Events.
