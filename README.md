@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Operator/Engineering Trennung weiter produktisiert
+- Operator-Panel ist nun visuell ruhiger und folgt einem klaren Protokollmodell: `0x321 durable latch`, `0x321 transient`, `0x320 text`, `0x320 83xx display/LED/status`.
+- Bootstrap zeigt bei Reload wieder vorhandene Snapshot-LCD-Texte als Startzustand; Livebetrieb bleibt Raw-first im Browser.
+- Ein/Aus-LEDs werden ausschließlich im `0x320 83xx`-Statuskanal geführt (derzeit bewusst als **unknown**, solange Bitzuordnung nicht bestätigt ist).
+- Sensorseite unterstützt jetzt mehrere persistente Graph-Profile (`sensor_profiles_json`) mit Seed-Defaults für plausible 0x258/0x259-Kanäle.
+
 ## Update 2026-04-12 – Protokollmodell geschärft (Panel/LED/Graph-Profile)
 - Panel trennt jetzt explizit: `0x321 durable mode latch`, `0x321 transient events`, `0x320 display text`, `0x320 83xx display/status`, `0x258/0x259 engineering process image`.
 - Bootstrap nutzt wieder Snapshot-Displayinhalt als initialen Decoderzustand, statt absichtlich leerer Dimmzeilen.

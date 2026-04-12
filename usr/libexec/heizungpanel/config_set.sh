@@ -82,7 +82,7 @@ validate_kv() {
       esac
       ;;
     sensor_profile)
-      case "$value" in engineering_generic|io259_idx01_status|io259_idx04_param16|paired_idx00_delta_b1) ;; *) fail "Invalid sensor_profile" 2 ;; esac
+      case "$value" in engineering_generic|io259_idx00_status|io259_idx01_status|io259_idx04_param16|io258_idx04_command16|paired_idx00_delta_b1) ;; *) fail "Invalid sensor_profile" 2 ;; esac
       ;;
     sensor_source)
       case "$value" in 258|259|paired) ;; *) fail "Invalid sensor_source" 2 ;; esac
@@ -101,10 +101,7 @@ validate_kv() {
       ;;
     sensor_label|sensor_unit)
       case "$value" in
-        *$'
-'*|*$'
-'*) fail "Invalid $key" 2 ;;
-'*) fail "Invalid $key" 2 ;;
+        *$'\n'*|*$'\r'*) fail "Invalid $key" 2 ;;
         *) ;;
       esac
       ;;
@@ -116,6 +113,12 @@ validate_kv() {
       ;;
     sensor_confidence)
       case "$value" in confirmed|likely|unknown) ;; *) fail "Invalid sensor_confidence" 2 ;; esac
+      ;;
+    sensor_profiles_json)
+      case "$value" in
+        *$'\n'*|*$'\r'*) fail "Invalid sensor_profiles_json" 2 ;;
+      esac
+      [ "${#value}" -le 8192 ] || fail "sensor_profiles_json too long" 2
       ;;
     *)
       fail "Unsupported key: $key" 2

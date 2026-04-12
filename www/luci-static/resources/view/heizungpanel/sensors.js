@@ -61,12 +61,18 @@ function toNum(v, def) {
   return isNaN(x) ? def : x;
 }
 
-var GRAPH_PROFILES = [
+var GRAPH_PROFILE_SEEDS = [
   {
     id: 'engineering_generic', title: 'Engineering Generic (0x259 idx00)',
     source: '259', idx: '00', field: 'byte1', label: 'Engineering channel', unit: 'raw',
     scale: '1', offset: '0', confidence: 'unknown', autoscale: '1', ymin: '0', ymax: '255',
     note: 'Sicherer Startpunkt ohne physikalische Interpretation.'
+  },
+  {
+    id: 'io259_idx00_status', title: '0x259 Index 00 Statusbyte',
+    source: '259', idx: '00', field: 'byte1', label: '0x259 idx00 byte1', unit: 'raw',
+    scale: '1', offset: '0', confidence: 'likely', autoscale: '1', ymin: '0', ymax: '255',
+    note: 'Plausibler Statuskanal aus Reply-Zyklus; bleibt Engineering-Sicht.'
   },
   {
     id: 'io259_idx01_status', title: '0x259 Index 01 Statusbyte',
@@ -81,6 +87,12 @@ var GRAPH_PROFILES = [
     note: 'Nützlich für Parameterblöcke, weiterhin als Engineering-Rohwert markiert.'
   },
   {
+    id: 'io258_idx04_command16', title: '0x258 Index 04 u16 (1,2)',
+    source: '258', idx: '04', field: 'u16be_1_2', label: '0x258 idx04 u16be(1,2)', unit: 'raw16',
+    scale: '1', offset: '0', confidence: 'unknown', autoscale: '1', ymin: '0', ymax: '65535',
+    note: 'Kommandoseite zur Gegenüberstellung mit 0x259.'
+  },
+  {
     id: 'paired_idx00_delta_b1', title: 'Paired Δ idx00 (259.b1-258.b1)',
     source: 'paired', idx: '00', field: 'paired_delta_1', label: 'paired delta idx00 byte1', unit: 'rawΔ',
     scale: '1', offset: '0', confidence: 'unknown', autoscale: '1', ymin: '-80', ymax: '80',
@@ -88,11 +100,27 @@ var GRAPH_PROFILES = [
   }
 ];
 
-function getProfile(id) {
-  for (var i = 0; i < GRAPH_PROFILES.length; i++) {
-    if (GRAPH_PROFILES[i].id === id) return GRAPH_PROFILES[i];
+function getSeedProfile(id) {
+  for (var i = 0; i < GRAPH_PROFILE_SEEDS.length; i++) {
+    if (GRAPH_PROFILE_SEEDS[i].id === id) return GRAPH_PROFILE_SEEDS[i];
   }
-  return GRAPH_PROFILES[0];
+  return GRAPH_PROFILE_SEEDS[0];
+}
+
+function sanitizeProfile(p) {
+  return {
+    source: (p && p.source) || '259',
+    idx: String((p && p.idx) || '00').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 2).padStart(2, '0'),
+    field: (p && p.field) || 'byte1',
+    label: (p && p.label) || 'Engineering channel',
+    unit: (p && p.unit) || 'raw',
+    scale: String((p && p.scale) || '1'),
+    offset: String((p && p.offset) || '0'),
+    confidence: (p && p.confidence) || 'unknown',
+    autoscale: String((p && p.autoscale) || '1') === '1' ? '1' : '0',
+    ymin: String((p && p.ymin) || '0'),
+    ymax: String((p && p.ymax) || '255')
+  };
 }
 
 return view.extend({
@@ -113,10 +141,16 @@ return view.extend({
   render: function(cfg) {
     cfg = cfg || {};
     var streamToken = cfg.stream_token || '';
+    var storedProfiles = {};
+    try {
+      storedProfiles = JSON.parse(cfg.sensor_profiles_json || '{}') || {};
+    } catch (e) {
+      storedProfiles = {};
+    }
 
     var style = el('style', { html: '.hp-sensors{max-width:980px}.hp-card{background:#fff;border:1px solid #ddd;border-radius:8px;padding:14px;margin-bottom:12px}.hp-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.hp-status{font-size:12px;color:#555}.hp-mono{font-family:monospace}.hp-graph{width:100%;height:260px;border:1px solid #ccc;background:#fcfcff}.hp-input{width:130px}.hp-note{font-size:12px;color:#666}.hp-ok{color:#2e7d32}.hp-err{color:#c62828}' });
 
-    var profileSel = el('select', { class: 'hp-input' }, GRAPH_PROFILES.map(function(p) {
+    var profileSel = el('select', { class: 'hp-input' }, GRAPH_PROFILE_SEEDS.map(function(p) {
       return el('option', { value: p.id }, [p.title]);
     }));
     profileSel.value = cfg.sensor_profile || 'engineering_generic';
@@ -126,9 +160,8 @@ return view.extend({
       el('option', { value: '258' }, ['0x258']),
       el('option', { value: 'paired' }, ['paired 258/259'])
     ]);
-    sourceSel.value = cfg.sensor_source || getProfile(profileSel.value).source;
 
-    var idxInput = el('input', { type: 'text', class: 'hp-input', value: (cfg.sensor_index || getProfile(profileSel.value).idx), maxlength: 2 }, []);
+    var idxInput = el('input', { type: 'text', class: 'hp-input', maxlength: 2 }, []);
     var fieldSel = el('select', { class: 'hp-input' }, [
       el('option', { value: 'byte0' }, ['byte0 (index)']),
       el('option', { value: 'byte1' }, ['byte1']),
@@ -142,23 +175,21 @@ return view.extend({
       el('option', { value: 'paired_delta_1' }, ['paired: 259.b1 - 258.b1']),
       el('option', { value: 'paired_delta_2' }, ['paired: 259.b2 - 258.b2'])
     ]);
-    fieldSel.value = cfg.sensor_field || getProfile(profileSel.value).field;
 
-    var labelInput = el('input', { type: 'text', class: 'hp-input', value: cfg.sensor_label || getProfile(profileSel.value).label }, []);
-    var unitInput = el('input', { type: 'text', class: 'hp-input', value: cfg.sensor_unit || getProfile(profileSel.value).unit }, []);
-    var scaleInput = el('input', { type: 'text', class: 'hp-input', value: cfg.sensor_scale || getProfile(profileSel.value).scale }, []);
-    var offsetInput = el('input', { type: 'text', class: 'hp-input', value: cfg.sensor_offset || getProfile(profileSel.value).offset }, []);
+    var labelInput = el('input', { type: 'text', class: 'hp-input' }, []);
+    var unitInput = el('input', { type: 'text', class: 'hp-input' }, []);
+    var scaleInput = el('input', { type: 'text', class: 'hp-input' }, []);
+    var offsetInput = el('input', { type: 'text', class: 'hp-input' }, []);
 
     var confSel = el('select', { class: 'hp-input' }, [
       el('option', { value: 'confirmed' }, ['confirmed']),
       el('option', { value: 'likely' }, ['likely']),
       el('option', { value: 'unknown' }, ['unknown'])
     ]);
-    confSel.value = cfg.sensor_confidence || getProfile(profileSel.value).confidence;
 
-    var autoscaleChk = el('input', { type: 'checkbox', checked: String(cfg.sensor_autoscale || getProfile(profileSel.value).autoscale) === '1' }, []);
-    var yminInput = el('input', { type: 'text', class: 'hp-input', value: cfg.sensor_y_min || getProfile(profileSel.value).ymin }, []);
-    var ymaxInput = el('input', { type: 'text', class: 'hp-input', value: cfg.sensor_y_max || getProfile(profileSel.value).ymax }, []);
+    var autoscaleChk = el('input', { type: 'checkbox' }, []);
+    var yminInput = el('input', { type: 'text', class: 'hp-input' }, []);
+    var ymaxInput = el('input', { type: 'text', class: 'hp-input' }, []);
 
     var status = el('div', { class: 'hp-status' }, ['Status: warte auf Raw-SSE ...']);
     var latest = el('div', { class: 'hp-mono' }, ['letzter Frame: n/a']);
@@ -206,8 +237,18 @@ return view.extend({
       };
     }
 
-    function applyProfile(p) {
-      if (!p) return;
+    function getProfileConfig(id) {
+      var seed = getSeedProfile(id);
+      var merged = {};
+      Object.keys(seed).forEach(function(k) { merged[k] = seed[k]; });
+      if (storedProfiles[id]) {
+        Object.keys(storedProfiles[id]).forEach(function(k) { merged[k] = storedProfiles[id][k]; });
+      }
+      return sanitizeProfile(merged);
+    }
+
+    function applyProfileConfig(id) {
+      var p = getProfileConfig(id);
       sourceSel.value = p.source;
       idxInput.value = p.idx;
       fieldSel.value = p.field;
@@ -219,7 +260,7 @@ return view.extend({
       autoscaleChk.checked = String(p.autoscale) === '1';
       yminInput.value = p.ymin;
       ymaxInput.value = p.ymax;
-      profileNote.textContent = 'Profil: ' + p.title + ' · ' + p.note;
+      profileNote.textContent = 'Profil: ' + getSeedProfile(id).title + ' · ' + getSeedProfile(id).note;
     }
 
     function updateMeta() {
@@ -321,9 +362,23 @@ return view.extend({
       updateMeta();
     }
 
-    function saveConfig() {
+    function profilePayload() {
       var c = graphCfg();
-      var payload = {
+      storedProfiles[c.profile] = {
+        source: c.source,
+        idx: c.idx,
+        field: c.field,
+        label: c.label,
+        unit: c.unit,
+        scale: String(c.scale),
+        offset: String(c.offset),
+        confidence: c.confidence,
+        autoscale: c.autoscale ? '1' : '0',
+        ymin: String(c.ymin),
+        ymax: String(c.ymax)
+      };
+
+      return {
         sensor_profile: c.profile,
         sensor_source: c.source,
         sensor_index: c.idx,
@@ -335,9 +390,13 @@ return view.extend({
         sensor_confidence: c.confidence,
         sensor_autoscale: c.autoscale ? '1' : '0',
         sensor_y_min: String(c.ymin),
-        sensor_y_max: String(c.ymax)
+        sensor_y_max: String(c.ymax),
+        sensor_profiles_json: JSON.stringify(storedProfiles)
       };
-      return fs.exec('/usr/libexec/heizungpanel/config_set.sh', ['--batch-json', JSON.stringify(payload)]).then(function(res) {
+    }
+
+    function saveConfig() {
+      return fs.exec('/usr/libexec/heizungpanel/config_set.sh', ['--batch-json', JSON.stringify(profilePayload())]).then(function(res) {
         if (res && res.code === 0) {
           status.className = 'hp-status hp-ok';
           status.textContent = 'Graph-Profil gespeichert.';
@@ -351,22 +410,36 @@ return view.extend({
       });
     }
 
-    var applyProfileBtn = el('button', { class: 'btn cbi-button', type: 'button' }, ['Profil übernehmen']);
+    var applyProfileBtn = el('button', { class: 'btn cbi-button', type: 'button' }, ['Gespeichertes Profil laden']);
     applyProfileBtn.addEventListener('click', function() {
-      applyProfile(getProfile(profileSel.value));
+      applyProfileConfig(profileSel.value);
       clearGraph();
+    });
+
+    var resetSeedBtn = el('button', { class: 'btn cbi-button', type: 'button' }, ['Auf Seed zurücksetzen']);
+    resetSeedBtn.addEventListener('click', function() {
+      storedProfiles[profileSel.value] = null;
+      delete storedProfiles[profileSel.value];
+      applyProfileConfig(profileSel.value);
+      clearGraph();
+      status.textContent = 'Profil auf Seed-Default zurückgesetzt (noch nicht gespeichert).';
     });
 
     var clearBtn = el('button', { class: 'btn cbi-button', type: 'button' }, ['Graph leeren']);
     clearBtn.addEventListener('click', clearGraph);
-    var saveBtn = el('button', { class: 'btn cbi-button cbi-button-save', type: 'button' }, ['Graph-Profil speichern']);
+    var saveBtn = el('button', { class: 'btn cbi-button cbi-button-save', type: 'button' }, ['Aktives Profil speichern']);
     saveBtn.addEventListener('click', function() { saveConfig(); });
 
     [sourceSel, idxInput, fieldSel, labelInput, unitInput, scaleInput, offsetInput, confSel, autoscaleChk, yminInput, ymaxInput, profileSel].forEach(function(node) {
       node.addEventListener('change', function() { updateMeta(); });
     });
 
-    applyProfile(getProfile(profileSel.value));
+    profileSel.addEventListener('change', function() {
+      applyProfileConfig(profileSel.value);
+      clearGraph();
+    });
+
+    applyProfileConfig(profileSel.value);
     if (cfg.sensor_source) sourceSel.value = cfg.sensor_source;
     if (cfg.sensor_index) idxInput.value = cfg.sensor_index;
     if (cfg.sensor_field) fieldSel.value = cfg.sensor_field;
@@ -406,9 +479,9 @@ return view.extend({
       style,
       el('h2', {}, ['Heizungpanel – Engineering/Sensor Graph Profiles']),
       el('div', { class: 'hp-card' }, [
-        el('div', { class: 'hp-note' }, ['Profile liefern sinnvolle Seed-Werte für bekannte/verdächtige Kanäle. Unbekannte Semantik bleibt explizit als Raw-Engineering markiert.']),
+        el('div', { class: 'hp-note' }, ['Profile liefern sinnvolle Seed-Werte für plausible Kanäle und können pro Profil separat gespeichert werden. Unbekannte Semantik bleibt explizit als Raw-Engineering markiert.']),
         el('div', { class: 'hp-row' }, [
-          el('label', {}, ['Profil']), profileSel, applyProfileBtn
+          el('label', {}, ['Profil']), profileSel, applyProfileBtn, resetSeedBtn
         ]),
         profileNote,
         el('div', { class: 'hp-row' }, [

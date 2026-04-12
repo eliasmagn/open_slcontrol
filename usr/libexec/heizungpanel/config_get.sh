@@ -55,8 +55,9 @@ SENSOR_CONFIDENCE="$(get_or_default sensor_confidence unknown)"
 SENSOR_AUTOSCALE="$(get_or_default sensor_autoscale 1)"
 SENSOR_YMIN="$(get_or_default sensor_y_min 0)"
 SENSOR_YMAX="$(get_or_default sensor_y_max 255)"
+SENSOR_PROFILES_JSON="$(get_or_default sensor_profiles_json '{}')"
 
-printf '{"can_if":"%s","can_bitrate":"%s","mqtt_host":"%s","mqtt_port":"%s","mqtt_base":"%s","state_mqtt_wait":"%s","poll_interval_ms":"%s","write_mode":"%s","stream_token":"%s","publish_raw":"%s","publish_mode":"%s","publish_snapshot":"%s","publish_bootstrap":"%s","publish_state":"%s","mapping_uhr":"%s","mapping_boiler":"%s","mapping_uhr_boiler":"%s","mapping_dauer":"%s","mapping_v":"%s","mapping_z":"%s","mapping_quit":"%s","mapping_hand":"%s","mapping_aussen_reg":"%s","mapping_pruef":"%s","mapping_plus":"%s","mapping_ein":"%s","mapping_aus":"%s","mapping_minus":"%s","sensor_profile":"%s","sensor_source":"%s","sensor_index":"%s","sensor_field":"%s","sensor_label":"%s","sensor_unit":"%s","sensor_scale":"%s","sensor_offset":"%s","sensor_confidence":"%s","sensor_autoscale":"%s","sensor_y_min":"%s","sensor_y_max":"%s"}\n' \
+printf '{"can_if":"%s","can_bitrate":"%s","mqtt_host":"%s","mqtt_port":"%s","mqtt_base":"%s","state_mqtt_wait":"%s","poll_interval_ms":"%s","write_mode":"%s","stream_token":"%s","publish_raw":"%s","publish_mode":"%s","publish_snapshot":"%s","publish_bootstrap":"%s","publish_state":"%s","mapping_uhr":"%s","mapping_boiler":"%s","mapping_uhr_boiler":"%s","mapping_dauer":"%s","mapping_v":"%s","mapping_z":"%s","mapping_quit":"%s","mapping_hand":"%s","mapping_aussen_reg":"%s","mapping_pruef":"%s","mapping_plus":"%s","mapping_ein":"%s","mapping_aus":"%s","mapping_minus":"%s","sensor_profile":"%s","sensor_source":"%s","sensor_index":"%s","sensor_field":"%s","sensor_label":"%s","sensor_unit":"%s","sensor_scale":"%s","sensor_offset":"%s","sensor_confidence":"%s","sensor_autoscale":"%s","sensor_y_min":"%s","sensor_y_max":"%s","sensor_profiles_json":"%s"}\n' \
   "$(json_escape "$CAN_IF")" \
   "$(json_escape "$CAN_BITRATE")" \
   "$(json_escape "$MQTT_HOST")" \
@@ -96,4 +97,5 @@ printf '{"can_if":"%s","can_bitrate":"%s","mqtt_host":"%s","mqtt_port":"%s","mqt
   "$(json_escape "$SENSOR_CONFIDENCE")" \
   "$(json_escape "$SENSOR_AUTOSCALE")" \
   "$(json_escape "$SENSOR_YMIN")" \
-  "$(json_escape "$SENSOR_YMAX")"
+  "$(json_escape "$SENSOR_YMAX")" \
+  "$(json_escape "$SENSOR_PROFILES_JSON")"
