@@ -81,6 +81,9 @@ validate_kv() {
         *) fail "Invalid mapping payload for $key (expected empty or 4 hex chars)" 2 ;;
       esac
       ;;
+    sensor_profile)
+      case "$value" in engineering_generic|io259_idx01_status|io259_idx04_param16|paired_idx00_delta_b1) ;; *) fail "Invalid sensor_profile" 2 ;; esac
+      ;;
     sensor_source)
       case "$value" in 258|259|paired) ;; *) fail "Invalid sensor_source" 2 ;; esac
       ;;
@@ -99,7 +102,9 @@ validate_kv() {
     sensor_label|sensor_unit)
       case "$value" in
         *$'
-'*|*$''*) fail "Invalid $key" 2 ;;
+'*|*$'
+'*) fail "Invalid $key" 2 ;;
+'*) fail "Invalid $key" 2 ;;
         *) ;;
       esac
       ;;
