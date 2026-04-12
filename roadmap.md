@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Korrektur Update-Apply Scope
+- **Abgeschlossen:** Update-Apply von globalem Baum-Overlay auf app-spezifische Zielpfade zurückgeführt.
+- **Abgeschlossen:** Sicherheitsziel geschärft: keine unbeabsichtigten Writes auf systemfremde `/etc`-/`/usr`-/`/www`-Dateien.
+- **Abgeschlossen:** Rename-Handling in den verwalteten App-Verzeichnissen bleibt bestehen.
+
 ## Update 2026-04-12 – Updatepfad für Dateiumbenennungen stabilisiert
 - **Abgeschlossen:** In-App-Update von fester Dateiliste auf baumbasiertes Kopieren (`etc/`, `usr/`, `www/`) umgestellt.
 - **Abgeschlossen:** Stale-Datei-Risiko reduziert durch gezielte Bereinigung der verwalteten App-Verzeichnisse vor dem Kopieren.

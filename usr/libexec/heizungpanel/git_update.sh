@@ -115,21 +115,49 @@ SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
 rm -rf /usr/libexec/heizungpanel /www/luci-static/resources/view/heizungpanel
 mkdir -p /usr/libexec/heizungpanel /www/luci-static/resources/view/heizungpanel
 
-# Copy app tree from extracted archive (future-proof for renamed/new files).
-for top in etc usr www; do
-  [ -d "$SRC_ROOT/$top" ] || continue
-  find "$SRC_ROOT/$top" -type f | while IFS= read -r src; do
+# Copy only app-managed paths (rename-safe inside managed directories).
+[ -f "$SRC_ROOT/etc/init.d/heizungpanel" ] || fail "Archive missing init script" 5
+mkdir -p /etc/init.d
+cp "$SRC_ROOT/etc/init.d/heizungpanel" /etc/init.d/heizungpanel
+
+if [ -f "$SRC_ROOT/etc/config/heizungpanel" ]; then
+  if [ "$OVERWRITE_CONFIG" -eq 1 ] || [ ! -f /etc/config/heizungpanel ]; then
+    mkdir -p /etc/config
+    cp "$SRC_ROOT/etc/config/heizungpanel" /etc/config/heizungpanel
+  fi
+fi
+
+if [ -d "$SRC_ROOT/usr/libexec/heizungpanel" ]; then
+  find "$SRC_ROOT/usr/libexec/heizungpanel" -type f | while IFS= read -r src; do
     rel="${src#$SRC_ROOT/}"
     dst="/$rel"
-
-    if [ "$rel" = "etc/config/heizungpanel" ] && [ "$OVERWRITE_CONFIG" -ne 1 ] && [ -f "$dst" ]; then
-      continue
-    fi
-
     mkdir -p "$(dirname "$dst")"
     cp "$src" "$dst"
   done
-done
+fi
+
+if [ -f "$SRC_ROOT/usr/share/rpcd/acl.d/luci-app-heizungpanel.json" ]; then
+  mkdir -p /usr/share/rpcd/acl.d
+  cp "$SRC_ROOT/usr/share/rpcd/acl.d/luci-app-heizungpanel.json" /usr/share/rpcd/acl.d/luci-app-heizungpanel.json
+fi
+if [ -f "$SRC_ROOT/usr/share/luci/menu.d/luci-app-heizungpanel.json" ]; then
+  mkdir -p /usr/share/luci/menu.d
+  cp "$SRC_ROOT/usr/share/luci/menu.d/luci-app-heizungpanel.json" /usr/share/luci/menu.d/luci-app-heizungpanel.json
+fi
+
+if [ -f "$SRC_ROOT/www/cgi-bin/heizungpanel_stream" ]; then
+  mkdir -p /www/cgi-bin
+  cp "$SRC_ROOT/www/cgi-bin/heizungpanel_stream" /www/cgi-bin/heizungpanel_stream
+fi
+
+if [ -d "$SRC_ROOT/www/luci-static/resources/view/heizungpanel" ]; then
+  find "$SRC_ROOT/www/luci-static/resources/view/heizungpanel" -type f | while IFS= read -r src; do
+    rel="${src#$SRC_ROOT/}"
+    dst="/$rel"
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+  done
+fi
 
 # Mirror canonical menu file into the legacy location for compatibility targets.
 if [ -f "/usr/share/luci/menu.d/luci-app-heizungpanel.json" ]; then

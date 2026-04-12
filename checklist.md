@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Git-Update Sicherheitskorrektur für Zielpfade
+- [x] Globales Baum-Kopieren (`etc/usr/www` komplett) zurückgenommen.
+- [x] Kopierlogik auf app-verwaltete Pfade eingeschränkt (Init/Config, `usr/libexec/heizungpanel`, LuCI-Views, ACL/Menu, CGI).
+- [x] Rename-/Stale-Datei-Fix bleibt erhalten (Bereinigung der verwalteten App-Verzeichnisse vor Copy).
+- [x] Schutz vor unbeabsichtigtem Überschreiben systemfremder Dateien (z. B. unter `/etc`) sichergestellt.
+
 ## Update 2026-04-12 – Git-Update Rename-/Datei-Drift-Fix
 - [x] Starre Datei-Allowlist im In-App-Update durch baumbasiertes Kopieren (`etc/`, `usr/`, `www/`) ersetzt.
 - [x] Vor Update-Anwendung werden verwaltete Zielordner bereinigt (`/usr/libexec/heizungpanel`, `/www/luci-static/resources/view/heizungpanel`).

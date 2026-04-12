@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Git Update: nur app-verwaltete Pfade (kein globales /etc-/usr-/www-Overlay)
+- Der Updater kopiert jetzt **nicht** pauschal alle Dateien unter `etc/usr/www`, sondern nur klar app-verwaltete Ziele (Init/Config, `usr/libexec/heizungpanel`, LuCI-View-Ordner, ACL/Menu, CGI).
+- Damit werden Risiken durch fremde Repo-Dateien (z. B. `etc/passwd`) vermieden, während Renames innerhalb der App-Verzeichnisse weiterhin robust mitgenommen werden.
+- Bereinigung der verwalteten App-Verzeichnisse bleibt aktiv, um Altdateien nach Umbenennungen zu entfernen.
+
 ## Update 2026-04-12 – Git Update kopiert jetzt App-Baum statt fester Dateiliste
 - `git_update.sh` nutzt nach dem Download nicht mehr nur eine starre Allowlist, sondern kopiert den gesamten App-Baum unter `etc/`, `usr/`, `www/` aus dem Archiv.
 - Vor dem Kopieren werden die verwalteten Verzeichnisse `/usr/libexec/heizungpanel` und `/www/luci-static/resources/view/heizungpanel` geleert, damit umbenannte/entfernte Dateien nicht als Altlasten verbleiben.

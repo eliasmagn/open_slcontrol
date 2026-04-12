@@ -1,3 +1,8 @@
+## Architektur-Update 2026-04-12 – Update-Apply auf App-Scope begrenzt
+- Der On-Device-Update-Apply ist jetzt strikt auf app-verwaltete Installationspfade begrenzt und schreibt nicht mehr pauschal gesamte Top-Level-Bäume nach `/`.
+- Dadurch bleibt die Rename-Robustheit innerhalb der Heizungpanel-Verzeichnisse erhalten, ohne systemfremde Dateien zu riskieren.
+- Das Verfahren kombiniert jetzt: (1) Bereinigung verwalteter App-Verzeichnisse, (2) gezieltes Kopieren nur definierter App-Ziele.
+
 ## Architektur-Update 2026-04-12 – Self-Update gegen Rename-Drift gehärtet
 - Das On-Device-Update übernimmt nicht mehr nur eine feste Dateiliste, sondern synchronisiert den vollständigen App-Baum unter `etc/`, `usr/`, `www/`.
 - Vor der Anwendung werden die zentral verwalteten Laufzeit-/LuCI-Verzeichnisse bereinigt, damit entfernte oder umbenannte Dateien nicht als Altzustand aktiv bleiben.
