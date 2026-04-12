@@ -1,3 +1,8 @@
+## Architektur-Update 2026-04-12 – Deploy-Archivformat tar.gz
+- Der In-App-Updatepfad bezieht Quellstände jetzt standardmäßig als GitHub `tar.gz`-Archiv statt ZIP.
+- Extraktion erfolgt mit vorhandenem Systemwerkzeug `tar`, um zusätzliche `unzip`-Abhängigkeiten auf OpenWrt zu vermeiden.
+- Die LuCI-Updateoberfläche nutzt dazu den neutralen Archiv-Parameter `--archive-url` (mit kompatibler Legacy-Option).
+
 ## Architektur-Update 2026-04-11 – Operator/UI-Split und LED-Semantik
 - Das LuCI-Hauptpanel ist wieder als Operator-Oberfläche definiert (LCD + Tasten + Ein/Aus + Betriebsarten + kurzes Statusfeedback).
 - Engineering-Artefakte (Reverse-Mapping und 0x259-Sensorgraph) sind auf dedizierte Unterseiten verschoben, damit die Bedienoberfläche klar bleibt.

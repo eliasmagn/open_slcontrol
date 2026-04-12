@@ -29,7 +29,7 @@ trap cleanup EXIT INT TERM
 
 REPO=""
 REF=""
-ZIP_URL=""
+ARCHIVE_URL=""
 OVERWRITE_CONFIG=0
 
 while [ "$#" -gt 0 ]; do
@@ -44,9 +44,9 @@ while [ "$#" -gt 0 ]; do
       REF="$2"
       shift 2
       ;;
-    --zip-url)
-      [ "$#" -ge 2 ] || fail "Missing value for --zip-url" 2
-      ZIP_URL="$2"
+    --archive-url|--tar-url|--zip-url)
+      [ "$#" -ge 2 ] || fail "Missing value for $1" 2
+      ARCHIVE_URL="$2"
       shift 2
       ;;
     --overwrite-config)
@@ -59,7 +59,7 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -z "$ZIP_URL" ]; then
+if [ -z "$ARCHIVE_URL" ]; then
   [ -n "$REPO" ] || fail "Missing --repo (owner/name)" 2
   [ -n "$REF" ] || fail "Missing --ref (branch or commit)" 2
 
@@ -70,15 +70,15 @@ if [ -z "$ZIP_URL" ]; then
     ''|*..*|*/*|*\\*|*\ *|*[^A-Za-z0-9._-]*) fail "Invalid --ref format" 2 ;;
   esac
 
-  ZIP_URL="https://codeload.github.com/$REPO/zip/$REF"
+  ARCHIVE_URL="https://codeload.github.com/$REPO/tar.gz/$REF"
 else
-  case "$ZIP_URL" in
+  case "$ARCHIVE_URL" in
     https://*) ;;
-    *) fail "--zip-url must use https://" 2 ;;
+    *) fail "--archive-url/--tar-url/--zip-url must use https://" 2 ;;
   esac
 fi
 
-need_cmd unzip
+need_cmd tar
 need_cmd cp
 need_cmd chmod
 need_cmd mkdir
@@ -95,13 +95,13 @@ else
 fi
 
 TMPDIR_WORK="$(mktemp -d /tmp/heizungpanel_git_update.XXXXXX)"
-ZIP_PATH="$TMPDIR_WORK/repo.zip"
+ARCHIVE_PATH="$TMPDIR_WORK/repo.tar.gz"
 EXTRACT_DIR="$TMPDIR_WORK/extract"
 mkdir -p "$EXTRACT_DIR"
 
-sh -c "$FETCH_CMD \"$ZIP_PATH\" \"$ZIP_URL\"" || fail "Download failed from $ZIP_URL" 4
+sh -c "$FETCH_CMD \"$ARCHIVE_PATH\" \"$ARCHIVE_URL\"" || fail "Download failed from $ARCHIVE_URL" 4
 
-unzip -q "$ZIP_PATH" -d "$EXTRACT_DIR" || fail "Unable to unzip archive" 4
+tar -xzf "$ARCHIVE_PATH" -C "$EXTRACT_DIR" || fail "Unable to extract tar archive" 4
 
 SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
 [ -n "$SRC_ROOT" ] || fail "Archive has no top-level directory" 4
@@ -164,7 +164,7 @@ rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true
 /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true
 /etc/init.d/heizungpanel stop >/dev/null 2>&1 || true
 if /etc/init.d/heizungpanel start >/dev/null 2>&1; then
-  printf '{"ok":true,"zip_url":"%s","message":"Update installed and service restarted"}\n' "$(json_escape "$ZIP_URL")"
+  printf '{"ok":true,"archive_url":"%s","message":"Update installed and service restarted"}\n' "$(json_escape "$ARCHIVE_URL")"
   exit 0
 fi
 

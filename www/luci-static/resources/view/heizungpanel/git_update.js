@@ -33,7 +33,7 @@ return view.extend({
 
     var repoInput = el('input', { type: 'text', value: 'faktor22/open_slcontrol' }, []);
     var refInput = el('input', { type: 'text', value: 'main' }, []);
-    var zipInput = el('input', { type: 'text', placeholder: 'Optional: https://.../repo.zip' }, []);
+    var archiveInput = el('input', { type: 'text', placeholder: 'Optional: https://.../repo.tar.gz' }, []);
     var overwriteInput = el('input', { type: 'checkbox', checked: false }, []);
     var status = el('div', { class: 'hp-status hp-warn' }, ['Status: bereit']);
 
@@ -48,14 +48,14 @@ return view.extend({
       var args = [];
       var repo = (repoInput.value || '').trim();
       var ref = (refInput.value || '').trim();
-      var zip = (zipInput.value || '').trim();
+      var archive = (archiveInput.value || '').trim();
 
-      if (zip) {
-        args.push('--zip-url');
-        args.push(zip);
+      if (archive) {
+        args.push('--archive-url');
+        args.push(archive);
       } else {
         if (!repo || !ref) {
-          setStatus('hp-err', 'Bitte entweder ZIP-URL ausfüllen oder Repository + Branch/Commit angeben.');
+          setStatus('hp-err', 'Bitte entweder Archive-URL ausfüllen oder Repository + Branch/Commit angeben.');
           return;
         }
         args.push('--repo');
@@ -103,12 +103,12 @@ return view.extend({
 
     return el('div', { class: 'hp-upd' }, [
       style,
-      el('h2', {}, ['Heizungpanel – Git Update (ZIP)']),
+      el('h2', {}, ['Heizungpanel – Git Update (tar.gz)']),
       el('div', { class: 'hp-card' }, [
-        el('div', { class: 'hp-note' }, ['Lädt einen Branch oder Commit als ZIP herunter und installiert die App-Dateien direkt auf dem Router.']),
+        el('div', { class: 'hp-note' }, ['Lädt einen Branch oder Commit als tar.gz herunter und installiert die App-Dateien direkt auf dem Router.']),
         row('Repository (owner/name)', repoInput, 'Beispiel: faktor22/open_slcontrol'),
-        row('Branch oder Commit', refInput, 'Beispiel: main oder SHA (nur wenn keine ZIP-URL gesetzt ist)'),
-        row('Direkte ZIP-URL (optional)', zipInput, 'Wenn gesetzt, werden Repository/Ref ignoriert.'),
+        row('Branch oder Commit', refInput, 'Beispiel: main oder SHA (nur wenn keine Archive-URL gesetzt ist)'),
+        row('Direkte Archive-URL (optional)', archiveInput, 'Wenn gesetzt, werden Repository/Ref ignoriert.'),
         row('Config überschreiben', overwriteInput, '/etc/config/heizungpanel mitinstallieren'),
         runBtn,
         status

@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Self-Update Robustheit (Archivformat)
+- **Abgeschlossen:** Git-Updatepfad auf tar.gz standardisiert, damit auf Zielsystemen das bereits vorhandene `tar` genutzt wird.
+- **Abgeschlossen:** ZIP/`unzip`-Pfad aus dem Runtime-Update entfernt; Extraktion erfolgt über `tar -xzf`.
+- **Abgeschlossen:** LuCI-Update-UI auf Archive-URL/tar.gz umgestellt.
+
 ## Update 2026-04-11 – UI-Split nach PR47-Korrektur
 - **Abgeschlossen:** Operator-Panel wieder entschlackt und auf Bedienung fokussiert.
 - **Abgeschlossen:** Engineering-Inhalte aus dem Hauptpanel ausgelagert auf eigene LuCI-Seiten (`Sensor Graph`, `Mapping`).

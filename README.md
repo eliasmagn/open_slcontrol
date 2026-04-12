@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Git Update auf tar.gz umgestellt
+- Das Self-Update nutzt jetzt tar.gz-Archive (GitHub codeload `tar.gz`) statt ZIP/`unzip`.
+- `git_update.sh` extrahiert mit vorhandenem `tar` (`tar -xzf`) und benötigt kein `unzip` mehr.
+- LuCI-Update-Seite (`Git Update`) ist auf Archive-URL/tar.gz-Texte und Parameter `--archive-url` angepasst (Abwärtskompatibilität für alte URL-Flags bleibt erhalten).
+
 ## Update 2026-04-11 – PR47-Korrektur: Operator-Panel + Engineering-Seiten getrennt
 - Das Hauptpanel ist wieder auf Bedienung fokussiert (LCD, Tastenblock, Ein/Aus-Bereich, Betriebsarten mit LEDs, kompaktes Feedback).
 - Das LCD wird beim Seitenstart **nicht mehr** aus retained `line1/line2` vorgefüllt; Liveanzeige kommt weiterhin nur aus Raw-Frames (`0x320`) im Browser.

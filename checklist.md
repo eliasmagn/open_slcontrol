@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Git-Update Archivformat
+- [x] Update-Backend von ZIP auf tar.gz umgestellt (`codeload .../tar.gz/<ref>` + `tar -xzf`).
+- [x] Abhängigkeit `unzip` entfernt; vorhandenes `tar` wird verwendet.
+- [x] CLI-Parameter erweitert: `--archive-url` (kompatibel zu bestehenden URL-Optionen).
+- [x] LuCI-Git-Update-Seite textlich/funktional auf tar.gz angepasst.
+
 ## Update 2026-04-11 – PR47-Korrektur (Operator-Panel wieder schlank)
 - [x] Hauptpanel wieder als Operator-Ansicht fokussiert (LCD + Controls + Ein/Aus + Mode-LEDs + Status), ohne Engineering-Tabellen/Graphen.
 - [x] Retained LCD-Bootstrapanzeige entfernt: `line1/line2` werden nicht mehr als Liveinhalt vorgerendert.
