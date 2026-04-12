@@ -130,6 +130,8 @@ usr/share/rpcd/acl.d/luci-app-heizungpanel.json
 usr/share/luci/menu.d/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
 www/luci-static/resources/view/heizungpanel/config.js
+www/luci-static/resources/view/heizungpanel/sensors.js
+www/luci-static/resources/view/heizungpanel/mapping.js
 www/luci-static/resources/view/heizungpanel/git_update.js
 www/cgi-bin/heizungpanel_stream
 "

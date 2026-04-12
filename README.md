@@ -1,3 +1,10 @@
+## Update 2026-04-11 – PR47-Korrektur: Operator-Panel + Engineering-Seiten getrennt
+- Das Hauptpanel ist wieder auf Bedienung fokussiert (LCD, Tastenblock, Ein/Aus-Bereich, Betriebsarten mit LEDs, kompaktes Feedback).
+- Das LCD wird beim Seitenstart **nicht mehr** aus retained `line1/line2` vorgefüllt; Liveanzeige kommt weiterhin nur aus Raw-Frames (`0x320`) im Browser.
+- Betriebsarten-LEDs bleiben persistent über durable `mode_flags16` (retained `<base>/mode`), transiente `321 FFFF` werden nur als Hinweis behandelt.
+- Neue LuCI-Unterseiten: **Sensor Graph** (`0x259`) und **Mapping** (ID-/Command-Zuordnung) wurden aus dem Hauptpanel ausgelagert.
+- Ein/Aus-LEDs sind im Panel sichtbar (live aus aktuellem `0x321`-Wert, ohne künstliches Persistenzmodell).
+
 ## Update 2026-04-11 – Git-Update Unterseite (ZIP)
 - Neue LuCI-Unterseite **Git Update** unter `Services -> Heizungpanel -> Git Update`.
 - Die Seite kann jetzt einen **Branch oder Commit als ZIP** laden und die App direkt auf dem Router aktualisieren.
