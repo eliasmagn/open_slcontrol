@@ -29,7 +29,7 @@ trap cleanup EXIT INT TERM
 
 REPO=""
 REF=""
-ZIP_URL=""
+ARCHIVE_URL=""
 OVERWRITE_CONFIG=0
 
 while [ "$#" -gt 0 ]; do
@@ -44,9 +44,9 @@ while [ "$#" -gt 0 ]; do
       REF="$2"
       shift 2
       ;;
-    --zip-url)
-      [ "$#" -ge 2 ] || fail "Missing value for --zip-url" 2
-      ZIP_URL="$2"
+    --archive-url|--tar-url|--zip-url)
+      [ "$#" -ge 2 ] || fail "Missing value for $1" 2
+      ARCHIVE_URL="$2"
       shift 2
       ;;
     --overwrite-config)
@@ -59,7 +59,7 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -z "$ZIP_URL" ]; then
+if [ -z "$ARCHIVE_URL" ]; then
   [ -n "$REPO" ] || fail "Missing --repo (owner/name)" 2
   [ -n "$REF" ] || fail "Missing --ref (branch or commit)" 2
 
@@ -70,15 +70,15 @@ if [ -z "$ZIP_URL" ]; then
     ''|*..*|*/*|*\\*|*\ *|*[^A-Za-z0-9._-]*) fail "Invalid --ref format" 2 ;;
   esac
 
-  ZIP_URL="https://codeload.github.com/$REPO/zip/$REF"
+  ARCHIVE_URL="https://codeload.github.com/$REPO/tar.gz/$REF"
 else
-  case "$ZIP_URL" in
+  case "$ARCHIVE_URL" in
     https://*) ;;
-    *) fail "--zip-url must use https://" 2 ;;
+    *) fail "--archive-url/--tar-url/--zip-url must use https://" 2 ;;
   esac
 fi
 
-need_cmd unzip
+need_cmd tar
 need_cmd cp
 need_cmd chmod
 need_cmd mkdir
@@ -95,63 +95,74 @@ else
 fi
 
 TMPDIR_WORK="$(mktemp -d /tmp/heizungpanel_git_update.XXXXXX)"
-ZIP_PATH="$TMPDIR_WORK/repo.zip"
+ARCHIVE_PATH="$TMPDIR_WORK/repo.tar.gz"
 EXTRACT_DIR="$TMPDIR_WORK/extract"
 mkdir -p "$EXTRACT_DIR"
 
-sh -c "$FETCH_CMD \"$ZIP_PATH\" \"$ZIP_URL\"" || fail "Download failed from $ZIP_URL" 4
+sh -c "$FETCH_CMD \"$ARCHIVE_PATH\" \"$ARCHIVE_URL\"" || fail "Download failed from $ARCHIVE_URL" 4
 
-unzip -q "$ZIP_PATH" -d "$EXTRACT_DIR" || fail "Unable to unzip archive" 4
+tar -xzf "$ARCHIVE_PATH" -C "$EXTRACT_DIR" || fail "Unable to extract tar archive" 4
 
 SRC_ROOT="$(find "$EXTRACT_DIR" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
 [ -n "$SRC_ROOT" ] || fail "Archive has no top-level directory" 4
 
-FILES="
-etc/init.d/heizungpanel
-etc/config/heizungpanel
-usr/libexec/heizungpanel/raw_bridge.sh
-usr/libexec/heizungpanel/mode_bridge.sh
-usr/libexec/heizungpanel/snapshot_bridge.sh
-usr/libexec/heizungpanel/bootstrap_bridge.sh
-usr/libexec/heizungpanel/state_bridge.sh
-usr/libexec/heizungpanel/state.sh
-usr/libexec/heizungpanel/parser.uc
-usr/libexec/heizungpanel/press.sh
-usr/libexec/heizungpanel/config.sh
-usr/libexec/heizungpanel/config_get.sh
-usr/libexec/heizungpanel/config_set.sh
-usr/libexec/heizungpanel/set_mode.sh
-usr/libexec/heizungpanel/m2_capture.sh
-usr/libexec/heizungpanel/display_emulator.sh
-usr/libexec/heizungpanel/mapping_validate.sh
-usr/libexec/heizungpanel/isolate_321.sh
-usr/libexec/heizungpanel/git_update.sh
-usr/share/rpcd/acl.d/luci-app-heizungpanel.json
-usr/share/luci/menu.d/luci-app-heizungpanel.json
-www/luci-static/resources/view/heizungpanel/panel.js
-www/luci-static/resources/view/heizungpanel/config.js
-www/luci-static/resources/view/heizungpanel/git_update.js
-www/cgi-bin/heizungpanel_stream
-"
+# Minimal sanity checks: expected app entrypoints must exist.
+[ -f "$SRC_ROOT/etc/init.d/heizungpanel" ] || fail "Archive missing etc/init.d/heizungpanel" 5
+[ -f "$SRC_ROOT/usr/libexec/heizungpanel/git_update.sh" ] || fail "Archive missing usr/libexec/heizungpanel/git_update.sh" 5
+[ -f "$SRC_ROOT/www/cgi-bin/heizungpanel_stream" ] || fail "Archive missing www/cgi-bin/heizungpanel_stream" 5
 
-for rel in $FILES; do
-  src="$SRC_ROOT/$rel"
-  [ -f "$src" ] || fail "Missing required file in archive: $rel" 5
-done
+# Reset managed directories so removed/renamed files don't remain on target.
+rm -rf /usr/libexec/heizungpanel /www/luci-static/resources/view/heizungpanel
+mkdir -p /usr/libexec/heizungpanel /www/luci-static/resources/view/heizungpanel
 
-for rel in $FILES; do
-  src="$SRC_ROOT/$rel"
-  dst="/$rel"
+# Copy only app-managed paths (rename-safe inside managed directories).
+[ -f "$SRC_ROOT/etc/init.d/heizungpanel" ] || fail "Archive missing init script" 5
+mkdir -p /etc/init.d
+cp "$SRC_ROOT/etc/init.d/heizungpanel" /etc/init.d/heizungpanel
 
-  if [ "$rel" = "etc/config/heizungpanel" ] && [ "$OVERWRITE_CONFIG" -ne 1 ] && [ -f "$dst" ]; then
-    continue
+if [ -f "$SRC_ROOT/etc/config/heizungpanel" ]; then
+  if [ "$OVERWRITE_CONFIG" -eq 1 ] || [ ! -f /etc/config/heizungpanel ]; then
+    mkdir -p /etc/config
+    cp "$SRC_ROOT/etc/config/heizungpanel" /etc/config/heizungpanel
   fi
+fi
 
-  mkdir -p "$(dirname "$dst")"
-  cp "$src" "$dst"
-done
+if [ -d "$SRC_ROOT/usr/libexec/heizungpanel" ]; then
+  find "$SRC_ROOT/usr/libexec/heizungpanel" -type f | while IFS= read -r src; do
+    rel="${src#$SRC_ROOT/}"
+    dst="/$rel"
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+  done
+fi
 
-cp "/usr/share/luci/menu.d/luci-app-heizungpanel.json" "/usr/share/luci-app-heizungpanel.json"
+if [ -f "$SRC_ROOT/usr/share/rpcd/acl.d/luci-app-heizungpanel.json" ]; then
+  mkdir -p /usr/share/rpcd/acl.d
+  cp "$SRC_ROOT/usr/share/rpcd/acl.d/luci-app-heizungpanel.json" /usr/share/rpcd/acl.d/luci-app-heizungpanel.json
+fi
+if [ -f "$SRC_ROOT/usr/share/luci/menu.d/luci-app-heizungpanel.json" ]; then
+  mkdir -p /usr/share/luci/menu.d
+  cp "$SRC_ROOT/usr/share/luci/menu.d/luci-app-heizungpanel.json" /usr/share/luci/menu.d/luci-app-heizungpanel.json
+fi
+
+if [ -f "$SRC_ROOT/www/cgi-bin/heizungpanel_stream" ]; then
+  mkdir -p /www/cgi-bin
+  cp "$SRC_ROOT/www/cgi-bin/heizungpanel_stream" /www/cgi-bin/heizungpanel_stream
+fi
+
+if [ -d "$SRC_ROOT/www/luci-static/resources/view/heizungpanel" ]; then
+  find "$SRC_ROOT/www/luci-static/resources/view/heizungpanel" -type f | while IFS= read -r src; do
+    rel="${src#$SRC_ROOT/}"
+    dst="/$rel"
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+  done
+fi
+
+# Mirror canonical menu file into the legacy location for compatibility targets.
+if [ -f "/usr/share/luci/menu.d/luci-app-heizungpanel.json" ]; then
+  cp "/usr/share/luci/menu.d/luci-app-heizungpanel.json" "/usr/share/luci-app-heizungpanel.json"
+fi
 
 chmod 755 /etc/init.d/heizungpanel /www/cgi-bin/heizungpanel_stream
 find /usr/libexec/heizungpanel -maxdepth 1 -type f -name '*.sh' -exec chmod 755 {} \;
@@ -162,7 +173,7 @@ rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true
 /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true
 /etc/init.d/heizungpanel stop >/dev/null 2>&1 || true
 if /etc/init.d/heizungpanel start >/dev/null 2>&1; then
-  printf '{"ok":true,"zip_url":"%s","message":"Update installed and service restarted"}\n' "$(json_escape "$ZIP_URL")"
+  printf '{"ok":true,"archive_url":"%s","message":"Update installed and service restarted"}\n' "$(json_escape "$ARCHIVE_URL")"
   exit 0
 fi
 

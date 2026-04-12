@@ -1,3 +1,31 @@
+## Update 2026-04-12 – Git-Update Sicherheitskorrektur für Zielpfade
+- [x] Globales Baum-Kopieren (`etc/usr/www` komplett) zurückgenommen.
+- [x] Kopierlogik auf app-verwaltete Pfade eingeschränkt (Init/Config, `usr/libexec/heizungpanel`, LuCI-Views, ACL/Menu, CGI).
+- [x] Rename-/Stale-Datei-Fix bleibt erhalten (Bereinigung der verwalteten App-Verzeichnisse vor Copy).
+- [x] Schutz vor unbeabsichtigtem Überschreiben systemfremder Dateien (z. B. unter `/etc`) sichergestellt.
+
+## Update 2026-04-12 – Git-Update Rename-/Datei-Drift-Fix
+- [x] Starre Datei-Allowlist im In-App-Update durch baumbasiertes Kopieren (`etc/`, `usr/`, `www/`) ersetzt.
+- [x] Vor Update-Anwendung werden verwaltete Zielordner bereinigt (`/usr/libexec/heizungpanel`, `/www/luci-static/resources/view/heizungpanel`).
+- [x] Sanity-Checks auf zentrale Einstiegspunkte im Archiv ergänzt (`init.d`, `git_update.sh`, `heizungpanel_stream`).
+- [x] Schutz für `/etc/config/heizungpanel` (overwrite optional) unverändert beibehalten.
+
+## Update 2026-04-12 – Git-Update Archivformat
+- [x] Update-Backend von ZIP auf tar.gz umgestellt (`codeload .../tar.gz/<ref>` + `tar -xzf`).
+- [x] Abhängigkeit `unzip` entfernt; vorhandenes `tar` wird verwendet.
+- [x] CLI-Parameter erweitert: `--archive-url` (kompatibel zu bestehenden URL-Optionen).
+- [x] LuCI-Git-Update-Seite textlich/funktional auf tar.gz angepasst.
+
+## Update 2026-04-11 – PR47-Korrektur (Operator-Panel wieder schlank)
+- [x] Hauptpanel wieder als Operator-Ansicht fokussiert (LCD + Controls + Ein/Aus + Mode-LEDs + Status), ohne Engineering-Tabellen/Graphen.
+- [x] Retained LCD-Bootstrapanzeige entfernt: `line1/line2` werden nicht mehr als Liveinhalt vorgerendert.
+- [x] Persistent-latched Mode-LED-Logik beibehalten: durable `mode_flags16` bleibt LED-Quelle.
+- [x] Transientes `321 FFFF` explizit nur als transienter Hinweis behandelt (überschreibt den Latch nicht).
+- [x] Ein/Aus-LEDs im Hauptpanel ergänzt (live aus aktuellem `0x321`-Frame).
+- [x] Neue LuCI-Seite `Sensor Graph` ergänzt und ins Menü aufgenommen.
+- [x] Neue LuCI-Seite `Mapping` ergänzt und ins Menü aufgenommen.
+- [x] README/concept/roadmap auf neuen UI-Zuschnitt aktualisiert.
+
 ## Update 2026-04-11 – Git-Update Funktion (Branch/Commit als ZIP)
 - [x] Neue LuCI-Unterseite `Git Update` erstellt (`heizungpanel/git_update`).
 - [x] UI-Felder ergänzt: Repository, Branch/Commit, optionale direkte ZIP-URL, optional `overwrite-config`.

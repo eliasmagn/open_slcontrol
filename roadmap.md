@@ -1,3 +1,25 @@
+## Update 2026-04-12 – Korrektur Update-Apply Scope
+- **Abgeschlossen:** Update-Apply von globalem Baum-Overlay auf app-spezifische Zielpfade zurückgeführt.
+- **Abgeschlossen:** Sicherheitsziel geschärft: keine unbeabsichtigten Writes auf systemfremde `/etc`-/`/usr`-/`/www`-Dateien.
+- **Abgeschlossen:** Rename-Handling in den verwalteten App-Verzeichnissen bleibt bestehen.
+
+## Update 2026-04-12 – Updatepfad für Dateiumbenennungen stabilisiert
+- **Abgeschlossen:** In-App-Update von fester Dateiliste auf baumbasiertes Kopieren (`etc/`, `usr/`, `www/`) umgestellt.
+- **Abgeschlossen:** Stale-Datei-Risiko reduziert durch gezielte Bereinigung der verwalteten App-Verzeichnisse vor dem Kopieren.
+- **Abgeschlossen:** Archiv-Sanity-Checks für Kernartefakte ergänzt.
+
+## Update 2026-04-12 – Self-Update Robustheit (Archivformat)
+- **Abgeschlossen:** Git-Updatepfad auf tar.gz standardisiert, damit auf Zielsystemen das bereits vorhandene `tar` genutzt wird.
+- **Abgeschlossen:** ZIP/`unzip`-Pfad aus dem Runtime-Update entfernt; Extraktion erfolgt über `tar -xzf`.
+- **Abgeschlossen:** LuCI-Update-UI auf Archive-URL/tar.gz umgestellt.
+
+## Update 2026-04-11 – UI-Split nach PR47-Korrektur
+- **Abgeschlossen:** Operator-Panel wieder entschlackt und auf Bedienung fokussiert.
+- **Abgeschlossen:** Engineering-Inhalte aus dem Hauptpanel ausgelagert auf eigene LuCI-Seiten (`Sensor Graph`, `Mapping`).
+- **Abgeschlossen:** LCD-Bootstraptext deaktiviert (kein retained `line1/line2` als scheinbar „live“).
+- **Abgeschlossen:** Durable Mode-LED-Latch beibehalten; `321 FFFF` bleibt transient und nicht-latchend.
+- **Neu sichtbar:** Ein/Aus-LED-Indikatoren im Hauptpanel (live, ohne künstliche Persistenz).
+
 ## Update 2026-04-11 – Remote Update aus Git-ZIP
 - **Neu abgeschlossen:** In-App-Updatepfad über LuCI-Unterseite für Branch-/Commit-basierte ZIP-Installationen.
 - **Nutzen:** Schnellere Feldupdates ohne separaten Entwickler-Laptop/SSH-Deployskript.

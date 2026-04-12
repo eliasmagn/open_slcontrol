@@ -1,3 +1,25 @@
+## Architektur-Update 2026-04-12 – Update-Apply auf App-Scope begrenzt
+- Der On-Device-Update-Apply ist jetzt strikt auf app-verwaltete Installationspfade begrenzt und schreibt nicht mehr pauschal gesamte Top-Level-Bäume nach `/`.
+- Dadurch bleibt die Rename-Robustheit innerhalb der Heizungpanel-Verzeichnisse erhalten, ohne systemfremde Dateien zu riskieren.
+- Das Verfahren kombiniert jetzt: (1) Bereinigung verwalteter App-Verzeichnisse, (2) gezieltes Kopieren nur definierter App-Ziele.
+
+## Architektur-Update 2026-04-12 – Self-Update gegen Rename-Drift gehärtet
+- Das On-Device-Update übernimmt nicht mehr nur eine feste Dateiliste, sondern synchronisiert den vollständigen App-Baum unter `etc/`, `usr/`, `www/`.
+- Vor der Anwendung werden die zentral verwalteten Laufzeit-/LuCI-Verzeichnisse bereinigt, damit entfernte oder umbenannte Dateien nicht als Altzustand aktiv bleiben.
+- Ergebnis: robustere Feldupdates bei Refactorings/Dateiumbenennungen ohne manuelle Allowlist-Pflege.
+
+## Architektur-Update 2026-04-12 – Deploy-Archivformat tar.gz
+- Der In-App-Updatepfad bezieht Quellstände jetzt standardmäßig als GitHub `tar.gz`-Archiv statt ZIP.
+- Extraktion erfolgt mit vorhandenem Systemwerkzeug `tar`, um zusätzliche `unzip`-Abhängigkeiten auf OpenWrt zu vermeiden.
+- Die LuCI-Updateoberfläche nutzt dazu den neutralen Archiv-Parameter `--archive-url` (mit kompatibler Legacy-Option).
+
+## Architektur-Update 2026-04-11 – Operator/UI-Split und LED-Semantik
+- Das LuCI-Hauptpanel ist wieder als Operator-Oberfläche definiert (LCD + Tasten + Ein/Aus + Betriebsarten + kurzes Statusfeedback).
+- Engineering-Artefakte (Reverse-Mapping und 0x259-Sensorgraph) sind auf dedizierte Unterseiten verschoben, damit die Bedienoberfläche klar bleibt.
+- Bootstrap-Regel geschärft: retained `line1/line2` dienen nicht als vorgerenderter LCD-Liveinhalt; Live-LCD bleibt strikt browserseitig aus Raw `0x320`.
+- LED-Regel bleibt unverändert robust: Betriebsarten-LEDs stammen aus durablem `mode_flags16`-Latch, transiente `0x321`-Zwischenwerte (z. B. `FFFF`) sind nicht-latchend.
+- Ein/Aus-LEDs sind als Live-Indikatoren aus aktuellem `0x321` sichtbar; es wird kein neues künstliches Persistenzmodell eingeführt.
+
 ## Architektur-Update 2026-04-11 – Self-Update via Git-ZIP
 - Das System besitzt jetzt eine dedizierte LuCI-Updateoberfläche, die einen Git-Branch oder Commit als ZIP beziehen kann.
 - Die Installation erfolgt dateibasiert über eine feste Allowlist der App-Artefakte (kein blindes Full-Overlay).

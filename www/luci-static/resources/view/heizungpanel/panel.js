@@ -99,19 +99,19 @@ return view.extend({
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
 
-    var style = el('style', { html: '.hp-wrap{max-width:720px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 18px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-debug,.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;gap:10px;justify-content:center;margin-top:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
+    var style = el('style', { html: '.hp-wrap{max-width:760px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 14px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-debug,.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;flex-direction:column;gap:8px;margin-top:10px}.hp-power-row{display:flex;justify-content:center;align-items:center;gap:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-led.power.on{background:#9fff82}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
     var line2 = el('div', { class: 'l dim' }, ['                    ']);
-    var flags = el('div', { class: 'hp-debug' }, ['flags16: ----  mode_code: --']);
+    var flags = el('div', { class: 'hp-debug' }, ['durable flags16: ----  current 0x321: ----']);
     var status = el('div', { class: 'hp-status warn' }, ['Status: warte auf Raw-Frames ...']);
     var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
-    var modeHint = el('div', { class:'hp-sub' }, ['Modus aus 0x321: n/a']);
+    var modeHint = el('div', { class:'hp-sub' }, ['Modus (latch): n/a']);
 
     var actionFeedback = el('div', { class:'hp-inline-msg', 'aria-live':'polite' }, ['']);
 
     var display = el('div', { class: 'hp-display' }, [
-      el('div', { class: 'hp-sub' }, ['LCD 2x20 (Browser-dekodiert aus Raw 0x320/0x321)']),
+      el('div', { class: 'hp-sub' }, ['LCD 2x20 (Browser-dekodiert aus Raw 0x320)']),
       line1, line2, flags, status, lastUpdate
     ]);
 
@@ -171,6 +171,9 @@ return view.extend({
       return { led: led, node: el('div', { class:'hp-mode' }, [el('div', {}, [label]), el('div', { class:'hp-mode-actions' }, [led, b])]) };
     }
 
+    var einLed = el('div', { class: 'hp-led power' }, []);
+    var ausLed = el('div', { class: 'hp-led power' }, []);
+
     var mD = mkMode('Dauerbetrieb', 'dauer');
     var mU = mkMode('Uhrzeitbetrieb', 'uhr');
     var mB = mkMode('Boilerbetrieb', 'boiler');
@@ -192,34 +195,36 @@ return view.extend({
 
     var lcd = []; for (var i = 0; i < 40; i++) lcd[i] = ' ';
     var modeCode = '--';
-    var modeFlags = '----';
-    var liveHasRendered = false;
-    var bootstrapHydrated = false;
+    var durableModeFlags = '----';
+    var currentModeFlags = '----';
     var liveTextSeen = false;
-    var pendingLiveClear = false;
 
-    function hydrateLcdFromLines(a, b) {
-      var l1 = pad20(a);
-      var l2 = pad20(b);
-      var i;
-      for (i = 0; i < 20; i++) lcd[i] = l1.charAt(i);
-      for (i = 0; i < 20; i++) lcd[20 + i] = l2.charAt(i);
+    function setPowerLedsByCurrentFlags() {
+      einLed.className = (currentModeFlags === 'FFFB') ? 'hp-led power on' : 'hp-led power';
+      ausLed.className = (currentModeFlags === 'FF7F') ? 'hp-led power on' : 'hp-led power';
     }
 
-    function renderLive() {
-      setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''));
-      liveHasRendered = true;
-      flags.textContent = 'flags16: ' + modeFlags + '  mode_code: ' + modeCode;
-      lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString();
+    function renderIndicators() {
+      flags.textContent = 'durable flags16: ' + durableModeFlags + '  current 0x321: ' + currentModeFlags;
       clearLeds();
-      if (modeByFlags[modeFlags]) {
-        modeByFlags[modeFlags].led.className = 'hp-led on';
-        modeHint.textContent = 'Modus aus 0x321: ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
+      if (modeByFlags[durableModeFlags]) {
+        modeByFlags[durableModeFlags].led.className = 'hp-led on';
+        modeHint.textContent = 'Modus (latch): ' + modeByFlags[durableModeFlags].name + ' (' + durableModeFlags + ')';
       } else {
-        modeHint.textContent = 'Modus aus 0x321: unbekannt (' + modeFlags + ')';
+        modeHint.textContent = 'Modus (latch): unbekannt (' + durableModeFlags + ')';
       }
-      if (pendingModeAck && modeFlags === pendingModeAck.expected_flags) {
-        showActionFeedback('ok', 'CAN-Bestätigung: ' + pendingModeAck.code + ' -> ' + modeFlags, 1500);
+
+      if (currentModeFlags === 'FFFF') {
+        modeHint.textContent += ' · transient 321 FFFF ignoriert';
+      } else if (!modeByFlags[currentModeFlags] && currentModeFlags !== '----') {
+        modeHint.textContent += ' · transient: ' + currentModeFlags;
+      }
+
+      setPowerLedsByCurrentFlags();
+      lastUpdate.textContent = 'Letzte Aktualisierung: ' + new Date().toLocaleString();
+
+      if (pendingModeAck && durableModeFlags === pendingModeAck.expected_flags) {
+        showActionFeedback('ok', 'CAN-Bestätigung: ' + pendingModeAck.code + ' -> ' + durableModeFlags, 1500);
         pendingModeAck = null;
       }
     }
@@ -229,8 +234,9 @@ return view.extend({
       if (!f) return;
 
       if (f.id === '321' && f.data.length >= 4) {
-        modeFlags = f.data.slice(0, 4).toUpperCase();
-        renderLive();
+        currentModeFlags = f.data.slice(0, 4).toUpperCase();
+        if (modeByFlags[currentModeFlags]) durableModeFlags = currentModeFlags;
+        renderIndicators();
         status.className = 'hp-status ok';
         status.textContent = 'Status: Raw-Stream aktiv';
         return;
@@ -239,16 +245,14 @@ return view.extend({
       if (f.id !== '320' || f.data.length < 2) return;
       var lead = f.data.slice(0, 2).toUpperCase();
       if (lead === '81') {
-        if (bootstrapHydrated && !liveTextSeen) {
-          pendingLiveClear = true;
-        } else {
-          for (var i = 0; i < 40; i++) lcd[i] = ' ';
-        }
+        for (var i = 0; i < 40; i++) lcd[i] = ' ';
         return;
       }
       if (lead === '83') {
         if (f.data.length >= 4) modeCode = f.data.slice(2, 4).toUpperCase();
-        renderLive();
+        setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''));
+        liveTextSeen = true;
+        renderIndicators();
         status.className = 'hp-status ok';
         status.textContent = 'Status: Raw-Stream aktiv';
         return;
@@ -258,11 +262,7 @@ return view.extend({
       var off = hex2dec(lead);
       var idx = lcdIndex(off);
       if (idx < 0) return;
-      if (pendingLiveClear) {
-        for (var k = 0; k < 40; k++) lcd[k] = ' ';
-        pendingLiveClear = false;
-      }
-      liveTextSeen = true;
+
       for (var j = 2; (j + 1) < f.data.length && idx < 40; j += 2) {
         lcd[idx++] = byteToChar(f.data.slice(j, j + 2));
       }
@@ -270,26 +270,20 @@ return view.extend({
 
     function applyBootstrap(st) {
       if (!st || st.status !== 'ok') return;
-      var snap = st.snapshot || {};
       var mode = st.mode || {};
-      var lineA = (typeof st.line1 === 'string') ? st.line1 : (snap.line1 || '');
-      var lineB = (typeof st.line2 === 'string') ? st.line2 : (snap.line2 || '');
-      hydrateLcdFromLines(lineA, lineB);
-      bootstrapHydrated = true;
-      liveTextSeen = false;
-      pendingLiveClear = false;
-      modeFlags = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
-      modeCode = (st.mode_code || snap.mode_code || '--').toUpperCase();
-      if (!liveHasRendered) {
-        renderLive();
-        if (modeByFlags[modeFlags]) {
-          modeHint.textContent = 'Modus (retained): ' + modeByFlags[modeFlags].name + ' (' + modeFlags + ')';
-        } else {
-          modeHint.textContent = 'Modus (retained): unbekannt (' + modeFlags + ')';
-        }
+      var initial = (st.mode_flags16 || mode.flags16 || '----').toUpperCase();
+      if (modeByFlags[initial]) durableModeFlags = initial;
+      currentModeFlags = '----';
+      modeCode = (st.mode_code || (st.snapshot || {}).mode_code || '--').toUpperCase();
+      renderIndicators();
+      if (!liveTextSeen) {
+        line1.className = 'l dim';
+        line2.className = 'l dim';
+        line1.textContent = '                    ';
+        line2.textContent = '                    ';
       }
       status.className = 'hp-status warn';
-      status.textContent = 'Status: Bootstrap geladen, warte auf Raw-Liveframes';
+      status.textContent = 'Status: Bootstrap geladen (nur Modus-Latch), warte auf Raw-Liveframes';
     }
 
     function loadBootstrap() {
@@ -318,7 +312,11 @@ return view.extend({
       });
     }
 
-    var powerRow = el('div', { class:'hp-power' }, [btn('Ein', 'ein'), btn('Aus', 'aus')]);
+    var powerRow = el('div', { class:'hp-power' }, [
+      el('div', { class:'hp-sub' }, ['Ein/Aus (live aus 0x321, nicht gelatcht)']),
+      el('div', { class:'hp-power-row' }, [einLed, btn('Ein', 'ein')]),
+      el('div', { class:'hp-power-row' }, [ausLed, btn('Aus', 'aus')])
+    ]);
     var left = el('div', { class:'hp-left' }, [keygrid, powerRow, el('label', {}, ['Send mode ', sendSwitch]), actionFeedback]);
     var right = el('div', { class:'hp-right' }, [el('div', { class:'hp-modes' }, [mD.node,mU.node,mB.node,mUB.node,mA.node,mP.node,mH.node]), modeHint]);
     var root = el('div', { class:'hp-wrap' }, [style, el('div', { class:'hp-panel' }, [display, el('div', { class:'hp-grid' }, [left, right])])]);
