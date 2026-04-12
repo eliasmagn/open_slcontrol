@@ -1,3 +1,8 @@
+## Architektur-Update 2026-04-12 – Prozessreduktion Runtime
+- Neue `runtime_bridge.sh` konsolidiert `raw_bridge.sh`, `mode_bridge.sh` und `snapshot_bridge.sh` in einen einzigen long-lived Bridge-Prozess mit einem Raw-Consumer.
+- `bootstrap_bridge.sh` entfernt; Bootstrap wird nicht mehr dauerhaft republished, sondern in `state.sh` on demand aus retained `mode`+`snapshot` gebaut.
+- SSE-CGI streamt weiter MQTT-themenbasiert, erkennt Disconnects jetzt aktiv über Heartbeats und beendet Kindprozesse zeitnah.
+
 ## Architektur-Update 2026-04-12 – Mapping als Runtime-Daten, Graph als Engineering-Modell
 - Die Mapping-Schicht ist nun als **konfigurierbare UCI-Datenebene** modelliert (`mapping_*`) statt als statische Code-Tabelle.
 - Der Write-Pfad (`press.sh`) liest Mapping zur Laufzeit aus UCI, nutzt nur validierte 4-hex-Payloads und bleibt strikt hinter `write_mode`.

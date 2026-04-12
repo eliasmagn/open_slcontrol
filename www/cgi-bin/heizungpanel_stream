@@ -14,7 +14,6 @@ TOPIC_STATE="${MQTT_BASE}/state"
 TOPIC_MODE_DURABLE="${MQTT_BASE}/mode"
 TOPIC_MODE_CURRENT="${TOPIC_MODE_DURABLE}/current"
 TOPIC_SNAPSHOT="${MQTT_BASE}/snapshot"
-TOPIC_BOOTSTRAP="${MQTT_BASE}/bootstrap"
 
 SUB_PID=""
 FIFO_PATH=""
@@ -60,7 +59,7 @@ case "$MODE" in
   mode|mode_durable) TOPIC="$TOPIC_MODE_DURABLE" ;;
   mode_current|current|mode/current) TOPIC="$TOPIC_MODE_CURRENT" ;;
   snapshot) TOPIC="$TOPIC_SNAPSHOT" ;;
-  bootstrap) TOPIC="$TOPIC_BOOTSTRAP" ;;
+  bootstrap) TOPIC="__bootstrap_on_demand__" ;;
   *) TOPIC="$TOPIC_RAW" ;;
 esac
 
@@ -73,15 +72,25 @@ echo "event: hello"
 echo "data: stream-open"
 echo
 
+if [ "$TOPIC" = "__bootstrap_on_demand__" ]; then
+  BOOTSTRAP_JSON="$(/usr/libexec/heizungpanel/state.sh 2>/dev/null)"
+  [ -n "$BOOTSTRAP_JSON" ] && printf 'data: %s\n\n' "$BOOTSTRAP_JSON"
+  exit 0
+fi
+
 FIFO_PATH="/tmp/heizungpanel_stream.$$.$RANDOM.fifo"
 mkfifo "$FIFO_PATH" || exit 1
 
 mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC" 2>/dev/null > "$FIFO_PATH" &
 SUB_PID="$!"
 
-while IFS= read -r line; do
-  [ -n "$line" ] || continue
-  printf 'data: %s\n\n' "$line" || break
-done < "$FIFO_PATH"
+while true; do
+  if IFS= read -r -t 15 line < "$FIFO_PATH"; then
+    [ -n "$line" ] || continue
+    printf 'data: %s\n\n' "$line" || break
+  else
+    printf ': ping\n\n' || break
+  fi
+done
 
 exit 0

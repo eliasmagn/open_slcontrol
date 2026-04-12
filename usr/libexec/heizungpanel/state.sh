@@ -58,34 +58,20 @@ mqtt_get_retained() {
   mosquitto_sub -h "$HOST" -p "$PORT" -t "$topic" -C 1 -W "$MQTT_WAIT" 2>/dev/null
 }
 
-BOOTSTRAP_JSON="$(mqtt_get_retained "$BASE/bootstrap")"
+MODE_JSON="$(mqtt_get_retained "$BASE/mode")"
+# NOTE: bootstrap intentionally uses durable retained <base>/mode, never transient <base>/mode/current.
+SNAP_JSON="$(mqtt_get_retained "$BASE/snapshot")"
 
-MODE_FLAGS="$(extract_json_field "$BOOTSTRAP_JSON" mode.flags16 2>/dev/null || true)"
-MODE_NAME="$(extract_json_field "$BOOTSTRAP_JSON" mode.mode_name 2>/dev/null || true)"
-MODE_TS="$(extract_json_field "$BOOTSTRAP_JSON" mode.ts_ms 2>/dev/null || true)"
+MODE_FLAGS="$(extract_json_field "$MODE_JSON" flags16 2>/dev/null || true)"
+MODE_NAME="$(extract_json_field "$MODE_JSON" mode_name 2>/dev/null || true)"
+MODE_TS="$(extract_json_field "$MODE_JSON" ts_ms 2>/dev/null || true)"
 
-SNAP_LINE1="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.line1 2>/dev/null || true)"
-SNAP_LINE2="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.line2 2>/dev/null || true)"
-SNAP_MODE_CODE="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.mode_code 2>/dev/null || true)"
-SNAP_TS="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.ts_ms 2>/dev/null || true)"
+SNAP_LINE1="$(extract_json_field "$SNAP_JSON" line1 2>/dev/null || true)"
+SNAP_LINE2="$(extract_json_field "$SNAP_JSON" line2 2>/dev/null || true)"
+SNAP_MODE_CODE="$(extract_json_field "$SNAP_JSON" mode_code 2>/dev/null || true)"
+SNAP_TS="$(extract_json_field "$SNAP_JSON" ts_ms 2>/dev/null || true)"
 
-# primary fallback path for older runtimes without canonical retained <base>/bootstrap
-if [ -z "$SNAP_LINE1" ] || [ -z "$SNAP_LINE2" ] || [ -z "$MODE_FLAGS" ]; then
-  MODE_JSON="$(mqtt_get_retained "$BASE/mode")"
-  # NOTE: bootstrap intentionally uses durable retained <base>/mode, never transient <base>/mode/current.
-  SNAP_JSON="$(mqtt_get_retained "$BASE/snapshot")"
-
-  [ -n "$MODE_FLAGS" ] || MODE_FLAGS="$(extract_json_field "$MODE_JSON" flags16 2>/dev/null || true)"
-  [ -n "$MODE_NAME" ] || MODE_NAME="$(extract_json_field "$MODE_JSON" mode_name 2>/dev/null || true)"
-  [ -n "$MODE_TS" ] || MODE_TS="$(extract_json_field "$MODE_JSON" ts_ms 2>/dev/null || true)"
-
-  [ -n "$SNAP_LINE1" ] || SNAP_LINE1="$(extract_json_field "$SNAP_JSON" line1 2>/dev/null || true)"
-  [ -n "$SNAP_LINE2" ] || SNAP_LINE2="$(extract_json_field "$SNAP_JSON" line2 2>/dev/null || true)"
-  [ -n "$SNAP_MODE_CODE" ] || SNAP_MODE_CODE="$(extract_json_field "$SNAP_JSON" mode_code 2>/dev/null || true)"
-  [ -n "$SNAP_TS" ] || SNAP_TS="$(extract_json_field "$SNAP_JSON" ts_ms 2>/dev/null || true)"
-fi
-
-# compatibility/debug fallback: only query legacy full state when bootstrap data is missing
+# compatibility/debug fallback: only query legacy full state when mode/snapshot data is missing
 if [ -z "$SNAP_LINE1" ] || [ -z "$SNAP_LINE2" ] || [ -z "$MODE_FLAGS" ]; then
   STATE_JSON="$(mqtt_get_retained "$BASE/state")"
   ST_LINE1="$(extract_json_field "$STATE_JSON" line1 2>/dev/null || true)"
@@ -117,7 +103,7 @@ if [ -n "$SNAP_LINE1" ] || [ -n "$SNAP_LINE2" ] || [ "$MODE_FLAGS" != "----" ]; 
   json_init
   json_add_string status "ok"
   json_add_int schema_version 2
-  json_add_string source "bootstrap"
+  json_add_string source "mode_snapshot"
   json_add_int age_ms "$AGE"
 
   json_add_object mode

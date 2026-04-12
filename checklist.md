@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Runtime-Prozesslast reduziert
+- [x] `runtime_bridge.sh` eingeführt und bisherige raw/mode/snapshot Runtime-Fanout-Stufen auf einen Prozess zusammengeführt.
+- [x] `bootstrap_bridge.sh` aus Runtime entfernt; Bootstrap wird on demand in `state.sh` aus retained `mode` + `snapshot` aufgebaut.
+- [x] `/www/cgi-bin/heizungpanel_stream` mit Heartbeat/Timeout für schnellere Disconnect-Erkennung gehärtet.
+- [x] Frontend-Streams schließen nun zusätzlich bei `visibilitychange` (neben `pagehide`/`beforeunload`).
+
 ## Update 2026-04-12 – Mapping/Graph/SSE Runtime-Korrektur
 - [x] Mapping-Seite von statischem Status auf echte UCI-Konfiguration umgestellt.
 - [x] `press.sh` auf runtime-konfigurierbare Mapping-Keys (`mapping_*`) umgestellt.

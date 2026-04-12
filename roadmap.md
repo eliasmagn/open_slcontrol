@@ -1,3 +1,8 @@
+## Update 2026-04-12 – Runtime-Effizienz (umgesetzt)
+- **Abgeschlossen:** Bridge-Fanout reduziert: ein gemeinsamer Runtime-Bridgeprozess statt separater `raw`/`mode`/`snapshot` Subpipelines.
+- **Abgeschlossen:** Always-on Bootstrap-Republisher entfernt; Bootstrap bleibt semantisch erhalten via on-demand Assembly in `state.sh`.
+- **Abgeschlossen:** SSE-Stream-Lifecycle weiter gehärtet (Heartbeat-basiertes Disconnect-Exit + Browser-Teardown bei Hidden/Unload).
+
 ## Update 2026-04-12 – M2 Abschlussblock: konfigurierbares Mapping + ehrlicher Engineering-Graph
 - **Abgeschlossen:** Mapping ist jetzt nicht mehr rein dokumentarisch, sondern als echte UCI-Runtime-Konfiguration im LuCI verfügbar.
 - **Abgeschlossen:** Write-Pfad nutzt konfigurierte `mapping_*`-Einträge und bleibt weiter über `write_mode` gegatet.
