@@ -1,3 +1,11 @@
+## Update 2026-04-12 – Runtime-Komplexität radikal reduziert
+- [x] Always-on Bridges auf ein Minimum reduziert: `raw_bridge.sh` als einziger Standardprozess.
+- [x] `mode_bridge.sh`, `snapshot_bridge.sh`, `runtime_bridge.sh` entfernt.
+- [x] Bootstrap-Erzeugung in den Raw-Ingest integriert (`/tmp/heizungpanel/bootstrap.json`).
+- [x] Bootstrap-Writepfad auf commit-getriggerte Updates reduziert (keine per-Frame Shell-Prozesse).
+- [x] `state.sh` auf lokalen Bootstrap-Dateipfad umgestellt (ohne retained-MQTT-Abhängigkeit im Normalfall).
+- [x] Config/Oberfläche bereinigt: `publish_mode`/`publish_snapshot` aus aktivem Runtime-Modell entfernt.
+
 ## Update 2026-04-12 – Architekturpflege Panel/Profiles
 - [x] Protokollmodell im Panel aufgetrennt (`0x321 durable`, `0x321 transient`, `0x320 text`, `0x320 83xx status`).
 - [x] Fehlmodell für Ein/Aus korrigiert: keine LED-Ableitung mehr aus transienten `FFFB/FF7F`-Events.

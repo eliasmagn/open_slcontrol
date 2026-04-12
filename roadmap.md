@@ -1,3 +1,16 @@
+## Fortschritt 2026-04-12 – M1 Runtime-Schrumpfung abgeschlossen
+
+### Erreicht
+- Ein-Prozess-Standardruntime für Embedded-Seite (CAN ingest + raw publish + bootstrap file update).
+- Deutliche Reduktion von MQTT-Client-Fan-out und Shell-Pipeline-Stufen.
+- Bootstrap-Dateischreibpfad auf ereignisgetriggerte Updates reduziert (weniger CPU/Process-Overhead).
+- Bootstrap-Latenz beibehalten durch lokales, kleines Artefakt statt zusätzlicher MQTT-Helfertopics.
+
+### Nächste Schritte
+1. Feldmessung der Prozess-/RAM-Ersparnis auf Zielhardware dokumentieren.
+2. Optionalen Legacy-Statepfad weiter entkoppeln (Debug-Profile).
+3. Parser-Swap-Fähigkeit beibehalten: Bootstrap-Writer als austauschbares Modul spezifizieren.
+
 ## Update 2026-04-12 – M2 UX/Productization Fortschritt
 - **Abgeschlossen:** Operator-Panel nutzt jetzt ein explizites Protokollmodell statt gemischter Felder/Heuristiken.
 - **Abgeschlossen:** Bootstrap zeigt wieder den letzten gültigen Snapshot-Displayinhalt als Startzustand.
@@ -5,8 +18,8 @@
 - **Offen (nächste Iteration):** Bitgenaue LED-Semantik aus `0x320 83xx` per Feldcaptures von unknown -> likely/confirmed heben.
 
 ## Update 2026-04-12 – Runtime-Effizienz (umgesetzt)
-- **Abgeschlossen:** Bridge-Fanout reduziert: ein gemeinsamer Runtime-Bridgeprozess statt separater `raw`/`mode`/`snapshot` Subpipelines.
-- **Abgeschlossen:** Always-on Bootstrap-Republisher entfernt; Bootstrap bleibt semantisch erhalten via on-demand Assembly in `state.sh`.
+- **Abgeschlossen:** Bridge-Fanout radikal reduziert: ein einzelner Standardprozess (`raw_bridge.sh`) statt separater `raw`/`mode`/`snapshot` Subpipelines.
+- **Abgeschlossen:** Bootstrap kommt aus lokalem Mini-Artefakt (`/tmp/heizungpanel/bootstrap.json`) via `state.sh` on demand.
 - **Abgeschlossen:** SSE-Stream-Lifecycle weiter gehärtet (Heartbeat-basiertes Disconnect-Exit + Browser-Teardown bei Hidden/Unload).
 
 ## Update 2026-04-12 – M2 Abschlussblock: konfigurierbares Mapping + ehrlicher Engineering-Graph

@@ -2,15 +2,8 @@
 
 . /usr/share/libubox/jshn.sh
 
-MQTT_WAIT="$(uci -q get heizungpanel.main.state_mqtt_wait)"
-[ -n "$MQTT_WAIT" ] || MQTT_WAIT="1"
-
-BASE="$(uci -q get heizungpanel.main.mqtt_base)"
-HOST="$(uci -q get heizungpanel.main.mqtt_host)"
-PORT="$(uci -q get heizungpanel.main.mqtt_port)"
-[ -n "$BASE" ] || BASE="heizungpanel"
-[ -n "$HOST" ] || HOST="127.0.0.1"
-[ -n "$PORT" ] || PORT="1883"
+[ -n "$BOOTSTRAP_FILE" ] || BOOTSTRAP_FILE="/tmp/heizungpanel/bootstrap.json"
+[ -n "$STATE_CACHE" ] || STATE_CACHE="/tmp/heizungpanel/state.json"
 
 now_ms() {
   date +%s000
@@ -30,8 +23,6 @@ extract_json_field() {
 
   [ -n "$raw" ] || return 1
 
-  # Preferred path: jsonfilter resolves nested keys without emitting jshn warnings
-  # into stdout when intermediate objects are missing.
   if command -v jsonfilter >/dev/null 2>&1; then
     printf '%s' "$raw" | jsonfilter -q -e "@.${key}" 2>/dev/null
     return 0
@@ -53,37 +44,30 @@ extract_json_field() {
   printf '%s' "$__val"
 }
 
-mqtt_get_retained() {
-  local topic="$1"
-  mosquitto_sub -h "$HOST" -p "$PORT" -t "$topic" -C 1 -W "$MQTT_WAIT" 2>/dev/null
+read_json_file() {
+  local path="$1"
+  [ -r "$path" ] || return 1
+  sed -n '1p' "$path"
 }
 
-MODE_JSON="$(mqtt_get_retained "$BASE/mode")"
-# NOTE: bootstrap intentionally uses durable retained <base>/mode, never transient <base>/mode/current.
-SNAP_JSON="$(mqtt_get_retained "$BASE/snapshot")"
-
-MODE_FLAGS="$(extract_json_field "$MODE_JSON" flags16 2>/dev/null || true)"
-MODE_NAME="$(extract_json_field "$MODE_JSON" mode_name 2>/dev/null || true)"
-MODE_TS="$(extract_json_field "$MODE_JSON" ts_ms 2>/dev/null || true)"
-
-SNAP_LINE1="$(extract_json_field "$SNAP_JSON" line1 2>/dev/null || true)"
-SNAP_LINE2="$(extract_json_field "$SNAP_JSON" line2 2>/dev/null || true)"
-SNAP_MODE_CODE="$(extract_json_field "$SNAP_JSON" mode_code 2>/dev/null || true)"
-SNAP_TS="$(extract_json_field "$SNAP_JSON" ts_ms 2>/dev/null || true)"
-
-# compatibility/debug fallback: only query legacy full state when mode/snapshot data is missing
-if [ -z "$SNAP_LINE1" ] || [ -z "$SNAP_LINE2" ] || [ -z "$MODE_FLAGS" ]; then
-  STATE_JSON="$(mqtt_get_retained "$BASE/state")"
-  ST_LINE1="$(extract_json_field "$STATE_JSON" line1 2>/dev/null || true)"
-  ST_LINE2="$(extract_json_field "$STATE_JSON" line2 2>/dev/null || true)"
-  ST_FLAGS="$(extract_json_field "$STATE_JSON" mode_flags16 2>/dev/null || true)"
-  ST_CODE="$(extract_json_field "$STATE_JSON" mode_code 2>/dev/null || true)"
-
-  [ -n "$SNAP_LINE1" ] || SNAP_LINE1="$ST_LINE1"
-  [ -n "$SNAP_LINE2" ] || SNAP_LINE2="$ST_LINE2"
-  [ -n "$MODE_FLAGS" ] || MODE_FLAGS="$ST_FLAGS"
-  [ -n "$SNAP_MODE_CODE" ] || SNAP_MODE_CODE="$ST_CODE"
+BOOTSTRAP_JSON="$(read_json_file "$BOOTSTRAP_FILE" 2>/dev/null || true)"
+if [ -z "$BOOTSTRAP_JSON" ]; then
+  BOOTSTRAP_JSON="$(read_json_file "$STATE_CACHE" 2>/dev/null || true)"
 fi
+
+MODE_FLAGS="$(extract_json_field "$BOOTSTRAP_JSON" mode.flags16 2>/dev/null || true)"
+[ -n "$MODE_FLAGS" ] || MODE_FLAGS="$(extract_json_field "$BOOTSTRAP_JSON" mode_flags16 2>/dev/null || true)"
+
+MODE_NAME="$(extract_json_field "$BOOTSTRAP_JSON" mode.mode_name 2>/dev/null || true)"
+MODE_TS="$(extract_json_field "$BOOTSTRAP_JSON" mode.ts_ms 2>/dev/null || true)"
+
+SNAP_LINE1="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.line1 2>/dev/null || true)"
+[ -n "$SNAP_LINE1" ] || SNAP_LINE1="$(extract_json_field "$BOOTSTRAP_JSON" line1 2>/dev/null || true)"
+SNAP_LINE2="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.line2 2>/dev/null || true)"
+[ -n "$SNAP_LINE2" ] || SNAP_LINE2="$(extract_json_field "$BOOTSTRAP_JSON" line2 2>/dev/null || true)"
+SNAP_MODE_CODE="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.mode_code 2>/dev/null || true)"
+[ -n "$SNAP_MODE_CODE" ] || SNAP_MODE_CODE="$(extract_json_field "$BOOTSTRAP_JSON" mode_code 2>/dev/null || true)"
+SNAP_TS="$(extract_json_field "$BOOTSTRAP_JSON" snapshot.ts_ms 2>/dev/null || true)"
 
 [ -n "$MODE_FLAGS" ] || MODE_FLAGS="----"
 [ -n "$MODE_NAME" ] || MODE_NAME="unknown"
@@ -92,6 +76,7 @@ fi
 if [ -n "$SNAP_LINE1" ] || [ -n "$SNAP_LINE2" ] || [ "$MODE_FLAGS" != "----" ]; then
   TS_NOW="$(now_ms)"
   AGE=-1
+
   if is_uint "$MODE_TS"; then
     AGE=$(( TS_NOW - MODE_TS ))
     [ "$AGE" -ge 0 ] || AGE=0
@@ -103,7 +88,7 @@ if [ -n "$SNAP_LINE1" ] || [ -n "$SNAP_LINE2" ] || [ "$MODE_FLAGS" != "----" ]; 
   json_init
   json_add_string status "ok"
   json_add_int schema_version 2
-  json_add_string source "mode_snapshot"
+  json_add_string source "bootstrap_file"
   json_add_int age_ms "$AGE"
 
   json_add_object mode
@@ -119,7 +104,6 @@ if [ -n "$SNAP_LINE1" ] || [ -n "$SNAP_LINE2" ] || [ "$MODE_FLAGS" != "----" ]; 
   json_add_string ts_ms "$SNAP_TS"
   json_close_object
 
-  # Flat compatibility fields for older frontend code paths.
   json_add_string mode_flags16 "$MODE_FLAGS"
   json_add_string line1 "$SNAP_LINE1"
   json_add_string line2 "$SNAP_LINE2"

@@ -1,3 +1,9 @@
+## Architektur-Update 2026-04-12 – Minimal Embedded Runtime
+- Embedded-Laufzeit ist jetzt explizit auf **CAN ingest once + raw publish once + tiny local bootstrap artifact** reduziert.
+- Ableitungsprodukte (`mode`, `snapshot`) sind keine eigenständigen always-on MQTT-Services mehr.
+- Browser bleibt primärer Decoder/Interpreter (Displayrekonstruktion, Engineering/Graph/Mapping).
+- Legacy-Vollstate bleibt optionaler Debugpfad und ist nicht Teil des normalen Runtime-Kritischen Pfades.
+
 ## Architektur-Update 2026-04-12 – Trennung Protokollmodell / UI-Modell
 - Das Frontend trennt die Laufzeitsemantik jetzt explizit in fünf Kanäle: `0x321 durable latch`, `0x321 transient event`, `0x320 text reconstruction`, `0x320 83xx display/LED/status`, `0x258/0x259 engineering process image`.
 - `0x320 83xx` wird als eigener Statuspfad geführt (nicht mehr nur als lose `mode_code`-Hilfsvariable).
@@ -5,9 +11,10 @@
 - Bootstrap-Hydration stellt wieder Snapshot-LCD-Inhalt als Startzustand bereit; Live-Decoding bleibt weiterhin browserseitig raw-first.
 
 ## Architektur-Update 2026-04-12 – Prozessreduktion Runtime
-- Neue `runtime_bridge.sh` konsolidiert `raw_bridge.sh`, `mode_bridge.sh` und `snapshot_bridge.sh` in einen einzigen long-lived Bridge-Prozess mit einem Raw-Consumer.
-- `bootstrap_bridge.sh` entfernt; Bootstrap wird nicht mehr dauerhaft republished, sondern in `state.sh` on demand aus retained `mode`+`snapshot` gebaut.
-- SSE-CGI streamt weiter MQTT-themenbasiert, erkennt Disconnects jetzt aktiv über Heartbeats und beendet Kindprozesse zeitnah.
+- Standardruntime nutzt nur noch `raw_bridge.sh` als long-lived Bridge-Prozess mit einem Raw-Consumer.
+- `mode_bridge.sh`, `snapshot_bridge.sh` und `runtime_bridge.sh` sind entfernt; Bootstrap wird direkt aus dem Ingest in `/tmp/heizungpanel/bootstrap.json` geschrieben.
+- Der Bootstrap-Writepfad ist ereignisgetrieben und ohne zusätzliche Shell-Spawns pro Raw-Frame ausgelegt.
+- SSE-CGI streamt primär Raw und liefert Bootstrap on-demand über `state.sh`; optionales `state` bleibt Debugpfad.
 
 ## Architektur-Update 2026-04-12 – Mapping als Runtime-Daten, Graph als Engineering-Modell
 - Die Mapping-Schicht ist nun als **konfigurierbare UCI-Datenebene** modelliert (`mapping_*`) statt als statische Code-Tabelle.

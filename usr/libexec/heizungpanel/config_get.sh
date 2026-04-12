@@ -23,9 +23,6 @@ POLL_MS="$(get_or_default poll_interval_ms 500)"
 WRITE_MODE="$(get_or_default write_mode 0)"
 STREAM_TOKEN="$(get_or_default stream_token '')"
 PUBLISH_RAW="$(get_or_default publish_raw 1)"
-PUBLISH_MODE="$(get_or_default publish_mode 1)"
-PUBLISH_SNAPSHOT="$(get_or_default publish_snapshot 1)"
-PUBLISH_BOOTSTRAP="$(get_or_default publish_bootstrap 0)"
 PUBLISH_STATE="$(get_or_default publish_state 0)"
 
 MAPPING_UHR="$(get_or_default mapping_uhr BFFF)"
@@ -56,7 +53,7 @@ SENSOR_AUTOSCALE="$(get_or_default sensor_autoscale 1)"
 SENSOR_YMIN="$(get_or_default sensor_y_min 0)"
 SENSOR_YMAX="$(get_or_default sensor_y_max 255)"
 
-printf '{"can_if":"%s","can_bitrate":"%s","mqtt_host":"%s","mqtt_port":"%s","mqtt_base":"%s","state_mqtt_wait":"%s","poll_interval_ms":"%s","write_mode":"%s","stream_token":"%s","publish_raw":"%s","publish_mode":"%s","publish_snapshot":"%s","publish_bootstrap":"%s","publish_state":"%s","mapping_uhr":"%s","mapping_boiler":"%s","mapping_uhr_boiler":"%s","mapping_dauer":"%s","mapping_v":"%s","mapping_z":"%s","mapping_quit":"%s","mapping_hand":"%s","mapping_aussen_reg":"%s","mapping_pruef":"%s","mapping_plus":"%s","mapping_ein":"%s","mapping_aus":"%s","mapping_minus":"%s","sensor_profile":"%s","sensor_source":"%s","sensor_index":"%s","sensor_field":"%s","sensor_label":"%s","sensor_unit":"%s","sensor_scale":"%s","sensor_offset":"%s","sensor_confidence":"%s","sensor_autoscale":"%s","sensor_y_min":"%s","sensor_y_max":"%s"}\n' \
+printf '{"can_if":"%s","can_bitrate":"%s","mqtt_host":"%s","mqtt_port":"%s","mqtt_base":"%s","state_mqtt_wait":"%s","poll_interval_ms":"%s","write_mode":"%s","stream_token":"%s","publish_raw":"%s","publish_state":"%s","mapping_uhr":"%s","mapping_boiler":"%s","mapping_uhr_boiler":"%s","mapping_dauer":"%s","mapping_v":"%s","mapping_z":"%s","mapping_quit":"%s","mapping_hand":"%s","mapping_aussen_reg":"%s","mapping_pruef":"%s","mapping_plus":"%s","mapping_ein":"%s","mapping_aus":"%s","mapping_minus":"%s","sensor_profile":"%s","sensor_source":"%s","sensor_index":"%s","sensor_field":"%s","sensor_label":"%s","sensor_unit":"%s","sensor_scale":"%s","sensor_offset":"%s","sensor_confidence":"%s","sensor_autoscale":"%s","sensor_y_min":"%s","sensor_y_max":"%s"}\n' \
   "$(json_escape "$CAN_IF")" \
   "$(json_escape "$CAN_BITRATE")" \
   "$(json_escape "$MQTT_HOST")" \
@@ -67,9 +64,6 @@ printf '{"can_if":"%s","can_bitrate":"%s","mqtt_host":"%s","mqtt_port":"%s","mqt
   "$(json_escape "$WRITE_MODE")" \
   "$(json_escape "$STREAM_TOKEN")" \
   "$(json_escape "$PUBLISH_RAW")" \
-  "$(json_escape "$PUBLISH_MODE")" \
-  "$(json_escape "$PUBLISH_SNAPSHOT")" \
-  "$(json_escape "$PUBLISH_BOOTSTRAP")" \
   "$(json_escape "$PUBLISH_STATE")" \
   "$(json_escape "$MAPPING_UHR")" \
   "$(json_escape "$MAPPING_BOILER")" \
