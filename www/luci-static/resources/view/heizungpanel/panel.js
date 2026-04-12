@@ -355,6 +355,9 @@ return view.extend({
 
     window.addEventListener('beforeunload', teardown);
     window.addEventListener('pagehide', teardown);
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'hidden') teardown();
+    });
 
     return root;
   },

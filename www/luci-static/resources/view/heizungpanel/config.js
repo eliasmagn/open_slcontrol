@@ -65,7 +65,6 @@ return view.extend({
       mkRow('Publish raw (0/1)', 'publish_raw', cfg.publish_raw || '1', 'Primärer Livepfad für Browser-Decoder', 'number'),
       mkRow('Publish mode (0/1)', 'publish_mode', cfg.publish_mode || '1', 'Retained 0x321 Mode/LED-Status', 'number'),
       mkRow('Publish snapshot (0/1)', 'publish_snapshot', cfg.publish_snapshot || '1', 'Retained LCD-Snapshot (2x20)', 'number'),
-      mkRow('Publish bootstrap (0/1)', 'publish_bootstrap', cfg.publish_bootstrap || '1', 'Retained canonical Bootstrap (mode + snapshot)', 'number'),
       mkRow('Publish state (0/1)', 'publish_state', cfg.publish_state || '0', 'Optional: voller Decoder-State (Debug)', 'number')
     ];
 

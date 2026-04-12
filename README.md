@@ -1,3 +1,9 @@
+## Update 2026-04-12 – Runtime verschlankt (Single-Bridge + Bootstrap on demand)
+- Laufzeit-Bridges wurden auf **einen** kombinierten Prozess reduziert: `runtime_bridge.sh` liest `candump` einmal und publiziert daraus `raw`, `mode`, `mode/current` und `snapshot`.
+- Die dauerhafte `bootstrap_bridge.sh`-Republish-Stufe entfällt; Bootstrap wird in `state.sh` leichtgewichtig **on demand** aus retained `mode` + `snapshot` zusammengesetzt.
+- `/cgi-bin/heizungpanel_stream` erkennt Disconnects jetzt aktiv via SSE-Heartbeat und beendet Child-Prozesse schneller.
+- Frontends (`panel.js`, `sensors.js`) schließen Streams zusätzlich bei `visibilitychange`.
+
 ## Update 2026-04-12 – Mapping-Konfiguration, Engineering-Graph und SSE-Leak-Fix
 - **Mapping-Seite ist jetzt aktiv konfigurierbar**: `mapping_*`-Einträge werden in UCI gespeichert und von `press.sh` zur Laufzeit verwendet.
 - **Default-Klassen umgesetzt**:
@@ -47,7 +53,7 @@ OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
 Public entrypoint (kurz):
 - **Raw-first Runtime**: Browser decodiert primär aus `<mqtt_base>/raw`.
-- Bootstrap ist kanonisch als retained `<mqtt_base>/bootstrap` verfügbar (kombiniert aus durable `mode` + `snapshot`).
+- Bootstrap wird on demand in `state.sh` aus retained `<mqtt_base>/mode` + `<mqtt_base>/snapshot` zusammengesetzt (kein always-on Bootstrap-Republisher).
 - Ergänzend bleiben `<mqtt_base>/mode` (durable retained), `<mqtt_base>/mode/current` (transient), `<mqtt_base>/snapshot` (retained) und optional Legacy `<mqtt_base>/state`.
 
 👉 Kanonische Betriebs- und Deploy-Doku: [`dev_readme.md`](./dev_readme.md)

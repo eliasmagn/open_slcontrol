@@ -25,7 +25,7 @@ STREAM_TOKEN="$(get_or_default stream_token '')"
 PUBLISH_RAW="$(get_or_default publish_raw 1)"
 PUBLISH_MODE="$(get_or_default publish_mode 1)"
 PUBLISH_SNAPSHOT="$(get_or_default publish_snapshot 1)"
-PUBLISH_BOOTSTRAP="$(get_or_default publish_bootstrap 1)"
+PUBLISH_BOOTSTRAP="$(get_or_default publish_bootstrap 0)"
 PUBLISH_STATE="$(get_or_default publish_state 0)"
 
 MAPPING_UHR="$(get_or_default mapping_uhr BFFF)"

@@ -318,6 +318,9 @@ return view.extend({
       es.onerror = function() { status.textContent = 'Status: Raw-Stream getrennt, Reconnect aktiv ...'; };
       window.addEventListener('beforeunload', closeStream);
       window.addEventListener('pagehide', closeStream);
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') closeStream();
+      });
     } else {
       status.textContent = 'Status: EventSource fehlt, diese Seite benötigt Raw-SSE';
     }
