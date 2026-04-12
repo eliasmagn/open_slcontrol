@@ -4,6 +4,7 @@
 
 MQTT_WAIT="$(uci -q get heizungpanel.main.state_mqtt_wait)"
 [ -n "$MQTT_WAIT" ] || MQTT_WAIT="1"
+BOOTSTRAP_FILE="/tmp/heizungpanel/bootstrap.json"
 
 BASE="$(uci -q get heizungpanel.main.mqtt_base)"
 HOST="$(uci -q get heizungpanel.main.mqtt_host)"
@@ -57,6 +58,11 @@ mqtt_get_retained() {
   local topic="$1"
   mosquitto_sub -h "$HOST" -p "$PORT" -t "$topic" -C 1 -W "$MQTT_WAIT" 2>/dev/null
 }
+
+if [ -s "$BOOTSTRAP_FILE" ]; then
+  cat "$BOOTSTRAP_FILE"
+  exit 0
+fi
 
 MODE_JSON="$(mqtt_get_retained "$BASE/mode")"
 # NOTE: bootstrap intentionally uses durable retained <base>/mode, never transient <base>/mode/current.

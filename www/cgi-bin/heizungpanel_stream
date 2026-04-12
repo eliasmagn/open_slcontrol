@@ -56,10 +56,7 @@ MODE="$(qs_get mode)"
 case "$MODE" in
   ''|raw) TOPIC="$TOPIC_RAW" ;;
   state) TOPIC="$TOPIC_STATE" ;;
-  mode|mode_durable) TOPIC="$TOPIC_MODE_DURABLE" ;;
-  mode_current|current|mode/current) TOPIC="$TOPIC_MODE_CURRENT" ;;
-  snapshot) TOPIC="$TOPIC_SNAPSHOT" ;;
-  bootstrap) TOPIC="__bootstrap_on_demand__" ;;
+  mode|mode_durable|mode_current|current|mode/current|snapshot|bootstrap) TOPIC="__bootstrap_on_demand__" ;;
   *) TOPIC="$TOPIC_RAW" ;;
 esac
 

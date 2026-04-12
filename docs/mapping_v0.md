@@ -1,3 +1,7 @@
+## Update 2026-04-12 – Bootstrap/83xx Interpretationsgrenzen
+- Für Operator-Rendering gilt: `0x320 83xx` ist ein Commit-/Statuskanal, darf aber ohne Feldvalidierung keine sicheren Ein/Aus-Bitbehauptungen erzeugen.
+- Startsequenzen mit frühem `0x320 81` sind als Übergangsrauschen zu behandeln; aussagekräftiger Displayzustand kommt erst mit adressierten Textpayloads.
+
 ## Update 2026-04-12 – 0x320 `83xx` Statuskanal (v0.1 Arbeitsannahme)
 - `0x320 83xx` wird als **Display-/LED-/Status-Commitkanal** geführt, nicht als Heizungsmodus-Latch.
 - Bekannte Screen-Klassen-Indikatoren (`EF`, `FB`) bleiben diagnostisch als Displayklasse markiert.

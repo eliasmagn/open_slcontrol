@@ -1,3 +1,17 @@
+## Update 2026-04-12 – Runtime-Komplexität stark reduziert
+- Abgeschlossen: Always-on-Runtime auf einen Ingestpfad reduziert (`runtime_bridge.sh`).
+- Abgeschlossen: `mode`/`snapshot`-Fanout über lokale MQTT-Republisher entfernt; Bootstrap kommt aus lokaler Datei.
+- Nächster Validierungsschritt: Feldtest auf Gerät bzgl. stabiler Bootstrap-Datei unter Langlauf.
+
+## Update 2026-04-12 – Operator UX Calmness
+- Abgeschlossen: Operator-Statuszeilen sprachlich beruhigt (kein zusätzlicher Debug-Jargon im Hauptpanel).
+- Abgeschlossen: Übergangsstatus bei Bootstrap→Live textuell präzisiert, damit der Startzustand nachvollziehbar bleibt.
+
+## Update 2026-04-12 – M2 Restpunkt A (Operator-Modell) weiter eingegrenzt
+- Abgeschlossen: Bootstrap-LCD-Start wieder nutzbar ohne Blank-Regression bei frühen `0x320 81/83xx`.
+- Abgeschlossen: Panel-Status trennt `0x321 durable`, `0x321 transient` und `0x320 83xx` weiterhin explizit; `83xx` bleibt `unknown`-markiert.
+- Nächster kleiner Schritt: `83xx`-Bitsemantik nur über kontrollierte Captures weiter bestätigen (kein heuristisches Raten im Operator-UI).
+
 ## Update 2026-04-12 – M2 UX/Productization Fortschritt
 - **Abgeschlossen:** Operator-Panel nutzt jetzt ein explizites Protokollmodell statt gemischter Felder/Heuristiken.
 - **Abgeschlossen:** Bootstrap zeigt wieder den letzten gültigen Snapshot-Displayinhalt als Startzustand.
