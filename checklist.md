@@ -2,6 +2,7 @@
 
 ## Abgeschlossen
 
+- [x] SSH-Deploy-Tool für Slim-Artefakte wiederhergestellt (`tools/device_ssh_deploy.sh`).
 - [x] LuCI-Menü auf **Panel + Konfiguration** reduziert.
 - [x] Sensor-/Mapping-/Git-Update-Views entfernt.
 - [x] ACL auf verbleibende benötigte Skripte reduziert.

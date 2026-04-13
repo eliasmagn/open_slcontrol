@@ -15,7 +15,7 @@ Diese Repo-Version entfernt bewusst Engineering-/Analyse-/Update-Ballast:
 - Git-Update-UI
 - Legacy-State-Bridge inkl. Parser-Pfad
 - Analyse-/Capture-Helfer und umfangreiche Forschungsdokumente
-- Deploy-/Stabilitäts-Hilfsskripte
+- Deploy-/Stabilitäts-Hilfsskripte (Stability Harness weiterhin entfernt, SSH-Deploy-Tool wieder vorhanden)
 
 ## Verzeichnisstruktur (relevant)
 
@@ -37,6 +37,32 @@ Diese Repo-Version entfernt bewusst Engineering-/Analyse-/Update-Ballast:
 3. Dienst starten:
    - `/etc/init.d/heizungpanel enable`
    - `/etc/init.d/heizungpanel start`
+
+
+### Schnell-Deploy auf Zielgerät (Tool wiederhergestellt)
+
+Für schnelle Iteration ohne vollständigen Paketbau steht wieder ein SSH-Deploy-Tool bereit:
+
+- Script: `tools/device_ssh_deploy.sh`
+- Aktionen: `install|push` und `uninstall|remove`
+
+Beispiele:
+
+```sh
+# Installation/Update auf OpenWrt-Ziel
+./tools/device_ssh_deploy.sh install root@192.168.1.10
+
+# Mit SSH-Key und ohne Service-Neustart
+./tools/device_ssh_deploy.sh push root@openwrt.local -i ~/.ssh/id_ed25519 --no-restart
+
+# Entfernung aller installierten Dateien
+./tools/device_ssh_deploy.sh uninstall root@192.168.1.10
+```
+
+Hinweise:
+
+- Nutzt bewusst `scp -O` (legacy SCP), damit Deploy auch auf Dropbear/OpenWrt ohne SFTP-Subsystem funktioniert.
+- `--overwrite-config` überschreibt explizit `/etc/config/heizungpanel`; ohne Flag bleibt bestehende Zielkonfiguration erhalten.
 
 ## Nutzung
 
