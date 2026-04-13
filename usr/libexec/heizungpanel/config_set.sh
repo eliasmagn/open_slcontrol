@@ -54,16 +54,12 @@ validate_kv() {
       require_numeric "$value" || fail "Invalid mqtt_port" 2
       [ "$value" -ge 1 ] && [ "$value" -le 65535 ] || fail "mqtt_port out of range" 2
       ;;
-    state_mqtt_wait)
-      require_numeric "$value" || fail "Invalid state_mqtt_wait" 2
-      [ "$value" -ge 1 ] && [ "$value" -le 10 ] || fail "state_mqtt_wait out of range" 2
-      ;;
     poll_interval_ms)
       require_numeric "$value" || fail "Invalid poll_interval_ms" 2
       [ "$value" -ge 250 ] && [ "$value" -le 10000 ] || fail "poll_interval_ms out of range" 2
       ;;
-    write_mode|publish_raw|publish_state|sensor_autoscale)
-      case "$value" in 0|1) ;; *) fail "Invalid boolean for $key" 2 ;; esac
+    write_mode)
+      case "$value" in 0|1) ;; *) fail "Invalid boolean for write_mode" 2 ;; esac
       ;;
     mqtt_host)
       validate_host "$value" || fail "Invalid mqtt_host" 2
@@ -73,49 +69,6 @@ validate_kv() {
       ;;
     stream_token)
       validate_hex_token "$value" || fail "Invalid stream_token (hex, 16..128 chars or empty)" 2
-      ;;
-    mapping_uhr|mapping_boiler|mapping_uhr_boiler|mapping_dauer|mapping_v|mapping_z|mapping_quit|mapping_hand|mapping_aussen_reg|mapping_pruef|mapping_plus|mapping_ein|mapping_aus|mapping_minus)
-      case "$value" in
-        '') ;;
-        [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]) ;;
-        *) fail "Invalid mapping payload for $key (expected empty or 4 hex chars)" 2 ;;
-      esac
-      ;;
-    sensor_profile)
-      case "$value" in engineering_generic|io259_idx01_status|io259_idx04_param16|paired_idx00_delta_b1) ;; *) fail "Invalid sensor_profile" 2 ;; esac
-      ;;
-    sensor_source)
-      case "$value" in 258|259|paired) ;; *) fail "Invalid sensor_source" 2 ;; esac
-      ;;
-    sensor_index)
-      case "$value" in
-        [0-9A-Fa-f][0-9A-Fa-f]) ;;
-        *) fail "Invalid sensor_index (expected 2 hex chars)" 2 ;;
-      esac
-      ;;
-    sensor_field)
-      case "$value" in
-        byte0|byte1|byte2|byte3|byte4|byte5|byte6|u16be_1_2|u16le_1_2|paired_delta_1|paired_delta_2) ;;
-        *) fail "Invalid sensor_field" 2 ;;
-      esac
-      ;;
-    sensor_label|sensor_unit)
-      case "$value" in
-        *$'
-'*|*$'
-'*) fail "Invalid $key" 2 ;;
-'*) fail "Invalid $key" 2 ;;
-        *) ;;
-      esac
-      ;;
-    sensor_scale|sensor_offset|sensor_y_min|sensor_y_max)
-      case "$value" in
-        ''|*[!0-9+-.]*) fail "Invalid numeric value for $key" 2 ;;
-        *) ;;
-      esac
-      ;;
-    sensor_confidence)
-      case "$value" in confirmed|likely|unknown) ;; *) fail "Invalid sensor_confidence" 2 ;; esac
       ;;
     *)
       fail "Unsupported key: $key" 2
@@ -140,7 +93,6 @@ if [ "$1" = "--batch-json" ]; then
   JSON_PAYLOAD="$2"
   [ -n "$JSON_PAYLOAD" ] || fail "Missing JSON payload" 2
 
-  # validate + set each field, commit once
   tmp_file="$(mktemp)" || fail "Failed to allocate temp file" 1
   trap 'rm -f "$tmp_file"' EXIT INT TERM
 

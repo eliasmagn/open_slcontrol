@@ -3,7 +3,6 @@
 . /usr/share/libubox/jshn.sh
 
 [ -n "$BOOTSTRAP_FILE" ] || BOOTSTRAP_FILE="/tmp/heizungpanel/bootstrap.json"
-[ -n "$STATE_CACHE" ] || STATE_CACHE="/tmp/heizungpanel/state.json"
 
 now_ms() {
   date +%s000
@@ -51,9 +50,6 @@ read_json_file() {
 }
 
 BOOTSTRAP_JSON="$(read_json_file "$BOOTSTRAP_FILE" 2>/dev/null || true)"
-if [ -z "$BOOTSTRAP_JSON" ]; then
-  BOOTSTRAP_JSON="$(read_json_file "$STATE_CACHE" 2>/dev/null || true)"
-fi
 
 MODE_FLAGS="$(extract_json_field "$BOOTSTRAP_JSON" mode.flags16 2>/dev/null || true)"
 [ -n "$MODE_FLAGS" ] || MODE_FLAGS="$(extract_json_field "$BOOTSTRAP_JSON" mode_flags16 2>/dev/null || true)"

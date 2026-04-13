@@ -23,9 +23,6 @@
         ],
         "/usr/libexec/heizungpanel/set_mode.sh": [
           "exec"
-        ],
-        "/usr/libexec/heizungpanel/git_update.sh": [
-          "exec"
         ]
       }
     }
