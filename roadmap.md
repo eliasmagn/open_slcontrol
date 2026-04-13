@@ -24,3 +24,10 @@
 ## Grundsatz
 
 Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
+
+## April 2026 – Deploy-Fähigkeit (abgeschlossen)
+
+- `tools/device_ssh_deploy.sh` für den Slim-Umfang wieder eingeführt.
+- Install/Uninstall-Pfade auf aktuelle Dateiliste abgestimmt.
+- Schnellere Testzyklen auf OpenWrt-Geräten ohne vollständigen Feed-Release ermöglicht.
+

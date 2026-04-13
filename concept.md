@@ -28,3 +28,10 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - **Slim first**: lieber entfernen als erweitern
 - **Strong defaults**: read-only als Standard, write explizit aktivieren
 - **Wartbar**: reduzierte Anzahl Dateien, Prozesse, UI-Flächen
+
+## Betriebsmodus Deployment
+
+- **Paket-Workflow bleibt Standard** für reproduzierbare Releases.
+- **SSH-Deploy-Tool ist ergänzend** für schnelle Entwicklungszyklen auf Testgeräten (`tools/device_ssh_deploy.sh`).
+- Das Deploy-Tool verteilt ausschließlich die Slim-Panel-Artefakte (Panel, Konfiguration, Raw-Bridge-Stack) und hält damit die Runtime weiterhin minimal.
+
