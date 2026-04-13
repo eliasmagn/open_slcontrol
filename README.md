@@ -1,47 +1,58 @@
-# open_slcontrol
+# open_slcontrol (Slim Panel)
 
-OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
+Schlanke OpenWrt/LuCI-App für ein stark reduziertes Heizungs-Panel:
 
-## Runtime (Stand: 2026-04-12)
+- **Panel** (Live-Ansicht + Tasten senden bei aktivem Write-Mode)
+- **Konfiguration** (nur Kern-Parameter)
+- **Raw-first Runtime** (ein Bridge-Prozess + Bootstrap-Datei)
 
-- **Raw-first bleibt das Produktmodell.**
-- Embedded-Seite ist auf das Minimum reduziert:
-  1. `candump` einmal lesen
-  2. `<mqtt_base>/raw` einmal publizieren
-  3. kleines lokales Bootstrap-Artefakt schreiben (`/tmp/heizungpanel/bootstrap.json`)
-- Browser dekodiert Anzeige/Status weiterhin live aus Raw-Frames.
-- Bootstrap-Datei wird nur bei sinnvollen Commit-Ereignissen geschrieben (Mode-Latch-Wechsel oder `0x320 83xx`), ohne per-Frame Shell-Spawn.
-- Legacy-Vollstate bleibt optional (`publish_state=1`) und ist **nicht** Teil des Standardpfads.
+## Was entfernt wurde
 
-## Was bewusst entfernt wurde
+Diese Repo-Version entfernt bewusst Engineering-/Analyse-/Update-Ballast:
 
-- `mode_bridge.sh`
-- `snapshot_bridge.sh`
-- `runtime_bridge.sh`
-- always-on MQTT-Republish-Ketten für abgeleitete Topics
+- Sensor-Graph-UI
+- Mapping-UI
+- Git-Update-UI
+- Legacy-State-Bridge inkl. Parser-Pfad
+- Analyse-/Capture-Helfer und umfangreiche Forschungsdokumente
+- Deploy-/Stabilitäts-Hilfsskripte
 
-Damit sinken Prozesszahl, MQTT-Client-Fan-out und Shell-Pipeline-Komplexität deutlich.
+## Verzeichnisstruktur (relevant)
 
-## Bootstrap
+- `www/luci-static/resources/view/heizungpanel/panel.js` – Hauptpanel
+- `www/luci-static/resources/view/heizungpanel/config.js` – schlanke Konfigseite
+- `www/cgi-bin/heizungpanel_stream` – SSE-Stream (`raw` + `bootstrap`)
+- `usr/libexec/heizungpanel/raw_bridge.sh` – CAN->MQTT raw + Bootstrap-Datei
+- `usr/libexec/heizungpanel/state.sh` – Bootstrap-Antwort
+- `usr/libexec/heizungpanel/press.sh` – Sende-Befehle (durch Write-Mode geschützt)
+- `etc/init.d/heizungpanel` – Dienststart
+- `etc/config/heizungpanel` – Default-Konfiguration
 
-- Das Panel lädt beim Start `?mode=bootstrap`.
-- `state.sh` liefert die Bootstrap-Antwort primär aus `/tmp/heizungpanel/bootstrap.json`.
-- Danach läuft die UI auf Live-Raw (`?mode=raw`).
+## Deployment / Installation
 
-## Stream-API
+1. Paket bauen/installieren wie gewohnt über OpenWrt-LuCI-Feed-Workflow.
+2. Sicherstellen, dass vorhanden sind:
+   - `can-utils` (`candump`, `cansend`)
+   - `mosquitto-client` (`mosquitto_pub`, `mosquitto_sub`)
+3. Dienst starten:
+   - `/etc/init.d/heizungpanel enable`
+   - `/etc/init.d/heizungpanel start`
 
-- `?mode=raw` (Default)
-- `?mode=bootstrap`
-- `?mode=state` (optionaler Legacy-Debugpfad)
+## Nutzung
 
-## Doku
+1. LuCI öffnen: `Services -> Heizungpanel -> Panel`
+2. Live-Daten kommen über `raw`-Topic.
+3. Für Senden: auf `Services -> Heizungpanel -> Konfiguration` `write_mode=1` setzen.
 
-- [`dev_readme.md`](./dev_readme.md) – Betriebs-/Entwicklungsdetails
-- [`concept.md`](./concept.md) – Architekturkonzept
-- [`checklist.md`](./checklist.md) – Aufgabenstatus
-- [`roadmap.md`](./roadmap.md) – Meilensteinfortschritt
+## Kern-Konfigoptionen
 
-## UI-UX Hinweis (Bootstrap -> Live)
-- Wenn ein Bootstrap-Text vorhanden ist, bleibt er sichtbar, bis echte Live-Textsegmente aus `0x320` eintreffen.
-- Frühe `0x320 81`/`0x320 83xx`-Frames löschen den Starttext nicht mehr vorzeitig.
-- Das Operator-Panel bleibt bewusst ruhig formuliert; Engineering-Details bleiben auf den Engineering-Seiten.
+- `can_if`
+- `can_bitrate`
+- `can_setup`
+- `mqtt_host`
+- `mqtt_port`
+- `mqtt_base`
+- `poll_interval_ms`
+- `write_mode`
+- `publish_raw`
+- `stream_token`

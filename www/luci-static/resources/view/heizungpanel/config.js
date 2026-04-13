@@ -60,10 +60,7 @@ return view.extend({
       mkRow('CAN Interface', 'can_if', cfg.can_if || 'can0', 'Beispiel: can0'),
       mkRow('CAN Bitrate', 'can_bitrate', cfg.can_bitrate || '69144', '10000..1000000', 'number'),
       mkRow('Polling-Intervall (ms)', 'poll_interval_ms', cfg.poll_interval_ms || '500', '250..10000', 'number'),
-      mkRow('State MQTT Wait (s)', 'state_mqtt_wait', cfg.state_mqtt_wait || '1', '1..10', 'number'),
-      mkRow('Write-Mode (0/1)', 'write_mode', cfg.write_mode || '0', '0 = Read-only, 1 = Senden aktivieren', 'number'),
-      mkRow('Publish raw (0/1)', 'publish_raw', cfg.publish_raw || '1', 'Primärer Livepfad für Browser-Decoder', 'number'),
-      mkRow('Publish state (0/1)', 'publish_state', cfg.publish_state || '0', 'Optional: voller Decoder-State (Debug)', 'number')
+      mkRow('Write-Mode (0/1)', 'write_mode', cfg.write_mode || '0', '0 = Read-only, 1 = Senden aktivieren', 'number')
     ];
 
     var rowsMqtt = [
@@ -123,11 +120,11 @@ return view.extend({
 
     return el('div', { class: 'hp-cfg' }, [
       style,
-      el('h2', {}, ['Heizungpanel – Raw-first Konfiguration']),
+      el('h2', {}, ['Heizungpanel – Slim Konfiguration']),
       el('div', { class: 'hp-note' }, ['Diese Seite verwaltet nur die Heizungpanel-App-Konfiguration in /etc/config/heizungpanel.']),
       card('App', rowsApp),
       card('MQTT', rowsMqtt),
-            saveBtn,
+      saveBtn,
       status
     ]);
   }
