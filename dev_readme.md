@@ -1,64 +1,53 @@
 # open_slcontrol – Development Readme
 
-OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
+## Zielbild (vereinfacht)
 
-## Runtime-Modell (aktuell, raw-first)
+- OpenWrt bleibt klein und billig zur Laufzeit.
+- Browser bleibt primärer Decoder/Interpreter.
+- Raw-first ist der Standardpfad.
 
-- **Primärpfad:** Browser dekodiert Live-Anzeige direkt aus `<mqtt_base>/raw` (`0x320/0x321`).
-- **Single bridge:** `runtime_bridge.sh` liest CAN einmal und publiziert `raw`/`mode`/`mode/current`/`snapshot` ohne interne MQTT-Subscribe-Transform-Republish-Kette.
-- **Embedded bleibt leichtgewichtig:** nur kleine Runtime-Topics für Bootstrap/Observability.
-- **Legacy-Vollstate bleibt optional:** `<mqtt_base>/state` nur für Debug/Kompatibilität.
+## Runtime-Modell
 
-## MQTT-Topic-Modell
+### Standardpfad
+- `etc/init.d/heizungpanel` startet genau einen regulären Bridgeprozess: `raw_bridge.sh`.
+- `raw_bridge.sh`:
+  - liest CAN einmal (`candump`)
+  - publiziert Raw einmal auf `<mqtt_base>/raw`
+  - aktualisiert parallel das kleine Bootstrap-File `/tmp/heizungpanel/bootstrap.json`
+  - schreibt dieses nur bei relevanten Commit-Ereignissen (`0x321` Latch-Wechsel, `0x320 83xx`)
 
-- `<mqtt_base>/raw` – Live-Rawframes, unretained (Default-Stream).
-- `<mqtt_base>/mode` – **durable + retained** Betriebsarten-Latch aus bekannten stabilen `0x321 flags16`.
-- `<mqtt_base>/mode/current` – **transient + unretained** letzter beobachteter `0x321`-Wert (Debug/Observability).
-- `<mqtt_base>/snapshot` – retained Display-Snapshot (`line1`, `line2`, `mode_code`).
-- `<mqtt_base>/bootstrap` – optional/on-demand via `state.sh` (kein eigener Always-on-Runtime-Republisher).
-- `<mqtt_base>/state` – optionaler Legacy-Vollstate (`publish_state=0` per Default).
+### Optionaler Legacypfad
+- `state_bridge.sh` nur bei `publish_state=1`.
+- Dient Kompatibilität/Debug, nicht dem normalen UI-Pfad.
 
-## Durable `mode` vs transient `mode/current`
+## Bootstrap-Modell
 
-- `mode` ist die langlebige Betriebsart (Start-/Reconnect-fähig via retained).
-- `mode/current` zeigt nur den aktuell beobachteten `0x321`-Wert und ist bewusst nicht retained.
-- Unbekannte/transiente Werte dürfen `mode` nicht überschreiben.
+- `www/cgi-bin/heizungpanel_stream?mode=bootstrap` ruft `state.sh` auf.
+- `state.sh` liest primär `/tmp/heizungpanel/bootstrap.json`.
+- Fallback: `/tmp/heizungpanel/state.json` (wenn Legacy-State aktiv ist).
+- Ergebnis ist eine kleine JSON-Antwort für schnellen Panel-Start.
 
-## Bootstrap-Semantik
-
-`state.sh` hydriert den UI-Startzustand direkt aus retained `<mqtt_base>/mode` + `<mqtt_base>/snapshot` (leichtgewichtig on demand).
-
-Fallback (Kompatibilität):
-1. optional retained `<mqtt_base>/state` nur Legacy/Debug
-
-`mode/current` ist **keine** Bootstrap-Quelle.
-
-## Stream-API (`/cgi-bin/heizungpanel_stream`)
+## Stream-API
 
 - `?mode=raw` (Default)
-- `?mode=mode` oder `?mode=mode_durable`
-- `?mode=mode_current`, `?mode=current`, `?mode=mode/current`
-- `?mode=snapshot`
 - `?mode=bootstrap`
-- `?mode=state` (legacy)
+- `?mode=state` (legacy/debug)
 
-## Defaults
+## Konfiguration (relevant)
 
-- `publish_raw=1`
-- `publish_mode=1`
-- `publish_snapshot=1`
-- `publish_bootstrap` bleibt nur als Legacy-Konfigfeld ohne Runtime-Prozessfunktion
-- `publish_state=0`
+- `publish_raw=1` (Standard)
+- `publish_state=0` (Standard)
+- `write_mode` steuert weiterhin CAN listen-only/off zentral über Init.
 
-## Deployment / Betrieb
+## Wichtige Dateien
 
-- CAN-Setup nur im Init-Skript: `etc/init.d/heizungpanel`.
-- LuCI-Panel nutzt Bootstrap aus `state.sh` und wechselt dann auf Raw-SSE.
-- `state_bridge.sh` bleibt optionaler Legacy-Debugpfad.
+- `etc/init.d/heizungpanel`
+- `usr/libexec/heizungpanel/raw_bridge.sh`
+- `usr/libexec/heizungpanel/state.sh`
+- `usr/libexec/heizungpanel/state_bridge.sh` (optional)
+- `www/cgi-bin/heizungpanel_stream`
 
-## Projektdateien
-
-- `concept.md` – Architekturkonzept
-- `checklist.md` – Aufgaben-/Statusliste
-- `roadmap.md` – Fortschritts-/Meilensteinplanung
-- `README.md` – kurze öffentliche Einstiegsversion
+## Panel-Handoff (Bootstrap -> Live)
+- Bootstraptext wird sofort angezeigt (falls vorhanden).
+- Frühe Clear/Commit-Frames (`0x320 81` / `0x320 83xx`) werden defensiv behandelt, bis echte Live-Textsegmente vorliegen.
+- Erst mit realen Textupdates übernimmt der Live-Decoder sichtbar den Anzeigezustand.

@@ -11,9 +11,6 @@ MQTT_BASE="$(uci -q get heizungpanel.main.mqtt_base)"
 
 TOPIC_RAW="${MQTT_BASE}/raw"
 TOPIC_STATE="${MQTT_BASE}/state"
-TOPIC_MODE_DURABLE="${MQTT_BASE}/mode"
-TOPIC_MODE_CURRENT="${TOPIC_MODE_DURABLE}/current"
-TOPIC_SNAPSHOT="${MQTT_BASE}/snapshot"
 
 SUB_PID=""
 FIFO_PATH=""
@@ -56,9 +53,6 @@ MODE="$(qs_get mode)"
 case "$MODE" in
   ''|raw) TOPIC="$TOPIC_RAW" ;;
   state) TOPIC="$TOPIC_STATE" ;;
-  mode|mode_durable) TOPIC="$TOPIC_MODE_DURABLE" ;;
-  mode_current|current|mode/current) TOPIC="$TOPIC_MODE_CURRENT" ;;
-  snapshot) TOPIC="$TOPIC_SNAPSHOT" ;;
   bootstrap) TOPIC="__bootstrap_on_demand__" ;;
   *) TOPIC="$TOPIC_RAW" ;;
 esac

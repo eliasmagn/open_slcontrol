@@ -1,70 +1,47 @@
-## Update 2026-04-12 – Protokollmodell geschärft (Panel/LED/Graph-Profile)
-- Panel trennt jetzt explizit: `0x321 durable mode latch`, `0x321 transient events`, `0x320 display text`, `0x320 83xx display/status`, `0x258/0x259 engineering process image`.
-- Bootstrap nutzt wieder Snapshot-Displayinhalt als initialen Decoderzustand, statt absichtlich leerer Dimmzeilen.
-- Ein/Aus-LEDs werden nicht mehr aus transienten `0x321`-Navigationsevents abgeleitet; `0x320 83xx` ist eigener Statuskanal (mit expliziter Unsicherheitsmarkierung, solange Bits unbestätigt sind).
-- Sensorseite arbeitet mit vordefinierten **Graph-Profilen** (statt nur einer globalen Generic-Konfig) und speichert `sensor_profile` plus aktive Parameter in UCI.
-
-## Update 2026-04-12 – Runtime verschlankt (Single-Bridge + Bootstrap on demand)
-- Laufzeit-Bridges wurden auf **einen** kombinierten Prozess reduziert: `runtime_bridge.sh` liest `candump` einmal und publiziert daraus `raw`, `mode`, `mode/current` und `snapshot`.
-- Die dauerhafte `bootstrap_bridge.sh`-Republish-Stufe entfällt; Bootstrap wird in `state.sh` leichtgewichtig **on demand** aus retained `mode` + `snapshot` zusammengesetzt.
-- `/cgi-bin/heizungpanel_stream` erkennt Disconnects jetzt aktiv via SSE-Heartbeat und beendet Child-Prozesse schneller.
-- Frontends (`panel.js`, `sensors.js`) schließen Streams zusätzlich bei `visibilitychange`.
-
-## Update 2026-04-12 – Mapping-Konfiguration, Engineering-Graph und SSE-Leak-Fix
-- **Mapping-Seite ist jetzt aktiv konfigurierbar**: `mapping_*`-Einträge werden in UCI gespeichert und von `press.sh` zur Laufzeit verwendet.
-- **Default-Klassen umgesetzt**:
-  - confirmed defaults: `uhr`, `boiler`, `uhr_boiler`, `dauer`, `v`, `z`, `quit`
-  - likely defaults: `hand`, `aussen_reg`, `pruef`, `plus`
-  - unmapped placeholder: `ein`, `aus`, `minus` (leer bis Feldbestätigung)
-- **Sensor Graph auf Engineering-Modell umgestellt**: Quelle (`0x258`/`0x259`/paired), Index, Feld, Skalierung, Offset, Unit, Label, Confidence und Autoscale/Fixrange sind konfigurierbar.
-- **SSE/CGI-Lifecycle gehärtet**: Frontends schließen EventSource bei `pagehide/beforeunload`; CGI beendet `mosquitto_sub` bei Client-Disconnect sauber.
-- **Konfigdrift reduziert**: neue Mapping-/Graph-Felder sind in `config_get.sh`/`config_set.sh` und UCI-Defaults geführt.
-
-## Update 2026-04-12 – Git Update: nur app-verwaltete Pfade (kein globales /etc-/usr-/www-Overlay)
-- Der Updater kopiert jetzt **nicht** pauschal alle Dateien unter `etc/usr/www`, sondern nur klar app-verwaltete Ziele (Init/Config, `usr/libexec/heizungpanel`, LuCI-View-Ordner, ACL/Menu, CGI).
-- Damit werden Risiken durch fremde Repo-Dateien (z. B. `etc/passwd`) vermieden, während Renames innerhalb der App-Verzeichnisse weiterhin robust mitgenommen werden.
-- Bereinigung der verwalteten App-Verzeichnisse bleibt aktiv, um Altdateien nach Umbenennungen zu entfernen.
-
-## Update 2026-04-12 – Git Update kopiert jetzt App-Baum statt fester Dateiliste
-- `git_update.sh` nutzt nach dem Download nicht mehr nur eine starre Allowlist, sondern kopiert den gesamten App-Baum unter `etc/`, `usr/`, `www/` aus dem Archiv.
-- Vor dem Kopieren werden die verwalteten Verzeichnisse `/usr/libexec/heizungpanel` und `/www/luci-static/resources/view/heizungpanel` geleert, damit umbenannte/entfernte Dateien nicht als Altlasten verbleiben.
-- Damit sind Renames und neue Dateien in künftigen Updates robuster abgedeckt; `/etc/config/heizungpanel` bleibt weiterhin optional überschreibbar.
-
-## Update 2026-04-12 – Git Update auf tar.gz umgestellt
-- Das Self-Update nutzt jetzt tar.gz-Archive (GitHub codeload `tar.gz`) statt ZIP/`unzip`.
-- `git_update.sh` extrahiert mit vorhandenem `tar` (`tar -xzf`) und benötigt kein `unzip` mehr.
-- LuCI-Update-Seite (`Git Update`) ist auf Archive-URL/tar.gz-Texte und Parameter `--archive-url` angepasst (Abwärtskompatibilität für alte URL-Flags bleibt erhalten).
-
-## Update 2026-04-11 – PR47-Korrektur: Operator-Panel + Engineering-Seiten getrennt
-- Das Hauptpanel ist wieder auf Bedienung fokussiert (LCD, Tastenblock, Ein/Aus-Bereich, Betriebsarten mit LEDs, kompaktes Feedback).
-- Das LCD wird beim Seitenstart **nicht mehr** aus retained `line1/line2` vorgefüllt; Liveanzeige kommt weiterhin nur aus Raw-Frames (`0x320`) im Browser.
-- Betriebsarten-LEDs bleiben persistent über durable `mode_flags16` (retained `<base>/mode`), transiente `321 FFFF` werden nur als Hinweis behandelt.
-- Neue LuCI-Unterseiten: **Sensor Graph** (`0x259`) und **Mapping** (ID-/Command-Zuordnung) wurden aus dem Hauptpanel ausgelagert.
-- Ein/Aus-LEDs sind im Panel sichtbar (live aus aktuellem `0x321`-Wert, ohne künstliches Persistenzmodell).
-
-## Update 2026-04-11 – Git-Update Unterseite (ZIP)
-- Neue LuCI-Unterseite **Git Update** unter `Services -> Heizungpanel -> Git Update`.
-- Die Seite kann jetzt einen **Branch oder Commit als ZIP** laden und die App direkt auf dem Router aktualisieren.
-- Backend-Skript `git_update.sh` lädt per `uclient-fetch`/`wget`/`curl`, entpackt das Archiv, installiert alle relevanten Dateien und startet die Dienste neu.
-- Optional kann `/etc/config/heizungpanel` beim Update bewusst mit überschrieben werden.
-
 # open_slcontrol
 
 OpenWrt/LuCI-App für Lindner & Sommerauer SL über CAN.
 
-## Update 2026-04-10 – Fix für „WARNING: Variable 'MODE'...“ im Panel
-- Ursache: Beim Bootstrap-Lesen konnten `jshn`-Warnungen bei fehlenden/nicht-objektförmigen JSON-Pfaden in stdout erscheinen und als Textartefakte im LCD-Panel landen.
-- Fix: `state.sh` liest verschachtelte Felder bevorzugt via `jsonfilter` und unterdrückt im Fallback sämtliche `jshn`-Warn-Ausgaben.
-- Ergebnis: Nach Panel-Reload bleibt die 2x20-Anzeige sauber; Modus-/LED-Status werden nicht mehr durch Warnstrings überlagert.
+## Runtime (Stand: 2026-04-12)
 
-Public entrypoint (kurz):
-- **Raw-first Runtime**: Browser decodiert primär aus `<mqtt_base>/raw`.
-- Bootstrap wird on demand in `state.sh` aus retained `<mqtt_base>/mode` + `<mqtt_base>/snapshot` zusammengesetzt (kein always-on Bootstrap-Republisher).
-- Ergänzend bleiben `<mqtt_base>/mode` (durable retained), `<mqtt_base>/mode/current` (transient), `<mqtt_base>/snapshot` (retained) und optional Legacy `<mqtt_base>/state`.
+- **Raw-first bleibt das Produktmodell.**
+- Embedded-Seite ist auf das Minimum reduziert:
+  1. `candump` einmal lesen
+  2. `<mqtt_base>/raw` einmal publizieren
+  3. kleines lokales Bootstrap-Artefakt schreiben (`/tmp/heizungpanel/bootstrap.json`)
+- Browser dekodiert Anzeige/Status weiterhin live aus Raw-Frames.
+- Bootstrap-Datei wird nur bei sinnvollen Commit-Ereignissen geschrieben (Mode-Latch-Wechsel oder `0x320 83xx`), ohne per-Frame Shell-Spawn.
+- Legacy-Vollstate bleibt optional (`publish_state=1`) und ist **nicht** Teil des Standardpfads.
 
-👉 Kanonische Betriebs- und Deploy-Doku: [`dev_readme.md`](./dev_readme.md)
+## Was bewusst entfernt wurde
 
-## Update 2026-04-10 – Panel UI
-- Moduszeilen im LuCI-Panel wurden visuell stabilisiert: LED und Aktionsbutton sind nun sauber ausgerichtet.
-- Die fehlenden Tasten **Ein** und **Aus** wurden im linken Bedienblock ergänzt.
-- Modusaktionen sind klarer beschriftet (`Setzen` statt Symbolbutton), damit die Bedienung am Touch/Browser eindeutiger ist.
+- `mode_bridge.sh`
+- `snapshot_bridge.sh`
+- `runtime_bridge.sh`
+- always-on MQTT-Republish-Ketten für abgeleitete Topics
+
+Damit sinken Prozesszahl, MQTT-Client-Fan-out und Shell-Pipeline-Komplexität deutlich.
+
+## Bootstrap
+
+- Das Panel lädt beim Start `?mode=bootstrap`.
+- `state.sh` liefert die Bootstrap-Antwort primär aus `/tmp/heizungpanel/bootstrap.json`.
+- Danach läuft die UI auf Live-Raw (`?mode=raw`).
+
+## Stream-API
+
+- `?mode=raw` (Default)
+- `?mode=bootstrap`
+- `?mode=state` (optionaler Legacy-Debugpfad)
+
+## Doku
+
+- [`dev_readme.md`](./dev_readme.md) – Betriebs-/Entwicklungsdetails
+- [`concept.md`](./concept.md) – Architekturkonzept
+- [`checklist.md`](./checklist.md) – Aufgabenstatus
+- [`roadmap.md`](./roadmap.md) – Meilensteinfortschritt
+
+## UI-UX Hinweis (Bootstrap -> Live)
+- Wenn ein Bootstrap-Text vorhanden ist, bleibt er sichtbar, bis echte Live-Textsegmente aus `0x320` eintreffen.
+- Frühe `0x320 81`/`0x320 83xx`-Frames löschen den Starttext nicht mehr vorzeitig.
+- Das Operator-Panel bleibt bewusst ruhig formuliert; Engineering-Details bleiben auf den Engineering-Seiten.
