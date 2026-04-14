@@ -53,14 +53,20 @@ function byteToChar(h) {
   return ' ';
 }
 
+
+function normalizeCanId(id) {
+  var n = String(id || '').toUpperCase().replace(/^0+/, '');
+  return n || '0';
+}
+
 function parseCandump(line) {
   var m = line.match(/([0-9A-Fa-f]+)#([0-9A-Fa-f]+)/);
-  if (m) return { id: m[1].toUpperCase(), data: m[2].toUpperCase() };
+  if (m) return { id: normalizeCanId(m[1]), data: m[2].toUpperCase() };
 
   m = line.match(/(^|[ \t])([0-9A-Fa-f]+)[ \t]+\[[ \t]*(\d+)[ \t]*\][ \t]+(.+)[ \t]*$/);
   if (!m) return null;
 
-  var id = m[2].toUpperCase();
+  var id = normalizeCanId(m[2]);
   var want = parseInt(m[3], 10) || 0;
   var tail = m[4] || '';
   var q = tail.indexOf("'");
@@ -230,6 +236,7 @@ return view.extend({
     var status83TtlMs = 1250;
     var last83DeltaMs = 0;
     var liveTextSeen = false;
+    var lastLiveFrameTs = 0;
     var bootstrapTextActive = false;
     var pendingClearAfterBootstrap = false;
 
@@ -268,6 +275,7 @@ return view.extend({
     }
 
     function applyRawLine(raw) {
+      lastLiveFrameTs = Date.now();
       var f = parseCandump(raw || '');
       if (!f) return;
 
@@ -333,7 +341,9 @@ return view.extend({
       }
     }
 
-    function applyBootstrap(st) {
+    function applyBootstrap(st, opts) {
+      opts = opts || {};
+      var passive = !!opts.passive;
       if (!st || st.status !== 'ok') return;
       var mode = st.mode || {};
       var snapshot = st.snapshot || {};
@@ -346,25 +356,30 @@ return view.extend({
       var l1 = snapshot.line1 || st.line1 || '';
       var l2 = snapshot.line2 || st.line2 || '';
       var hasText = !!(String(l1).trim() || String(l2).trim());
-      bootstrapTextActive = hasText;
-      pendingClearAfterBootstrap = false;
-      liveTextSeen = false;
+      var liveStale = (Date.now() - lastLiveFrameTs) > Math.max(status83TtlMs * 2, 2200);
+      var canAdoptSnapshot = !passive || (!liveTextSeen && liveStale);
 
-      if (hasText) {
-        var p1 = pad20(l1), p2 = pad20(l2);
-        for (var i = 0; i < 20; i++) lcd[i] = p1.charAt(i);
-        for (var j = 0; j < 20; j++) lcd[20 + j] = p2.charAt(j);
-        setRenderedDisplay(p1, p2, false);
+      if (canAdoptSnapshot) {
+        bootstrapTextActive = hasText;
+        pendingClearAfterBootstrap = false;
+        liveTextSeen = false;
+
+        if (hasText) {
+          var p1 = pad20(l1), p2 = pad20(l2);
+          for (var i = 0; i < 20; i++) lcd[i] = p1.charAt(i);
+          for (var j = 0; j < 20; j++) lcd[20 + j] = p2.charAt(j);
+          setRenderedDisplay(p1, p2, false);
+        } else if (!liveTextSeen) {
+          setRenderedDisplay('', '', true);
+        }
       }
 
       renderProtocolModel();
-      status.className = 'hp-status warn';
-      status.textContent = hasText ?
-        'Status: Letztes Bild geladen, Live-Verbindung wird aufgebaut' :
-        'Status: Warte auf Live-Daten';
-
-      if (!hasText && !liveTextSeen) {
-        setRenderedDisplay('', '', true);
+      if (!passive || liveStale) {
+        status.className = 'hp-status warn';
+        status.textContent = hasText ?
+          'Status: Letztes Bild geladen, Live-Verbindung wird aufgebaut' :
+          'Status: Warte auf Live-Daten';
       }
     }
 
@@ -398,7 +413,7 @@ return view.extend({
     function pollDebugState() {
       fs.exec('/usr/libexec/heizungpanel/state.sh', []).then(function(res) {
         if (!res || res.code !== 0) return;
-        try { applyBootstrap(JSON.parse((res.stdout || '').trim() || '{}')); } catch (e) {}
+        try { applyBootstrap(JSON.parse((res.stdout || '').trim() || '{}'), { passive: true }); } catch (e) {}
       });
     }
 
@@ -415,10 +430,11 @@ return view.extend({
     var ackTimer = null;
 
     loadBootstrap().then(function() {
+      var pollMs = Math.max(1000, pollInterval);
+      pollTimer = window.setInterval(pollDebugState, pollMs);
       if (!startRawStream()) {
         status.className = 'hp-status warn';
         status.textContent = 'Status: Live-Stream nicht verfügbar, Fallback-Polling aktiv';
-        pollTimer = window.setInterval(pollDebugState, pollInterval);
       }
     });
 
