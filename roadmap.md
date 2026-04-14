@@ -12,6 +12,7 @@
    - CAN up/down Verhalten prüfen
    - MQTT reconnect prüfen
    - UI-Bootstrap->Live Übergang prüfen
+   - Verifizieren, dass LED-/Modusanzeige bei ausbleibenden `0x320 83xx` sauber auf „unbekannt“ zurückfällt (kein Über-Latch)
 2. Betriebsdoku ergänzen
    - kurze Troubleshooting-Sektion
    - klare Upgrade-Hinweise für Slim-Variante
@@ -30,4 +31,3 @@ Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
 - `tools/device_ssh_deploy.sh` für den Slim-Umfang wieder eingeführt.
 - Install/Uninstall-Pfade auf aktuelle Dateiliste abgestimmt.
 - Schnellere Testzyklen auf OpenWrt-Geräten ohne vollständigen Feed-Release ermöglicht.
-
