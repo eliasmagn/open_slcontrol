@@ -2,6 +2,7 @@
 
 ## Abgeschlossen
 
+- [x] Panel-LEDs/Modus auf live `0x320 83xx`-Auswertung umgestellt (ohne persistentes Latch über den Frame-Rhythmus hinaus).
 - [x] SSH-Deploy-Tool für Slim-Artefakte wiederhergestellt (`tools/device_ssh_deploy.sh`).
 - [x] LuCI-Menü auf **Panel + Konfiguration** reduziert.
 - [x] Sensor-/Mapping-/Git-Update-Views entfernt.

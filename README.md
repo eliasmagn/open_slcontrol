@@ -70,6 +70,12 @@ Hinweise:
 2. Live-Daten kommen über `raw`-Topic.
 3. Für Senden: auf `Services -> Heizungpanel -> Konfiguration` `write_mode=1` setzen.
 
+### Aktueller LED-/Modus-Stand (Panel)
+
+- Die Modus-/Power-LEDs im Panel werden jetzt **direkt aus CAN `0x320 83xx`** abgeleitet.
+- Es gibt **kein persistentes Frontend-Latch** mehr, das länger als der eingehende `0x320 83xx`-Rhythmus hält.
+- Wenn keine frischen `83xx`-Frames kommen (TTL), fallen LEDs/Modus auf „unbekannt“ zurück.
+
 ## Kern-Konfigoptionen
 
 - `can_if`
