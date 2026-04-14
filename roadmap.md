@@ -22,6 +22,13 @@
 1. Optionales UI-Polishing (Spacing, Lesbarkeit, mobile Breite)
 2. Optionales kleines Health-Widget (Broker erreichbar / Raw aktiv)
 
+
+## April 2026 – Live-Update-Fix (abgeschlossen)
+
+- Parser im Panel für CAN-IDs robust gemacht (führende Nullen werden akzeptiert).
+- Passive Snapshot-Aktualisierung ergänzt, damit Anzeige bei Stream-Lücken aktualisiert bleibt, ohne aktive Live-Daten zu überlagern.
+- Kleinere Rendering-Korrektur bei Power-LED-Update umgesetzt.
+
 ## Grundsatz
 
 Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.

@@ -35,3 +35,9 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - **Paket-Workflow bleibt Standard** für reproduzierbare Releases.
 - **SSH-Deploy-Tool ist ergänzend** für schnelle Entwicklungszyklen auf Testgeräten (`tools/device_ssh_deploy.sh`).
 - Das Deploy-Tool verteilt ausschließlich die Slim-Panel-Artefakte (Panel, Konfiguration, Raw-Bridge-Stack) und hält damit die Runtime weiterhin minimal.
+
+
+## Betriebsrobustheit (ergänzt)
+
+- Parser muss CAN-IDs tolerant verarbeiten (auch mit führenden Nullen aus unterschiedlichen `candump`-Formaten).
+- Bootstrap darf nur als Rückfallebene wirken und aktive Live-Frames nicht übersteuern.

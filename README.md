@@ -70,6 +70,12 @@ Hinweise:
 2. Live-Daten kommen über `raw`-Topic.
 3. Für Senden: auf `Services -> Heizungpanel -> Konfiguration` `write_mode=1` setzen.
 
+### Stabilität Live-Anzeige (April 2026)
+
+- Das Panel normalisiert eingehende CAN-IDs (z. B. `0320` und `320` werden gleich behandelt).
+- Dadurch werden Display-Textframes wieder kontinuierlich erkannt, auch wenn das Quellformat variiert.
+- Zusätzlich läuft ein passives Bootstrap-Polling als Rückfallebene, das nur bei ausbleibenden Live-Frames eingreift.
+
 ### Aktueller LED-/Modus-Stand (Panel)
 
 - Die Modus-/Power-LEDs im Panel werden jetzt **direkt aus CAN `0x320 83xx`** abgeleitet.
