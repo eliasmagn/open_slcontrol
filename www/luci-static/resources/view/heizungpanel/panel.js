@@ -78,30 +78,54 @@ function parseCandump(line) {
   return { id: id, data: bytes.join('').toUpperCase() };
 }
 
-function decodeDisplayStatus83(payloadHex) {
+function parseLedMap83(rawMap) {
+  var out = {};
+  var src = String(rawMap || '');
+  src.split(',').forEach(function(entry) {
+    var s = String(entry || '').trim();
+    if (!s) return;
+    var m = s.match(/^([0-9A-Fa-f]{2})\s*:\s*([0-9A-Fa-f]{4})$/);
+    if (!m) return;
+    out[m[1].toUpperCase()] = m[2].toUpperCase();
+  });
+  return out;
+}
+
+function decodeDisplayStatus83(payloadHex, ledMap83, powerEinWhenBit7Clear) {
   var raw = String(payloadHex || '').toUpperCase();
-  var statusBy83 = {
-    '3F': { screenClass: 'dauer', modeFlags16: '7FFF', modeName: 'Dauerbetrieb', powerEin: 'unknown', powerAus: 'unknown' },
-    '5F': { screenClass: 'uhr', modeFlags16: 'BFFF', modeName: 'Uhrzeitbetrieb', powerEin: 'unknown', powerAus: 'unknown' },
-    '7B': { screenClass: 'uhr_boiler', modeFlags16: 'EFFF', modeName: 'Uhr+Boilerbetrieb', powerEin: 'unknown', powerAus: 'unknown' },
-    '73': { screenClass: 'aussen_reg', modeFlags16: 'F7FF', modeName: 'Außentemperatur-Regelung', powerEin: 'unknown', powerAus: 'unknown' },
-    '7E': { screenClass: 'hand', modeFlags16: 'FDFF', modeName: 'Handbetrieb', powerEin: 'unknown', powerAus: 'unknown' },
-    'EF': { screenClass: 'grund_ein', modeFlags16: null, modeName: null, powerEin: 'on', powerAus: 'off' },
-    '6F': { screenClass: 'grund_aus', modeFlags16: null, modeName: null, powerEin: 'off', powerAus: 'on' },
-    'FB': { screenClass: 'overlay', modeFlags16: null, modeName: null, powerEin: 'unknown', powerAus: 'unknown' },
-    'E7': { screenClass: 'panel_latch', modeFlags16: null, modeName: null, powerEin: 'unknown', powerAus: 'unknown' },
-    '37': { screenClass: 'error', modeFlags16: null, modeName: null, powerEin: 'unknown', powerAus: 'unknown' }
+  var modeFlags16 = (ledMap83 && ledMap83[raw]) ? ledMap83[raw] : null;
+  var modeMetaByFlags = {
+    '7FFF': { screenClass: 'dauer', modeName: 'Dauerbetrieb' },
+    'BFFF': { screenClass: 'uhr', modeName: 'Uhrzeitbetrieb' },
+    'DFFF': { screenClass: 'boiler', modeName: 'Boilerbetrieb' },
+    'EFFF': { screenClass: 'uhr_boiler', modeName: 'Uhr+Boilerbetrieb' },
+    'F7FF': { screenClass: 'aussen_reg', modeName: 'Außentemperatur-Regelung' },
+    'FBFF': { screenClass: 'pruef', modeName: 'Prüfbetrieb' },
+    'FDFF': { screenClass: 'hand', modeName: 'Handbetrieb' }
   };
-  var d = statusBy83[raw] || {};
+  var d = (modeFlags16 && modeMetaByFlags[modeFlags16]) ? modeMetaByFlags[modeFlags16] : {};
+
+  var statusByte = hex2dec(raw);
+  var inferredPower = { powerEin: 'unknown', powerAus: 'unknown' };
+  if (statusByte >= 0) {
+    var bit7Set = (statusByte & 0x80) === 0x80;
+    if ((powerEinWhenBit7Clear && !bit7Set) || (!powerEinWhenBit7Clear && bit7Set)) {
+      inferredPower.powerEin = 'on';
+      inferredPower.powerAus = 'off';
+    } else {
+      inferredPower.powerEin = 'off';
+      inferredPower.powerAus = 'on';
+    }
+  }
 
   return {
     raw: raw || '--',
     screenClass: d.screenClass || 'unknown',
-    modeFlags16: d.modeFlags16 || null,
+    modeFlags16: modeFlags16,
     modeName: d.modeName || null,
-    powerEin: d.powerEin || 'unknown',
-    powerAus: d.powerAus || 'unknown',
-    note: 'LEDs/Modus werden live aus 0x320 83xx gelesen (ohne persistentes Latch).'
+    powerEin: inferredPower.powerEin,
+    powerAus: inferredPower.powerAus,
+    note: 'LEDs/Modus werden live aus 0x320 83xx gelesen (UCI-konfigurierbar); Ein/Aus via Bit7-Mapping.'
   };
 }
 
@@ -116,13 +140,34 @@ return view.extend({
         return {
           poll_interval_ms: clampPollInterval(cfg.poll_interval_ms),
           write_mode: cfg.write_mode || 0,
-          stream_token: cfg.stream_token || ''
+          stream_token: cfg.stream_token || '',
+          led_map_83: cfg.led_map_83 || '',
+          led_power_ein_when_bit7_clear: String(cfg.led_power_ein_when_bit7_clear || '1'),
+          mapping_dauer: cfg.mapping_dauer || '7FFF',
+          mapping_uhr: cfg.mapping_uhr || 'BFFF',
+          mapping_boiler: cfg.mapping_boiler || 'DFFF',
+          mapping_uhr_boiler: cfg.mapping_uhr_boiler || 'EFFF',
+          mapping_aussen_reg: cfg.mapping_aussen_reg || 'F7FF',
+          mapping_pruef: cfg.mapping_pruef || 'FBFF',
+          mapping_hand: cfg.mapping_hand || 'FDFF'
         };
       } catch (e) {
-        return { poll_interval_ms: 500, write_mode: 0, stream_token: '' };
+        return {
+          poll_interval_ms: 500,
+          write_mode: 0,
+          stream_token: '',
+          led_map_83: '',
+          led_power_ein_when_bit7_clear: '1'
+        };
       }
     }).catch(function() {
-      return { poll_interval_ms: 500, write_mode: 0, stream_token: '' };
+      return {
+        poll_interval_ms: 500,
+        write_mode: 0,
+        stream_token: '',
+        led_map_83: '',
+        led_power_ein_when_bit7_clear: '1'
+      };
     });
   },
 
@@ -131,6 +176,8 @@ return view.extend({
     var pollInterval = clampPollInterval(cfg.poll_interval_ms);
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
+    var ledMap83 = parseLedMap83(cfg.led_map_83 || 'BF:7FFF,3F:7FFF,DF:BFFF,5F:BFFF,EF:DFFF,6F:DFFF,FB:EFFF,7B:EFFF,73:F7FF,7E:FDFF');
+    var powerEinWhenBit7Clear = String(cfg.led_power_ein_when_bit7_clear || '1') !== '0';
 
     var style = el('style', { html: '.hp-wrap{max-width:760px}.hp-panel{background:#3b3b3b;border-radius:10px;padding:18px;color:#eee}.hp-display{background:#0b0f16;border:2px solid #cfcfcf;border-radius:8px;padding:10px 12px;margin:0 auto 14px auto;width:96%;font-family:monospace}.l{white-space:pre;color:#74d3ff;font-size:18px}.l.dim{color:#2f4b5f}.hp-status,.hp-sub{font-size:12px}.hp-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:14px}.hp-left,.hp-right{background:rgba(255,255,255,.04);border-radius:10px;padding:12px}.hp-key{background:#d9d9d9;color:#222;border-radius:6px;border:1px solid #bfbfbf;cursor:pointer;font-weight:700}.hp-keygrid{display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:44px 44px 44px;gap:10px;justify-content:center}.hp-power{display:flex;flex-direction:column;gap:8px;margin-top:10px}.hp-power-row{display:flex;justify-content:center;align-items:center;gap:10px}.hp-power .hp-key{min-width:110px;height:36px}.hp-modes{display:flex;flex-direction:column;gap:10px}.hp-mode{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,.06)}.hp-mode-actions{display:flex;align-items:center;gap:10px;min-width:96px;justify-content:flex-end}.hp-led{width:12px;height:12px;border-radius:50%;background:#555;border:1px solid #999;flex:0 0 12px}.hp-mode-btn{width:74px;height:32px}.hp-led.on{background:#ffd54a}.hp-led.power.on{background:#9fff82}.hp-led.power.unknown{background:#6e7f91}.hp-status.ok{color:#97e493}.hp-status.warn{color:#ffd166}.hp-status.err{color:#ff8a80}.hp-inline-msg{min-height:20px;font-size:12px}.hp-inline-msg.ok{color:#97e493}.hp-inline-msg.warn{color:#ffd166}.hp-inline-msg.err{color:#ff8a80}' }, []);
 
@@ -149,7 +196,15 @@ return view.extend({
       line1, line2, modeHint, displayStatusHint, transientHint, status, lastUpdate
     ]);
 
-    var expectedModeBySendCode = { dauer:'7FFF', uhr:'BFFF', boiler:'DFFF', uhr_boiler:'EFFF', aussen_reg:'F7FF', pruef:'FBFF', hand:'FDFF' };
+    var expectedModeBySendCode = {
+      dauer: String(cfg.mapping_dauer || '7FFF').toUpperCase(),
+      uhr: String(cfg.mapping_uhr || 'BFFF').toUpperCase(),
+      boiler: String(cfg.mapping_boiler || 'DFFF').toUpperCase(),
+      uhr_boiler: String(cfg.mapping_uhr_boiler || 'EFFF').toUpperCase(),
+      aussen_reg: String(cfg.mapping_aussen_reg || 'F7FF').toUpperCase(),
+      pruef: String(cfg.mapping_pruef || 'FBFF').toUpperCase(),
+      hand: String(cfg.mapping_hand || 'FDFF').toUpperCase()
+    };
     var pendingModeAck = null;
 
     function showActionFeedback(level, text, timeoutMs) {
@@ -231,7 +286,7 @@ return view.extend({
 
     var lcd = []; for (var i = 0; i < 40; i++) lcd[i] = ' ';
     var transient321Flags = '----';
-    var displayStatus83 = decodeDisplayStatus83('');
+    var displayStatus83 = decodeDisplayStatus83('', ledMap83, powerEinWhenBit7Clear);
     var last83Ts = 0;
     var status83TtlMs = 1250;
     var last83DeltaMs = 0;
@@ -306,7 +361,7 @@ return view.extend({
           status83TtlMs = Math.max(750, Math.min(3000, Math.round(last83DeltaMs * 2.4)));
         }
         last83Ts = now83;
-        displayStatus83 = decodeDisplayStatus83(f.data.slice(2));
+        displayStatus83 = decodeDisplayStatus83(f.data.slice(2), ledMap83, powerEinWhenBit7Clear);
         if (!bootstrapTextActive || liveTextSeen) {
           setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
         }
@@ -349,7 +404,7 @@ return view.extend({
       var snapshot = st.snapshot || {};
       transient321Flags = '----';
       if (snapshot.mode_code || st.mode_code) {
-        displayStatus83 = decodeDisplayStatus83((snapshot.mode_code || st.mode_code || '').toUpperCase());
+        displayStatus83 = decodeDisplayStatus83((snapshot.mode_code || st.mode_code || '').toUpperCase(), ledMap83, powerEinWhenBit7Clear);
         last83Ts = Date.now();
       }
 

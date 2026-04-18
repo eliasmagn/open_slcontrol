@@ -80,6 +80,8 @@ Hinweise:
 
 - Die Modus-/Power-LEDs im Panel werden jetzt **direkt aus CAN `0x320 83xx`** abgeleitet.
 - Es gibt **kein persistentes Frontend-Latch** mehr, das länger als der eingehende `0x320 83xx`-Rhythmus hält.
+- Für bekannte Betriebsstatus werden jetzt sowohl ältere als auch neue `83xx`-Varianten erkannt (z. B. `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B`).
+- Die Ein/Aus-LEDs werden zusätzlich aus **Bit 7** des `83xx`-Statusbytes abgeleitet.
 - Wenn keine frischen `83xx`-Frames kommen (TTL), fallen LEDs/Modus auf „unbekannt“ zurück.
 
 ## Kern-Konfigoptionen
@@ -94,3 +96,15 @@ Hinweise:
 - `write_mode`
 - `publish_raw`
 - `stream_token`
+- `led_map_83` (Mapping `83xx`-Statusbyte -> Modus-Flags, z. B. `EF:DFFF`)
+- `led_power_ein_when_bit7_clear` (`1` = Ein wenn Bit7=0, `0` = invertiert)
+- `mapping_*` (Tasten-/Mode-Codes für `press.sh`, jeweils 4 Hex oder leer)
+
+### Konfigurierbares Mapping (April 2026)
+
+- **LED-/Modus-Mapping** ist jetzt über `/etc/config/heizungpanel` konfigurierbar:
+  - `led_map_83` steuert, welche `0x320 83xx`-Statusbytes welcher Betriebsart entsprechen.
+  - `led_power_ein_when_bit7_clear` steuert die Ein/Aus-Ableitung aus Bit 7.
+- **Button-/Mode-Sendemapping** ist ebenfalls über UCI konfigurierbar:
+  - `mapping_z`, `mapping_plus`, `mapping_dauer`, `mapping_boiler`, usw.
+  - Leerer Wert deaktiviert den jeweiligen Sende-Code (Write-Mode bleibt global).
