@@ -78,13 +78,17 @@ mkfifo "$FIFO_PATH" || exit 1
 mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC" 2>/dev/null > "$FIFO_PATH" &
 SUB_PID="$!"
 
+exec 3<"$FIFO_PATH" || exit 1
+
 while true; do
-  if IFS= read -r -t 15 line < "$FIFO_PATH"; then
+  if IFS= read -r -t 15 line <&3; then
     [ -n "$line" ] || continue
     printf 'data: %s\n\n' "$line" || break
   else
     printf ': ping\n\n' || break
   fi
 done
+
+exec 3<&-
 
 exit 0

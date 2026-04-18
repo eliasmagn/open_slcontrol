@@ -12,7 +12,9 @@
    - CAN up/down Verhalten prüfen
    - MQTT reconnect prüfen
    - UI-Bootstrap->Live Übergang prüfen
+   - Verifizieren, dass die Ein/Aus-Ableitung aus Bit 7 von `0x320 83xx` bei allen Betriebsarten stabil bleibt
    - Verifizieren, dass LED-/Modusanzeige bei ausbleibenden `0x320 83xx` sauber auf „unbekannt“ zurückfällt (kein Über-Latch)
+   - Verifizieren, dass geänderte UCI-Maps (`led_map_83`, `mapping_*`) nach Save/Restart korrekt im Panel und bei Sendebefehlen wirken
 2. Betriebsdoku ergänzen
    - kurze Troubleshooting-Sektion
    - klare Upgrade-Hinweise für Slim-Variante

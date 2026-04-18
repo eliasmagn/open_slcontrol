@@ -29,6 +29,7 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - **Strong defaults**: read-only als Standard, write explizit aktivieren
 - **Wartbar**: reduzierte Anzahl Dateien, Prozesse, UI-Flächen
 - **Live statt Latch**: UI-LEDs/Modus folgen frischen `0x320 83xx`-Frames und werden nicht künstlich dauerhaft gehalten
+- **Konfigurierbar ohne Code-Änderung**: Mapping-Logik für Anzeige (LED/Modus) und Senden (Buttons/Mode) liegt in UCI.
 
 ## Betriebsmodus Deployment
 
@@ -41,3 +42,5 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 
 - Parser muss CAN-IDs tolerant verarbeiten (auch mit führenden Nullen aus unterschiedlichen `candump`-Formaten).
 - Bootstrap darf nur als Rückfallebene wirken und aktive Live-Frames nicht übersteuern.
+- `0x320 83xx`-Statusdecoder muss protokollnahe Varianten je Betriebsart abdecken (z. B. `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B`).
+- Ein/Aus-Anzeige wird direkt aus dem Statusbyte (Bit 7) abgeleitet, statt über separates UI-Latching.

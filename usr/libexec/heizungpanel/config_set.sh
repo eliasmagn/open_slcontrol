@@ -36,6 +36,36 @@ validate_hex_token() {
   [ "$len" -ge 16 ] && [ "$len" -le 128 ]
 }
 
+validate_hex4_or_empty() {
+  case "$1" in
+    '') return 0 ;;
+    [0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+validate_led_map_83() {
+  local raw="$1"
+  local oldifs="$IFS"
+  local item trimmed
+
+  [ -n "$raw" ] || return 1
+  case "$raw" in
+    *[!0-9A-Fa-f:,\ ]*) return 1 ;;
+  esac
+
+  IFS=','
+  for item in $raw; do
+    trimmed="$(printf '%s' "$item" | sed 's/^ *//; s/ *$//')"
+    case "$trimmed" in
+      [0-9A-Fa-f][0-9A-Fa-f]:[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]) ;;
+      *) IFS="$oldifs"; return 1 ;;
+    esac
+  done
+  IFS="$oldifs"
+  return 0
+}
+
 validate_kv() {
   local key="$1"
   local value="$2"
@@ -61,6 +91,9 @@ validate_kv() {
     write_mode)
       case "$value" in 0|1) ;; *) fail "Invalid boolean for write_mode" 2 ;; esac
       ;;
+    led_power_ein_when_bit7_clear)
+      case "$value" in 0|1) ;; *) fail "Invalid boolean for led_power_ein_when_bit7_clear" 2 ;; esac
+      ;;
     mqtt_host)
       validate_host "$value" || fail "Invalid mqtt_host" 2
       ;;
@@ -69,6 +102,12 @@ validate_kv() {
       ;;
     stream_token)
       validate_hex_token "$value" || fail "Invalid stream_token (hex, 16..128 chars or empty)" 2
+      ;;
+    led_map_83)
+      validate_led_map_83 "$value" || fail "Invalid led_map_83 (expected comma-separated HEX2:HEX4 pairs)" 2
+      ;;
+    mapping_z|mapping_minus|mapping_quit|mapping_plus|mapping_v|mapping_dauer|mapping_uhr|mapping_boiler|mapping_uhr_boiler|mapping_aussen_reg|mapping_pruef|mapping_hand|mapping_ein|mapping_aus)
+      validate_hex4_or_empty "$value" || fail "Invalid mapping payload (expected 4 hex chars or empty)" 2
       ;;
     *)
       fail "Unsupported key: $key" 2

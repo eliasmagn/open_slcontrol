@@ -2,6 +2,10 @@
 
 ## Abgeschlossen
 
+- [x] LED-/Modus-Mapping aus `0x320 83xx` in UCI konfigurierbar gemacht (`led_map_83`, `led_power_ein_when_bit7_clear`).
+- [x] Button-/Mode-Sendemapping vollständig in UCI konfigurierbar gemacht (`mapping_*`) und in der LuCI-Konfigseite editierbar gemacht.
+- [x] `0x320 83xx`-Decoder erweitert: Modus-Varianten `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B` werden konsistent erkannt.
+- [x] Ein/Aus-LEDs aus Bit-7-Ableitung des `83xx`-Statusbytes ergänzt.
 - [x] Panel-Live-Update stabilisiert: CAN-IDs werden normalisiert (z. B. `0320` -> `320`), damit Display-Daten wieder kontinuierlich verarbeitet werden.
 - [x] Panel-LEDs/Modus auf live `0x320 83xx`-Auswertung umgestellt (ohne persistentes Latch über den Frame-Rhythmus hinaus).
 - [x] Bootstrap-Polling als passive Rückfallebene ergänzt, ohne aktive Live-Frames zu überschreiben.
