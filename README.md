@@ -4,7 +4,7 @@ Schlanke OpenWrt/LuCI-App für ein stark reduziertes Heizungs-Panel:
 
 - **Panel** (Live-Ansicht + Tasten senden bei aktivem Write-Mode)
 - **Konfiguration** (nur Kern-Parameter)
-- **Raw-first Runtime** (ein Bridge-Prozess + Bootstrap-Datei)
+- **Raw-first Runtime** (ein Bridge-Prozess, nur Live-Frames)
 
 ## Was entfernt wurde
 
@@ -21,9 +21,8 @@ Diese Repo-Version entfernt bewusst Engineering-/Analyse-/Update-Ballast:
 
 - `www/luci-static/resources/view/heizungpanel/panel.js` – Hauptpanel
 - `www/luci-static/resources/view/heizungpanel/config.js` – schlanke Konfigseite
-- `www/cgi-bin/heizungpanel_stream` – SSE-Stream (`raw` + `bootstrap`)
-- `usr/libexec/heizungpanel/raw_bridge.sh` – CAN->MQTT raw + Bootstrap-Datei
-- `usr/libexec/heizungpanel/state.sh` – Bootstrap-Antwort
+- `www/cgi-bin/heizungpanel_stream` – SSE-Stream (nur `raw`)
+- `usr/libexec/heizungpanel/raw_bridge.sh` – CAN->MQTT raw
 - `usr/libexec/heizungpanel/press.sh` – Sende-Befehle (durch Write-Mode geschützt)
 - `etc/init.d/heizungpanel` – Dienststart
 - `etc/config/heizungpanel` – Default-Konfiguration
@@ -74,7 +73,7 @@ Hinweise:
 
 - Das Panel normalisiert eingehende CAN-IDs (z. B. `0320` und `320` werden gleich behandelt).
 - Dadurch werden Display-Textframes wieder kontinuierlich erkannt, auch wenn das Quellformat variiert.
-- Zusätzlich läuft ein passives Bootstrap-Polling als Rückfallebene, das nur bei ausbleibenden Live-Frames eingreift.
+- Es gibt keinen Bootstrap-/Snapshot-Fallback: Anzeige startet leer und rendert ausschließlich aus Live-CAN-Frames.
 
 ### Aktueller LED-/Modus-Stand (Panel)
 

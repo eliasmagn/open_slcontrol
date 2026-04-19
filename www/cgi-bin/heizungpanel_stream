@@ -10,7 +10,6 @@ MQTT_BASE="$(uci -q get heizungpanel.main.mqtt_base)"
 [ -n "$MQTT_BASE" ] || MQTT_BASE="heizungpanel"
 
 TOPIC_RAW="${MQTT_BASE}/raw"
-TOPIC_STATE="${MQTT_BASE}/state"
 
 SUB_PID=""
 FIFO_PATH=""
@@ -49,13 +48,7 @@ if [ -n "$TOKEN_EXPECTED" ] && [ "$TOKEN_GIVEN" != "$TOKEN_EXPECTED" ]; then
   exit 0
 fi
 
-MODE="$(qs_get mode)"
-case "$MODE" in
-  ''|raw) TOPIC="$TOPIC_RAW" ;;
-  state) TOPIC="$TOPIC_STATE" ;;
-  bootstrap) TOPIC="__bootstrap_on_demand__" ;;
-  *) TOPIC="$TOPIC_RAW" ;;
-esac
+TOPIC="$TOPIC_RAW"
 
 echo "Content-Type: text/event-stream"
 echo "Cache-Control: no-cache"
@@ -65,12 +58,6 @@ echo
 echo "event: hello"
 echo "data: stream-open"
 echo
-
-if [ "$TOPIC" = "__bootstrap_on_demand__" ]; then
-  BOOTSTRAP_JSON="$(/usr/libexec/heizungpanel/state.sh 2>/dev/null)"
-  [ -n "$BOOTSTRAP_JSON" ] && printf 'data: %s\n\n' "$BOOTSTRAP_JSON"
-  exit 0
-fi
 
 FIFO_PATH="/tmp/heizungpanel_stream.$$.$RANDOM.fifo"
 mkfifo "$FIFO_PATH" || exit 1
