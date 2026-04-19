@@ -11,7 +11,7 @@
 1. Device-Smoke-Test auf echter OpenWrt-Instanz
    - CAN up/down Verhalten prüfen
    - MQTT reconnect prüfen
-   - UI-Bootstrap->Live Übergang prüfen
+   - UI-Start ohne Snapshot prüfen (leer bis erste Live-Frames eintreffen)
    - Verifizieren, dass die Ein/Aus-Ableitung aus Bit 7 von `0x320 83xx` bei allen Betriebsarten stabil bleibt
    - Verifizieren, dass LED-/Modusanzeige bei ausbleibenden `0x320 83xx` sauber auf „unbekannt“ zurückfällt (kein Über-Latch)
    - Verifizieren, dass geänderte UCI-Maps (`led_map_83`, `mapping_*`) nach Save/Restart korrekt im Panel und bei Sendebefehlen wirken
@@ -28,7 +28,7 @@
 ## April 2026 – Live-Update-Fix (abgeschlossen)
 
 - Parser im Panel für CAN-IDs robust gemacht (führende Nullen werden akzeptiert).
-- Passive Snapshot-Aktualisierung ergänzt, damit Anzeige bei Stream-Lücken aktualisiert bleibt, ohne aktive Live-Daten zu überlagern.
+- Bootstrap-/Snapshot-Pfade vollständig entfernt; Anzeige rendert nur noch aus Live-Raw-Frames.
 - Kleinere Rendering-Korrektur bei Power-LED-Update umgesetzt.
 
 ## Grundsatz

@@ -6,13 +6,11 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 
 1. CAN-Rohdaten lesen
 2. Rohdaten auf MQTT publizieren
-3. Kleines Bootstrap-Artefakt lokal ablegen
-4. Browser rendert Anzeige und Modus live aus Raw-Frames
+3. Browser rendert Anzeige und Modus live aus Raw-Frames
 
 ## Architektur
 
 - **Runtime:** `raw_bridge.sh` als einziger dauerhafter Bridge-Prozess
-- **Bootstrap:** `/tmp/heizungpanel/bootstrap.json`
 - **UI:** nur `Panel` + `Konfiguration`
 - **Write-Gate:** Sendefunktionen nur bei `write_mode=1`
 
@@ -41,6 +39,6 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 ## Betriebsrobustheit (ergänzt)
 
 - Parser muss CAN-IDs tolerant verarbeiten (auch mit führenden Nullen aus unterschiedlichen `candump`-Formaten).
-- Bootstrap darf nur als Rückfallebene wirken und aktive Live-Frames nicht übersteuern.
+- Kein Bootstrap-/Snapshot-Fallback: Anzeige startet leer und folgt ausschließlich Live-Frames.
 - `0x320 83xx`-Statusdecoder muss protokollnahe Varianten je Betriebsart abdecken (z. B. `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B`).
 - Ein/Aus-Anzeige wird direkt aus dem Statusbyte (Bit 7) abgeleitet, statt über separates UI-Latching.

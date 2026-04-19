@@ -173,7 +173,6 @@ return view.extend({
 
   render: function(cfg) {
     cfg = cfg || {};
-    var pollInterval = clampPollInterval(cfg.poll_interval_ms);
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
     var ledMap83 = parseLedMap83(cfg.led_map_83 || 'BF:7FFF,3F:7FFF,DF:BFFF,5F:BFFF,EF:DFFF,6F:DFFF,FB:EFFF,7B:EFFF,73:F7FF,7E:FDFF');
@@ -290,10 +289,6 @@ return view.extend({
     var last83Ts = 0;
     var status83TtlMs = 1250;
     var last83DeltaMs = 0;
-    var liveTextSeen = false;
-    var lastLiveFrameTs = 0;
-    var bootstrapTextActive = false;
-    var pendingClearAfterBootstrap = false;
 
     function updatePowerLed(node, state) {
       if (state === 'on') node.className = 'hp-led power on';
@@ -330,7 +325,6 @@ return view.extend({
     }
 
     function applyRawLine(raw) {
-      lastLiveFrameTs = Date.now();
       var f = parseCandump(raw || '');
       if (!f) return;
 
@@ -345,10 +339,6 @@ return view.extend({
       if (f.id !== '320' || f.data.length < 2) return;
       var lead = f.data.slice(0, 2).toUpperCase();
       if (lead === '81') {
-        if (bootstrapTextActive && !liveTextSeen) {
-          pendingClearAfterBootstrap = true;
-          return;
-        }
         for (var i = 0; i < 40; i++) lcd[i] = ' ';
         return;
       }
@@ -362,9 +352,7 @@ return view.extend({
         }
         last83Ts = now83;
         displayStatus83 = decodeDisplayStatus83(f.data.slice(2), ledMap83, powerEinWhenBit7Clear);
-        if (!bootstrapTextActive || liveTextSeen) {
-          setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
-        }
+        setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
         renderProtocolModel();
         status.className = 'hp-status ok';
         status.textContent = 'Status: Live verbunden';
@@ -376,73 +364,13 @@ return view.extend({
       var idx = lcdIndex(off);
       if (idx < 0) return;
 
-      if (!liveTextSeen) {
-        if (bootstrapTextActive && pendingClearAfterBootstrap) {
-          for (var c = 0; c < 40; c++) lcd[c] = ' ';
-          pendingClearAfterBootstrap = false;
-        }
-        liveTextSeen = true;
-        bootstrapTextActive = false;
-      }
-
       for (var j = 2; (j + 1) < f.data.length && idx < 40; j += 2) {
         lcd[idx++] = byteToChar(f.data.slice(j, j + 2));
       }
 
-      if (liveTextSeen) {
-        setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
-        status.className = 'hp-status ok';
-        status.textContent = 'Status: Live verbunden';
-      }
-    }
-
-    function applyBootstrap(st, opts) {
-      opts = opts || {};
-      var passive = !!opts.passive;
-      if (!st || st.status !== 'ok') return;
-      var mode = st.mode || {};
-      var snapshot = st.snapshot || {};
-      transient321Flags = '----';
-      if (snapshot.mode_code || st.mode_code) {
-        displayStatus83 = decodeDisplayStatus83((snapshot.mode_code || st.mode_code || '').toUpperCase(), ledMap83, powerEinWhenBit7Clear);
-        last83Ts = Date.now();
-      }
-
-      var l1 = snapshot.line1 || st.line1 || '';
-      var l2 = snapshot.line2 || st.line2 || '';
-      var hasText = !!(String(l1).trim() || String(l2).trim());
-      var liveStale = (Date.now() - lastLiveFrameTs) > Math.max(status83TtlMs * 2, 2200);
-      var canAdoptSnapshot = !passive || (!liveTextSeen && liveStale);
-
-      if (canAdoptSnapshot) {
-        bootstrapTextActive = hasText;
-        pendingClearAfterBootstrap = false;
-        liveTextSeen = false;
-
-        if (hasText) {
-          var p1 = pad20(l1), p2 = pad20(l2);
-          for (var i = 0; i < 20; i++) lcd[i] = p1.charAt(i);
-          for (var j = 0; j < 20; j++) lcd[20 + j] = p2.charAt(j);
-          setRenderedDisplay(p1, p2, false);
-        } else if (!liveTextSeen) {
-          setRenderedDisplay('', '', true);
-        }
-      }
-
-      renderProtocolModel();
-      if (!passive || liveStale) {
-        status.className = 'hp-status warn';
-        status.textContent = hasText ?
-          'Status: Letztes Bild geladen, Live-Verbindung wird aufgebaut' :
-          'Status: Warte auf Live-Daten';
-      }
-    }
-
-    function loadBootstrap() {
-      return fs.exec('/usr/libexec/heizungpanel/state.sh', []).then(function(res) {
-        if (!res || res.code !== 0) return;
-        try { applyBootstrap(JSON.parse((res.stdout || '').trim() || '{}')); } catch (e) {}
-      });
+      setRenderedDisplay(lcd.slice(0,20).join(''), lcd.slice(20,40).join(''), false);
+      status.className = 'hp-status ok';
+      status.textContent = 'Status: Live verbunden';
     }
 
     var es = null;
@@ -455,7 +383,7 @@ return view.extend({
 
     function startRawStream() {
       if (typeof EventSource === 'undefined') return false;
-      var url = '/cgi-bin/heizungpanel_stream?mode=raw&token=' + encodeURIComponent(streamToken);
+      var url = '/cgi-bin/heizungpanel_stream?token=' + encodeURIComponent(streamToken);
       es = new EventSource(url);
       es.onmessage = function(ev) { applyRawLine(ev.data || ''); };
       es.onerror = function() {
@@ -463,13 +391,6 @@ return view.extend({
         status.textContent = 'Status: Verbindung unterbrochen, Reconnect aktiv';
       };
       return true;
-    }
-
-    function pollDebugState() {
-      fs.exec('/usr/libexec/heizungpanel/state.sh', []).then(function(res) {
-        if (!res || res.code !== 0) return;
-        try { applyBootstrap(JSON.parse((res.stdout || '').trim() || '{}'), { passive: true }); } catch (e) {}
-      });
     }
 
     var powerRow = el('div', { class:'hp-power' }, [
@@ -481,17 +402,12 @@ return view.extend({
     var right = el('div', { class:'hp-right' }, [el('div', { class:'hp-modes' }, [mD.node,mU.node,mB.node,mUB.node,mA.node,mP.node,mH.node])]);
     var root = el('div', { class:'hp-wrap' }, [style, el('div', { class:'hp-panel' }, [display, el('div', { class:'hp-grid' }, [left, right])])]);
 
-    var pollTimer = null;
     var ackTimer = null;
 
-    loadBootstrap().then(function() {
-      var pollMs = Math.max(1000, pollInterval);
-      pollTimer = window.setInterval(pollDebugState, pollMs);
-      if (!startRawStream()) {
-        status.className = 'hp-status warn';
-        status.textContent = 'Status: Live-Stream nicht verfügbar, Fallback-Polling aktiv';
-      }
-    });
+    if (!startRawStream()) {
+      status.className = 'hp-status warn';
+      status.textContent = 'Status: Live-Stream nicht verfügbar';
+    }
 
     ackTimer = window.setInterval(function() {
       if (pendingModeAck && Date.now() > pendingModeAck.deadline) {
@@ -503,7 +419,6 @@ return view.extend({
 
     function teardown() {
       closeStream();
-      if (pollTimer) { window.clearInterval(pollTimer); pollTimer = null; }
       if (ackTimer) { window.clearInterval(ackTimer); ackTimer = null; }
     }
 

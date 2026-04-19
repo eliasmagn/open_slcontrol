@@ -8,7 +8,7 @@
 - [x] Ein/Aus-LEDs aus Bit-7-Ableitung des `83xx`-Statusbytes ergänzt.
 - [x] Panel-Live-Update stabilisiert: CAN-IDs werden normalisiert (z. B. `0320` -> `320`), damit Display-Daten wieder kontinuierlich verarbeitet werden.
 - [x] Panel-LEDs/Modus auf live `0x320 83xx`-Auswertung umgestellt (ohne persistentes Latch über den Frame-Rhythmus hinaus).
-- [x] Bootstrap-Polling als passive Rückfallebene ergänzt, ohne aktive Live-Frames zu überschreiben.
+- [x] Bootstrap-/Snapshot-/Fallback-Logik vollständig entfernt; UI rendert nur noch aus Live-CAN-Raw-Frames.
 - [x] SSH-Deploy-Tool für Slim-Artefakte wiederhergestellt (`tools/device_ssh_deploy.sh`).
 - [x] LuCI-Menü auf **Panel + Konfiguration** reduziert.
 - [x] Sensor-/Mapping-/Git-Update-Views entfernt.
