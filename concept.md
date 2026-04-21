@@ -13,6 +13,7 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - **Runtime:** `raw_bridge.sh` als einziger dauerhafter Bridge-Prozess
 - **UI:** nur `Panel` + `Konfiguration`
 - **Konfig-UX:** nativer LuCI Save/Save & Apply-Flow (kein separater proprietärer Save-Button)
+- **Single Save Entry:** Änderungen werden zentral über den globalen LuCI-Footer (unten rechts) gespeichert, damit Dirty-State und Apply-Verhalten konsistent bleiben
 - **Write-Gate:** Sendefunktionen nur bei `write_mode=1`
 
 ## Bewusste Nicht-Ziele

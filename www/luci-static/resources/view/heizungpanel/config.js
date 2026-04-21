@@ -118,6 +118,19 @@ return view.extend({
     setupHexOption(s.taboption('mode', form.Value, 'mapping_pruef', _('Mode Prüf'), _('4-stelliges HEX oder leer.')), 'FBFF');
     setupHexOption(s.taboption('mode', form.Value, 'mapping_hand', _('Mode Hand'), _('4-stelliges HEX oder leer.')), 'FDFF');
 
+    this.map = m;
     return m.render();
+  },
+
+  handleSave: function(ev) {
+    return this.map.save(ev);
+  },
+
+  handleSaveApply: function(ev) {
+    return this.map.save(ev, true);
+  },
+
+  handleReset: function(ev) {
+    return this.map.reset(ev);
   }
 });
