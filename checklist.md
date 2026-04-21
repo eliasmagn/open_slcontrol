@@ -2,6 +2,7 @@
 
 ## Abgeschlossen
 
+- [x] RPC-ACL für LuCI-Konfigseite korrigiert: `uci/get`/`uci/set` auf `heizungpanel` für `luci-app-heizungpanel` freigegeben (Fix für `RPC call to uci/get failed with ubus code 6: Permission denied`).
 - [x] LuCI-Konfigseite: globalen Footer (**unten rechts Save / Save & Apply**) als einzigen Speichereinstieg verdrahtet; redundanten Formular-Button entfernt.
 - [x] LED-/Modus-Mapping aus `0x320 83xx` in UCI konfigurierbar gemacht (`led_map_83`, `led_power_ein_when_bit7_clear`).
 - [x] Button-/Mode-Sendemapping vollständig in UCI konfigurierbar gemacht (`mapping_*`) und in der LuCI-Konfigseite editierbar gemacht.
