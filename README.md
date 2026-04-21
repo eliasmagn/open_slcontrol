@@ -112,6 +112,8 @@ Hinweise:
 ### Konfigseite / Save & Apply (April 2026)
 
 - Die Konfigseite nutzt den **normalen LuCI Save / Save & Apply-Flow** (kein separater eigener Save-Button).
+- **Wichtig:** Die Änderungen-Erkennung ist jetzt an den globalen LuCI-Footer gebunden.
+  Der untere rechte **Save / Save & Apply**-Block ist der einzige aktive Speichereinstieg; ein zusätzlicher Formular-Button wird nicht mehr benötigt.
 - Werte werden direkt als UCI-Konfiguration geschrieben.
 - Der frühere Batch-JSON-Speicherpfad ist weiterhin gegen Trennzeichenfehler beim Key/Value-Import abgesichert (TAB **und** Whitespace-Fallback).
 - Der bekannte Fehler `Unsupported key: can_if can0` ist damit behoben.

@@ -58,3 +58,9 @@ Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
 - Konfigseite auf natives LuCI-Formular (`form.Map`) umgestellt.
 - Eigener separater Save-Button entfernt; Standard **Save / Save & Apply** wird verwendet.
 - UCI-Werte werden direkt über LuCI geschrieben statt über einen proprietären Frontend-Batch-Call.
+
+## April 2026 – Footer-Save-Flow-Fix (abgeschlossen)
+
+- Konfig-View auf explizite Delegation zu `form.Map`-Save/Apply/Reset umgestellt.
+- Damit nutzt die Seite zuverlässig den globalen LuCI-Buttonblock unten rechts für Änderungs-Erkennung und Commit.
+- Redundanter zweiter Speichern-Einstieg in der Formularfläche entfällt funktional.
