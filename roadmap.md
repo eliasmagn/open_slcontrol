@@ -43,6 +43,18 @@ Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
 
 ## April 2026 – Konfig-Save-Fix (abgeschlossen)
 
-- JSON-Batch-Import in `config_set.sh` robust gegen fehlerhafte Feldtrennung gemacht (TAB-IFS-Fix).
+- JSON-Batch-Import in `config_set.sh` robust gegen fehlerhafte Feldtrennung gemacht (TAB + Whitespace-Fallback).
 - LuCI-Konfigseite auf klaren **Save & Apply**-Wording angepasst.
 - Fehlbild `Unsupported key: can_if can0` damit beseitigt.
+
+## April 2026 – Bit7-Power-Fix (abgeschlossen)
+
+- Ein/Aus-Auswertung im Panel auf `0x320 83xx` belassen (keine Ableitung aus `0x321`-Buttonframes).
+- Bit7-Decoder so korrigiert, dass nur das erste `83xx`-Statusbyte ausgewertet wird.
+- Effekt „Ein/Aus wirkt invertiert bzw. ändert sich nicht“ damit beseitigt.
+
+## April 2026 – LuCI-Config-Flow (abgeschlossen)
+
+- Konfigseite auf natives LuCI-Formular (`form.Map`) umgestellt.
+- Eigener separater Save-Button entfernt; Standard **Save / Save & Apply** wird verwendet.
+- UCI-Werte werden direkt über LuCI geschrieben statt über einen proprietären Frontend-Batch-Call.

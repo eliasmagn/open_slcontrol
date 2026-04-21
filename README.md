@@ -77,10 +77,11 @@ Hinweise:
 
 ### Aktueller LED-/Modus-Stand (Panel)
 
-- Die Modus-/Power-LEDs im Panel werden jetzt **direkt aus CAN `0x320 83xx`** abgeleitet.
+- Die Modus-LEDs im Panel werden **direkt aus CAN `0x320 83xx`** abgeleitet.
 - Es gibt **kein persistentes Frontend-Latch** mehr, das länger als der eingehende `0x320 83xx`-Rhythmus hält.
 - Für bekannte Betriebsstatus werden jetzt sowohl ältere als auch neue `83xx`-Varianten erkannt (z. B. `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B`).
-- Die Ein/Aus-LEDs werden zusätzlich aus **Bit 7** des `83xx`-Statusbytes abgeleitet.
+- Die Ein/Aus-LEDs werden aus **Bit 7** des `83xx`-Statusbytes abgeleitet.
+- Für die Bit7-Auswertung wird das erste Status-Byte von `83xx` verwendet (nicht Folgebytes).
 - Wenn keine frischen `83xx`-Frames kommen (TTL), fallen LEDs/Modus auf „unbekannt“ zurück.
 
 ## Kern-Konfigoptionen
@@ -110,6 +111,7 @@ Hinweise:
 
 ### Konfigseite / Save & Apply (April 2026)
 
-- Der Speichern-Pfad nutzt Batch-JSON nach UCI und ist gegen Trennzeichenfehler beim Key/Value-Import abgesichert.
-- Die Konfigseite verwendet eine klare **Save & Apply**-Primäraktion.
+- Die Konfigseite nutzt den **normalen LuCI Save / Save & Apply-Flow** (kein separater eigener Save-Button).
+- Werte werden direkt als UCI-Konfiguration geschrieben.
+- Der frühere Batch-JSON-Speicherpfad ist weiterhin gegen Trennzeichenfehler beim Key/Value-Import abgesichert (TAB **und** Whitespace-Fallback).
 - Der bekannte Fehler `Unsupported key: can_if can0` ist damit behoben.
