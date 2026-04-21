@@ -25,6 +25,8 @@
 - [x] Konfigseite auf nativen LuCI-Flow umgestellt: kein eigener Save-Button mehr, stattdessen Standard **Save / Save & Apply** mit direktem UCI-Write.
 - [x] Ein/Aus-Indikator korrigiert: Bit7-Logik für `0x320 83xx` liest jetzt explizit das erste `83xx`-Statusbyte (kein Fehlzugriff auf Folgebytes).
 
+- [x] Konfig-Validierung korrigiert: LuCI-Validatoren geben bei gültigen Eingaben konsistent `true` zurück (Fix für fälschliches „invalid field“ auf der Konfigseite).
+
 ## Offene Aufgaben
 
 - [ ] Optional: `panel.js` visuell weiter verschlanken (nur essentielle Statuszeilen).

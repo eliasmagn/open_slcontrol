@@ -9,7 +9,7 @@ function setupHexOption(o, placeholder) {
     if (v === '')
       return true;
     if (/^[0-9A-Fa-f]{4}$/.test(v))
-      return v.toUpperCase();
+      return true;
     return _('Erwartet 4 Hex-Zeichen oder leer.');
   };
 }
@@ -65,19 +65,19 @@ return view.extend({
         return _('Wildcards (#,+) sind nicht erlaubt.');
       if (v.charAt(0) === '/' || v.charAt(v.length - 1) === '/')
         return _('Kein führendes oder abschließendes /.');
-      return v;
+      return true;
     };
 
     o = s.taboption('mqtt', form.Value, 'stream_token', _('Stream Token (hex)'), _('Hex, 16..128 Zeichen oder leer'));
     o.validate = function(_, value) {
       var v = String(value || '').trim();
       if (!v.length)
-        return '';
+        return true;
       if (!/^[0-9A-Fa-f]+$/.test(v))
         return _('Nur Hex-Zeichen erlaubt.');
       if (v.length < 16 || v.length > 128)
         return _('Länge muss zwischen 16 und 128 liegen.');
-      return v.toLowerCase();
+      return true;
     };
 
     o = s.taboption('led', form.Value, 'led_map_83', _('83xx -> Modus-Map'), _('Kommagetrennte Paare HEX2:HEX4, z.B. EF:DFFF.'));
@@ -94,7 +94,7 @@ return view.extend({
         if (!/^[0-9A-Fa-f]{2}:[0-9A-Fa-f]{4}$/.test(p))
           return _('Erwartet Einträge im Format HEX2:HEX4.');
       }
-      return v.toUpperCase().replace(/\s+/g, '');
+      return true;
     };
 
     o = s.taboption('led', form.ListValue, 'led_power_ein_when_bit7_clear', _('Ein aktiv bei Bit7=0 (0/1)'), _('1 = Ein wenn Bit7 gelöscht, 0 = invertiert.'));

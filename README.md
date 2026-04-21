@@ -109,6 +109,11 @@ Hinweise:
   - `mapping_z`, `mapping_plus`, `mapping_dauer`, `mapping_boiler`, usw.
   - Leerer Wert deaktiviert den jeweiligen Sende-Code (Write-Mode bleibt global).
 
+### Validierungs-Fix Konfigseite (April 2026)
+
+- Die Feldvalidierung auf der Konfigseite wurde so korrigiert, dass gültige Eingaben nicht mehr fälschlich als **"invalid field"** markiert werden.
+- Hintergrund: Validatoren liefern jetzt explizit nur noch `true` (gültig) oder eine Fehlermeldung (ungültig), entsprechend dem erwarteten LuCI-Flow.
+
 ### Konfigseite / Save & Apply (April 2026)
 
 - Die Konfigseite nutzt den **normalen LuCI Save / Save & Apply-Flow** (kein separater eigener Save-Button).
