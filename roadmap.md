@@ -40,3 +40,9 @@ Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
 - `tools/device_ssh_deploy.sh` für den Slim-Umfang wieder eingeführt.
 - Install/Uninstall-Pfade auf aktuelle Dateiliste abgestimmt.
 - Schnellere Testzyklen auf OpenWrt-Geräten ohne vollständigen Feed-Release ermöglicht.
+
+## April 2026 – Konfig-Save-Fix (abgeschlossen)
+
+- JSON-Batch-Import in `config_set.sh` robust gegen fehlerhafte Feldtrennung gemacht (TAB-IFS-Fix).
+- LuCI-Konfigseite auf klaren **Save & Apply**-Wording angepasst.
+- Fehlbild `Unsupported key: can_if can0` damit beseitigt.

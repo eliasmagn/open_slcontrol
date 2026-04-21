@@ -149,7 +149,8 @@ if [ "$1" = "--batch-json" ]; then
     }
   ' > "$tmp_file" || fail "Invalid JSON payload" 2
 
-  while IFS="\t" read -r key value; do
+  TAB="$(printf '\t')"
+  while IFS="$TAB" read -r key value; do
     set_one "$key" "$value"
   done < "$tmp_file"
 

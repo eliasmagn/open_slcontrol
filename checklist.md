@@ -19,6 +19,9 @@
 - [x] Init-Service auf Raw-Bridge-Minimalbetrieb vereinfacht.
 - [x] Dokumentation (`README.md`, `concept.md`, `roadmap.md`) auf Slim-Status aktualisiert.
 
+- [x] Batch-Speicherpfad repariert: TAB-separiertes JSON-Parsing in `config_set.sh` korrigiert (fix für Fehler wie `Unsupported key: can_if can0`).
+- [x] Konfigseite näher an OpenWrt-Flow gebracht: primäre Aktion als **Save & Apply** benannt und Erfolgsmeldung ohne erzwungenes Reload vereinfacht.
+
 ## Offene Aufgaben
 
 - [ ] Optional: `panel.js` visuell weiter verschlanken (nur essentielle Statuszeilen).
