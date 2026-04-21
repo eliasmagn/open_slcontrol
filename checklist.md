@@ -19,8 +19,9 @@
 - [x] Init-Service auf Raw-Bridge-Minimalbetrieb vereinfacht.
 - [x] Dokumentation (`README.md`, `concept.md`, `roadmap.md`) auf Slim-Status aktualisiert.
 
-- [x] Batch-Speicherpfad repariert: TAB-separiertes JSON-Parsing in `config_set.sh` korrigiert (fix für Fehler wie `Unsupported key: can_if can0`).
-- [x] Konfigseite näher an OpenWrt-Flow gebracht: primäre Aktion als **Save & Apply** benannt und Erfolgsmeldung ohne erzwungenes Reload vereinfacht.
+- [x] Batch-Speicherpfad repariert: JSON-Import in `config_set.sh` tolerant für TAB- und Whitespace-getrennte Zeilen gemacht (fix für Fehler wie `Unsupported key: can_if can0`).
+- [x] Konfigseite auf nativen LuCI-Flow umgestellt: kein eigener Save-Button mehr, stattdessen Standard **Save / Save & Apply** mit direktem UCI-Write.
+- [x] Ein/Aus-Indikator korrigiert: Bit7-Logik für `0x320 83xx` liest jetzt explizit das erste `83xx`-Statusbyte (kein Fehlzugriff auf Folgebytes).
 
 ## Offene Aufgaben
 

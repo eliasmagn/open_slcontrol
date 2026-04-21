@@ -149,8 +149,22 @@ if [ "$1" = "--batch-json" ]; then
     }
   ' > "$tmp_file" || fail "Invalid JSON payload" 2
 
-  TAB="$(printf '\t')"
-  while IFS="$TAB" read -r key value; do
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+
+    case "$line" in
+      *"	"*)
+        key="${line%%	*}"
+        value="${line#*	}"
+        ;;
+      *)
+        key="${line%%[[:space:]]*}"
+        value="${line#"$key"}"
+        value="${value#"${value%%[![:space:]]*}"}"
+        ;;
+    esac
+
+    [ -n "$key" ] || fail "Invalid batch entry (missing key)" 2
     set_one "$key" "$value"
   done < "$tmp_file"
 

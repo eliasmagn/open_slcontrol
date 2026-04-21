@@ -12,6 +12,7 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 
 - **Runtime:** `raw_bridge.sh` als einziger dauerhafter Bridge-Prozess
 - **UI:** nur `Panel` + `Konfiguration`
+- **Konfig-UX:** nativer LuCI Save/Save & Apply-Flow (kein separater proprietärer Save-Button)
 - **Write-Gate:** Sendefunktionen nur bei `write_mode=1`
 
 ## Bewusste Nicht-Ziele
@@ -38,8 +39,8 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 
 ## Betriebsrobustheit (ergänzt)
 
-- Konfigurations-Commitpfad muss atomar und parser-robust sein (Batch-Update ohne Key/Value-Verschiebung).
+- Konfigurations-Commitpfad muss atomar und parser-robust sein (Batch-Update ohne Key/Value-Verschiebung; tolerant für TAB-/Whitespace-Trennungen).
 - Parser muss CAN-IDs tolerant verarbeiten (auch mit führenden Nullen aus unterschiedlichen `candump`-Formaten).
 - Kein Bootstrap-/Snapshot-Fallback: Anzeige startet leer und folgt ausschließlich Live-Frames.
 - `0x320 83xx`-Statusdecoder muss protokollnahe Varianten je Betriebsart abdecken (z. B. `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B`).
-- Ein/Aus-Anzeige wird direkt aus dem Statusbyte (Bit 7) abgeleitet, statt über separates UI-Latching.
+- Ein/Aus-Anzeige wird aus dem ersten Statusbyte von `0x320 83xx` (Bit 7) abgeleitet; `0x321` dient nur als Bedienereignis, nicht als LED-Quelle.

@@ -105,7 +105,7 @@ function decodeDisplayStatus83(payloadHex, ledMap83, powerEinWhenBit7Clear) {
   };
   var d = (modeFlags16 && modeMetaByFlags[modeFlags16]) ? modeMetaByFlags[modeFlags16] : {};
 
-  var statusByte = hex2dec(raw);
+  var statusByte = hex2dec(raw.slice(0, 2));
   var inferredPower = { powerEin: 'unknown', powerAus: 'unknown' };
   if (statusByte >= 0) {
     var bit7Set = (statusByte & 0x80) === 0x80;
