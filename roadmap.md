@@ -74,3 +74,10 @@ Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
 - Konfig-View auf explizite Delegation zu `form.Map`-Save/Apply/Reset umgestellt.
 - Damit nutzt die Seite zuverlässig den globalen LuCI-Buttonblock unten rechts für Änderungs-Erkennung und Commit.
 - Redundanter zweiter Speichern-Einstieg in der Formularfläche entfällt funktional.
+
+
+## April 2026 – Konfig-Schema-Hardening (abgeschlossen)
+
+- Erwartete Werte pro Konfigfeld als klares Schema dokumentiert.
+- LuCI- und Backend-Validierung auf denselben Regelsatz ausgerichtet.
+- Hex-Felder gegen Sonderzeichen und falsche Längen gehärtet; `stream_token` verlangt zusätzlich gerade Länge.
