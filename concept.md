@@ -41,6 +41,7 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 ## Betriebsrobustheit (ergänzt)
 
 - Konfigurations-Commitpfad muss atomar und parser-robust sein (Batch-Update ohne Key/Value-Verschiebung; tolerant für TAB-/Whitespace-Trennungen).
+- LuCI-/rpcd-ACL muss explizit UCI-Zugriff auf `heizungpanel` erlauben, damit `form.Map`-basierte Konfigseiten `uci/get` und `uci/set` ohne ubus-Fehler ausführen können.
 - Parser muss CAN-IDs tolerant verarbeiten (auch mit führenden Nullen aus unterschiedlichen `candump`-Formaten).
 - Kein Bootstrap-/Snapshot-Fallback: Anzeige startet leer und folgt ausschließlich Live-Frames.
 - `0x320 83xx`-Statusdecoder muss protokollnahe Varianten je Betriebsart abdecken (z. B. `BF/3F`, `DF/5F`, `EF/6F`, `FB/7B`).

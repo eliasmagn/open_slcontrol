@@ -115,5 +115,6 @@ Hinweise:
 - **Wichtig:** Die Änderungen-Erkennung ist jetzt an den globalen LuCI-Footer gebunden.
   Der untere rechte **Save / Save & Apply**-Block ist der einzige aktive Speichereinstieg; ein zusätzlicher Formular-Button wird nicht mehr benötigt.
 - Werte werden direkt als UCI-Konfiguration geschrieben.
+- Die rpcd-ACL enthält dafür explizit UCI-Rechte auf `heizungpanel`; damit funktioniert `uci/get` und `uci/set` in LuCI ohne `ubus code 6 (Permission denied)`.
 - Der frühere Batch-JSON-Speicherpfad ist weiterhin gegen Trennzeichenfehler beim Key/Value-Import abgesichert (TAB **und** Whitespace-Fallback).
 - Der bekannte Fehler `Unsupported key: can_if can0` ist damit behoben.

@@ -6,6 +6,11 @@
 - Nicht-kritische Features und Dateien entfernt.
 - Runtime auf minimalen Raw-first-Betrieb fokussiert.
 
+## April 2026 – RPC-ACL-Fix (abgeschlossen)
+
+- ACL um UCI-Lese-/Schreibrechte für `heizungpanel` ergänzt.
+- Behebt das LuCI-Fehlbild `RPC call to uci/get failed with ubus code 6: Permission denied` auf der Konfigseite.
+
 ## Nächster Meilenstein – Hardening
 
 1. Device-Smoke-Test auf echter OpenWrt-Instanz

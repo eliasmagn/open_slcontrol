@@ -2,6 +2,9 @@
   "luci-app-heizungpanel": {
     "description": "Grant access to heizungpanel LuCI application",
     "read": {
+      "uci": [
+        "heizungpanel"
+      ],
       "cgi-io": [
         "exec"
       ],
@@ -22,6 +25,11 @@
           "exec"
         ]
       }
+    },
+    "write": {
+      "uci": [
+        "heizungpanel"
+      ]
     }
   }
 }
