@@ -36,6 +36,11 @@
 - Bootstrap-/Snapshot-Pfade vollständig entfernt; Anzeige rendert nur noch aus Live-Raw-Frames.
 - Kleinere Rendering-Korrektur bei Power-LED-Update umgesetzt.
 
+## April 2026 – Config-Validation-Fix (abgeschlossen)
+
+- Validierungsrückgaben der LuCI-Konfigfelder vereinheitlicht (`true` bei gültig, Fehlermeldung bei ungültig).
+- Fehlbild „invalid field“ bei offensichtlich gültigen Eingaben auf der Konfigseite beseitigt.
+
 ## Grundsatz
 
 Neue Features nur, wenn sie den Slim-Kern nicht aufblähen.
