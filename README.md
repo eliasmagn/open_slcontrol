@@ -107,3 +107,9 @@ Hinweise:
 - **Button-/Mode-Sendemapping** ist ebenfalls über UCI konfigurierbar:
   - `mapping_z`, `mapping_plus`, `mapping_dauer`, `mapping_boiler`, usw.
   - Leerer Wert deaktiviert den jeweiligen Sende-Code (Write-Mode bleibt global).
+
+### Konfigseite / Save & Apply (April 2026)
+
+- Der Speichern-Pfad nutzt Batch-JSON nach UCI und ist gegen Trennzeichenfehler beim Key/Value-Import abgesichert.
+- Die Konfigseite verwendet eine klare **Save & Apply**-Primäraktion.
+- Der bekannte Fehler `Unsupported key: can_if can0` ist damit behoben.

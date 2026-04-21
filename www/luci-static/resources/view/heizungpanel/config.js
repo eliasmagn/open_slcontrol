@@ -106,7 +106,7 @@ return view.extend({
       return fs.exec('/usr/libexec/heizungpanel/config_set.sh', ['--batch-json', JSON.stringify(payload)]).then(function(res) {
         if (res && res.code === 0) {
           status.className = 'hp-status hp-ok';
-          status.textContent = 'Konfiguration atomar gespeichert (ein Commit, ein Restart).';
+          status.textContent = 'Konfiguration gespeichert und angewendet.';
           return true;
         }
 
@@ -122,7 +122,7 @@ return view.extend({
 
     var allRows = rowsApp.concat(rowsMqtt).concat(rowsLed).concat(rowsButtons).concat(rowsModeButtons);
 
-    var saveBtn = el('button', { class: 'btn cbi-button cbi-button-save', type: 'button' }, ['Alle speichern']);
+    var saveBtn = el('button', { class: 'btn cbi-button cbi-button-apply', type: 'button' }, ['Save & Apply']);
     saveBtn.addEventListener('click', function() {
       status.className = 'hp-status hp-warn';
       status.textContent = 'Speichere Konfiguration ...';
@@ -131,8 +131,7 @@ return view.extend({
         saveBtn.disabled = false;
         if (ok) {
           status.className = 'hp-status hp-ok';
-          status.textContent = 'Konfiguration gespeichert. Seite wird neu geladen ...';
-          window.setTimeout(function() { window.location.reload(); }, 900);
+          status.textContent = 'Konfiguration gespeichert und angewendet.';
         }
       });
     });
@@ -145,8 +144,8 @@ return view.extend({
 
     return el('div', { class: 'hp-cfg' }, [
       style,
-      el('h2', {}, ['Heizungpanel – Slim Konfiguration']),
-      el('div', { class: 'hp-note' }, ['Diese Seite verwaltet nur die Heizungpanel-App-Konfiguration in /etc/config/heizungpanel.']),
+      el('h2', {}, ['Heizungpanel – Konfiguration']),
+      el('div', { class: 'hp-note' }, ['Save & Apply schreibt die Werte nach /etc/config/heizungpanel, commitet UCI und startet den Dienst neu.']),
       card('App', rowsApp),
       card('MQTT', rowsMqtt),
       card('LED-Auswertung (0x320 83xx)', rowsLed),
