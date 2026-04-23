@@ -26,6 +26,7 @@
 - [x] Ein/Aus-Indikator korrigiert: Bit7-Logik für `0x320 83xx` liest jetzt explizit das erste `83xx`-Statusbyte (kein Fehlzugriff auf Folgebytes).
 
 - [x] Konfig-Validierung korrigiert: LuCI-Validatoren geben bei gültigen Eingaben konsistent `true` zurück (Fix für fälschliches „invalid field“ auf der Konfigseite).
+- [x] Konfig-Validierung gehärtet: Feldschema dokumentiert und Frontend-/Backend-Checks auf konsistente Regeln gebracht (inkl. strikter Hex-Prüfung und gerader `stream_token`-Länge).
 
 ## Offene Aufgaben
 

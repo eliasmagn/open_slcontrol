@@ -31,6 +31,9 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - **Live statt Latch**: UI-LEDs/Modus folgen frischen `0x320 83xx`-Frames und werden nicht künstlich dauerhaft gehalten
 - **Konfigurierbar ohne Code-Änderung**: Mapping-Logik für Anzeige (LED/Modus) und Senden (Buttons/Mode) liegt in UCI.
 
+- **Schema-first Validierung:** Für jedes UCI-Feld ist klar definiert, welche Werte erlaubt sind (Regex/Range/Enum), inkl. identischer Regeln in LuCI und `config_set.sh`.
+- **Hex-Felder strikt:** Hex-Eingaben akzeptieren ausschließlich `[0-9A-Fa-f]`; Sonderzeichen und falsche Längen werden abgelehnt.
+
 ## Betriebsmodus Deployment
 
 - **Paket-Workflow bleibt Standard** für reproduzierbare Releases.

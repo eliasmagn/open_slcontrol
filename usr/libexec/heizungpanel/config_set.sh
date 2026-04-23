@@ -33,7 +33,7 @@ validate_hex_token() {
   esac
   local len
   len="${#1}"
-  [ "$len" -ge 16 ] && [ "$len" -le 128 ]
+  [ "$len" -ge 16 ] && [ "$len" -le 128 ] && [ $((len % 2)) -eq 0 ]
 }
 
 validate_hex4_or_empty() {
@@ -101,7 +101,7 @@ validate_kv() {
       validate_base "$value" || fail "Invalid mqtt_base (no #,+ and no leading/trailing /)" 2
       ;;
     stream_token)
-      validate_hex_token "$value" || fail "Invalid stream_token (hex, 16..128 chars or empty)" 2
+      validate_hex_token "$value" || fail "Invalid stream_token (hex, 16..128 chars, even length, or empty)" 2
       ;;
     led_map_83)
       validate_led_map_83 "$value" || fail "Invalid led_map_83 (expected comma-separated HEX2:HEX4 pairs)" 2

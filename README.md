@@ -114,6 +114,25 @@ Hinweise:
 - Die Feldvalidierung auf der Konfigseite wurde so korrigiert, dass gültige Eingaben nicht mehr fälschlich als **"invalid field"** markiert werden.
 - Hintergrund: Validatoren liefern jetzt explizit nur noch `true` (gültig) oder eine Fehlermeldung (ungültig), entsprechend dem erwarteten LuCI-Flow.
 
+### Konfigurations-Validierung (Stand: 21. April 2026)
+
+Die Validierung ist jetzt **Frontend (LuCI)** und **Backend (`config_set.sh`)** konsistent:
+
+| Feld | Erwarteter Wert | Fehler bei |
+|---|---|---|
+| `can_if` | `^[A-Za-z0-9._-]+$` (nicht leer) | Sonderzeichen/Leerwert |
+| `can_bitrate` | Zahl `10000..1000000` | Nicht numerisch / außerhalb Range |
+| `poll_interval_ms` | Zahl `250..10000` | Nicht numerisch / außerhalb Range |
+| `write_mode` | `0` oder `1` | andere Werte |
+| `mqtt_host` | `^[A-Za-z0-9._:-]+$` (nicht leer) | unerlaubte Zeichen |
+| `mqtt_port` | Zahl `1..65535` | Nicht numerisch / außerhalb Range |
+| `mqtt_base` | `^[A-Za-z0-9._/-]+$`, ohne `#`/`+`, nicht führend/trailing `/` | Wildcards, Slash an Rand, Sonderzeichen |
+| `stream_token` | leer **oder** Hex `^[0-9A-Fa-f]+$`, Länge `16..128`, **gerade Länge** | Sonderzeichen, ungerade Länge, außerhalb Range |
+| `led_map_83` | CSV aus `HEX2:HEX4` (z. B. `EF:DFFF`) | falsches Pair-Format / Sonderzeichen |
+| `mapping_*` | leer oder exakt 4 Hex (`HEX4`) | Nicht-Hex, falsche Länge, Sonderzeichen |
+
+Damit sind insbesondere Hex-Felder strikt auf Hex beschränkt; Sonderzeichen führen sofort zu einem Validierungsfehler.
+
 ### Konfigseite / Save & Apply (April 2026)
 
 - Die Konfigseite nutzt den **normalen LuCI Save / Save & Apply-Flow** (kein separater eigener Save-Button).
