@@ -140,6 +140,7 @@ return view.extend({
         return {
           poll_interval_ms: clampPollInterval(cfg.poll_interval_ms),
           write_mode: cfg.write_mode || 0,
+          publish_raw: cfg.publish_raw || 1,
           stream_token: cfg.stream_token || '',
           led_map_83: cfg.led_map_83 || '',
           led_power_ein_when_bit7_clear: String(cfg.led_power_ein_when_bit7_clear || '1'),
@@ -155,6 +156,7 @@ return view.extend({
         return {
           poll_interval_ms: 500,
           write_mode: 0,
+          publish_raw: 1,
           stream_token: '',
           led_map_83: '',
           led_power_ein_when_bit7_clear: '1'
@@ -164,6 +166,7 @@ return view.extend({
       return {
         poll_interval_ms: 500,
         write_mode: 0,
+        publish_raw: 1,
         stream_token: '',
         led_map_83: '',
         led_power_ein_when_bit7_clear: '1'
@@ -175,6 +178,7 @@ return view.extend({
     cfg = cfg || {};
     var streamToken = cfg.stream_token || '';
     var sendEnabled = String(cfg.write_mode || 0) === '1';
+    var publishRawEnabled = String(cfg.publish_raw || 1) === '1';
     var ledMap83 = parseLedMap83(cfg.led_map_83 || 'BF:7FFF,3F:7FFF,DF:BFFF,5F:BFFF,EF:DFFF,6F:DFFF,FB:EFFF,7B:EFFF,73:F7FF,7E:FDFF');
     var powerEinWhenBit7Clear = String(cfg.led_power_ein_when_bit7_clear || '1') !== '0';
 
@@ -182,7 +186,7 @@ return view.extend({
 
     var line1 = el('div', { class: 'l dim' }, ['                    ']);
     var line2 = el('div', { class: 'l dim' }, ['                    ']);
-    var status = el('div', { class: 'hp-status warn' }, ['Status: Verbinde ...']);
+    var status = el('div', { class: 'hp-status warn' }, ['Status: Warte auf Live-Daten (raw) ...']);
     var lastUpdate = el('div', { class: 'hp-sub' }, ['Letzte Aktualisierung: n/a']);
     var modeHint = el('div', { class:'hp-sub' }, ['Betriebsart: n/a']);
     var displayStatusHint = el('div', { class:'hp-sub' }, ['Displaystatus: n/a']);
@@ -287,6 +291,7 @@ return view.extend({
     var transient321Flags = '----';
     var displayStatus83 = decodeDisplayStatus83('', ledMap83, powerEinWhenBit7Clear);
     var last83Ts = 0;
+    var lastRawTs = 0;
     var status83TtlMs = 1250;
     var last83DeltaMs = 0;
 
@@ -327,6 +332,7 @@ return view.extend({
     function applyRawLine(raw) {
       var f = parseCandump(raw || '');
       if (!f) return;
+      lastRawTs = Date.now();
 
       if (f.id === '321' && f.data.length >= 4) {
         transient321Flags = f.data.slice(0, 4).toUpperCase();
@@ -413,6 +419,12 @@ return view.extend({
       if (pendingModeAck && Date.now() > pendingModeAck.deadline) {
         showActionFeedback('warn', 'Keine CAN-Bestätigung für ' + pendingModeAck.code + ' innerhalb 8s', 2000);
         pendingModeAck = null;
+      }
+      if (Date.now() - lastRawTs > 5000) {
+        status.className = 'hp-status warn';
+        status.textContent = publishRawEnabled
+          ? 'Status: Keine Raw-Daten – warte auf Live-Daten'
+          : 'Status: Keine Raw-Daten – publish_raw=0 (Raw-Publisher inaktiv)';
       }
       renderProtocolModel();
     }, 500);

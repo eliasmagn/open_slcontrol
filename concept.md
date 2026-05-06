@@ -21,7 +21,7 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - Keine Engineering-Unterseiten
 - Keine Mapping-/Sensor-Forschungsoberflächen
 - Kein In-App-Git-Update
-- Keine Legacy-Fullstate-Pipeline im Default-Scope
+- Kein separater MQTT-State-Pfad (`${mqtt_base}/state`)
 
 ## Leitprinzipien
 
@@ -29,6 +29,7 @@ Aus der bisherigen, gewachsenen App wird ein **kleines, robustes Bedienpanel** m
 - **Strong defaults**: read-only als Standard, write explizit aktivieren
 - **Wartbar**: reduzierte Anzahl Dateien, Prozesse, UI-Flächen
 - **Live statt Latch**: UI-LEDs/Modus folgen frischen `0x320 83xx`-Frames und werden nicht künstlich dauerhaft gehalten
+- **MQTT minimal**: `${mqtt_base}/raw` als einziger Live-Pfad; `${mqtt_base}/tx` höchstens optional für Debug/Sendelog
 - **Konfigurierbar ohne Code-Änderung**: Mapping-Logik für Anzeige (LED/Modus) und Senden (Buttons/Mode) liegt in UCI.
 
 - **Schema-first Validierung:** Für jedes UCI-Feld ist klar definiert, welche Werte erlaubt sind (Regex/Range/Enum), inkl. identischer Regeln in LuCI und `config_set.sh`.
