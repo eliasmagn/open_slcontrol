@@ -11,6 +11,9 @@
 - [x] Panel-Live-Update stabilisiert: CAN-IDs werden normalisiert (z. B. `0320` -> `320`), damit Display-Daten wieder kontinuierlich verarbeitet werden.
 - [x] Panel-LEDs/Modus auf live `0x320 83xx`-Auswertung umgestellt (ohne persistentes Latch über den Frame-Rhythmus hinaus).
 - [x] Bootstrap-/Snapshot-/Fallback-Logik vollständig entfernt; UI rendert nur noch aus Live-CAN-Raw-Frames.
+- [x] MQTT-Stream-CGI auf `${mqtt_base}/raw` als einziges Live-Topic reduziert.
+- [x] `${mqtt_base}/state` aus funktionaler MQTT-Nutzung entfernt.
+- [x] UI-Statusmeldungen auf Live-only angepasst (Hinweis bei fehlenden Raw-Daten bzw. `publish_raw=0`).
 - [x] SSH-Deploy-Tool für Slim-Artefakte wiederhergestellt (`tools/device_ssh_deploy.sh`).
 - [x] LuCI-Menü auf **Panel + Konfiguration** reduziert.
 - [x] Sensor-/Mapping-/Git-Update-Views entfernt.

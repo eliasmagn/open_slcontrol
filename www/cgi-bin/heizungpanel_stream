@@ -48,8 +48,6 @@ if [ -n "$TOKEN_EXPECTED" ] && [ "$TOKEN_GIVEN" != "$TOKEN_EXPECTED" ]; then
   exit 0
 fi
 
-TOPIC="$TOPIC_RAW"
-
 echo "Content-Type: text/event-stream"
 echo "Cache-Control: no-cache"
 echo "Connection: keep-alive"
@@ -62,7 +60,7 @@ echo
 FIFO_PATH="/tmp/heizungpanel_stream.$$.$RANDOM.fifo"
 mkfifo "$FIFO_PATH" || exit 1
 
-mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC" 2>/dev/null > "$FIFO_PATH" &
+mosquitto_sub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_RAW" 2>/dev/null > "$FIFO_PATH" &
 SUB_PID="$!"
 
 exec 3<"$FIFO_PATH" || exit 1

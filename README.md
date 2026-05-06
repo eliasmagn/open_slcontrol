@@ -21,8 +21,8 @@ Diese Repo-Version entfernt bewusst Engineering-/Analyse-/Update-Ballast:
 
 - `www/luci-static/resources/view/heizungpanel/panel.js` – Hauptpanel
 - `www/luci-static/resources/view/heizungpanel/config.js` – schlanke Konfigseite
-- `www/cgi-bin/heizungpanel_stream` – SSE-Stream (nur `raw`)
-- `usr/libexec/heizungpanel/raw_bridge.sh` – CAN->MQTT raw
+- `www/cgi-bin/heizungpanel_stream` – SSE-Stream (abonniert nur `${mqtt_base}/raw`)
+- `usr/libexec/heizungpanel/raw_bridge.sh` – CAN->MQTT Live-Stream nach `${mqtt_base}/raw`
 - `usr/libexec/heizungpanel/press.sh` – Sende-Befehle (durch Write-Mode geschützt)
 - `etc/init.d/heizungpanel` – Dienststart
 - `etc/config/heizungpanel` – Default-Konfiguration
@@ -66,14 +66,20 @@ Hinweise:
 ## Nutzung
 
 1. LuCI öffnen: `Services -> Heizungpanel -> Panel`
-2. Live-Daten kommen über `raw`-Topic.
+2. Live-Daten kommen ausschließlich über `${mqtt_base}/raw`.
 3. Für Senden: auf `Services -> Heizungpanel -> Konfiguration` `write_mode=1` setzen.
 
 ### Stabilität Live-Anzeige (April 2026)
 
 - Das Panel normalisiert eingehende CAN-IDs (z. B. `0320` und `320` werden gleich behandelt).
 - Dadurch werden Display-Textframes wieder kontinuierlich erkannt, auch wenn das Quellformat variiert.
-- Es gibt keinen Bootstrap-/Snapshot-Fallback: Anzeige startet leer und rendert ausschließlich aus Live-CAN-Frames.
+- Es gibt keinen Ersatzkanal: Anzeige startet leer und rendert ausschließlich aus Live-CAN-Frames.
+
+### MQTT-Semantik (Live-only)
+
+- Primärer Datenpfad: `${mqtt_base}/raw` (einziger Live-Topic für UI und Stream-CGI).
+- Optional: `${mqtt_base}/tx` nur als Debug-/Sendetopic in `press.sh` (nicht für UI-Rendering).
+- Es gibt keinen `${mqtt_base}/state`-Pfad.
 
 ### Aktueller LED-/Modus-Stand (Panel)
 

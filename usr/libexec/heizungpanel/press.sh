@@ -75,6 +75,7 @@ fi
 logger -t heizungpanel "tx code=$CODE frame=321#$PAYLOAD"
 
 if command -v mosquitto_pub >/dev/null 2>&1; then
+  # Optionales Debug-/Sendetopic (nicht Teil des UI-Livepfads)
   TS="$(date +%s)"
   mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$MQTT_BASE/tx" -m "{\"ts\":$TS,\"code\":\"$CODE\",\"frame\":\"321#$PAYLOAD\",\"can_if\":\"$CAN_IF\"}" >/dev/null 2>&1 || true
 fi

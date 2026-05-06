@@ -33,8 +33,14 @@
 ## April 2026 – Live-Update-Fix (abgeschlossen)
 
 - Parser im Panel für CAN-IDs robust gemacht (führende Nullen werden akzeptiert).
-- Bootstrap-/Snapshot-Pfade vollständig entfernt; Anzeige rendert nur noch aus Live-Raw-Frames.
+- Anzeige rendert nur noch aus Live-Raw-Frames.
 - Kleinere Rendering-Korrektur bei Power-LED-Update umgesetzt.
+
+## Mai 2026 – MQTT-Live-Pfad bereinigt (abgeschlossen)
+
+- Stream-CGI auf reines `${mqtt_base}/raw`-Abo reduziert.
+- `${mqtt_base}/state` vollständig aus der funktionalen MQTT-Architektur entfernt.
+- UI-Hinweise auf ehrliches Live-only-Verhalten ausgerichtet (inkl. Hinweis bei `publish_raw=0` bzw. ausbleibenden Raw-Daten).
 
 ## April 2026 – Config-Validation-Fix (abgeschlossen)
 
