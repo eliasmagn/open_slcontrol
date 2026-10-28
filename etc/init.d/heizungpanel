@@ -1,0 +1,130 @@
+#!/bin/sh /etc/rc.common
+USE_PROCD=1
+START=95
+STOP=10
+BUILD_TAG="slim-panel"
+
+gen_stream_token() {
+  local uuid hex seg
+  uuid="$(cat /proc/sys/kernel/random/uuid 2>/dev/null)"
+  # The exact 8-4-4-4-12 shape proves the entropy read was complete; a
+  # truncated or garbage read fails here instead of yielding a weak token.
+  case "$uuid" in
+    ????????-????-????-????-????????????) ;;
+    *) return 1 ;;
+  esac
+  hex=""
+  seg="$uuid"
+  while :; do
+    case "$seg" in
+      *-*) hex="$hex${seg%%-*}"; seg="${seg#*-}" ;;
+      *) break ;;
+    esac
+  done
+  hex="$hex$seg"
+  [ "${#hex}" -eq 32 ] || return 1
+  case "$hex" in *[!0-9a-f]*) return 1 ;; esac
+  printf '%s' "$hex"
+}
+
+start_service() {
+  . /lib/functions.sh
+  config_load heizungpanel
+
+  local can_if can_bitrate can_setup listen_only write_mode
+  local mqtt_host mqtt_port mqtt_base
+  local publish_raw stream_token new_token
+
+  config_get can_if        main can_if        "can0"
+  config_get can_bitrate   main can_bitrate   "69144"
+  config_get can_setup     main can_setup     "1"
+  config_get write_mode    main write_mode    "0"
+  config_get publish_raw   main publish_raw   "1"
+  config_get stream_token  main stream_token  ""
+  [ "$write_mode" = "1" ] && listen_only="0" || listen_only="1"
+
+  if [ -z "$stream_token" ]; then
+    if [ -n "$(uci -q changes heizungpanel 2>/dev/null)" ]; then
+      logger -t heizungpanel "stream token not generated: uncommitted heizungpanel changes present; commit or revert them, then restart"
+    else
+      new_token="$(gen_stream_token)" || new_token=""
+      if [ -z "$new_token" ]; then
+        logger -t heizungpanel "stream token generation failed (entropy unavailable); stream stays closed"
+      elif uci set heizungpanel.main.stream_token="$new_token" 2>/dev/null \
+           && uci commit heizungpanel 2>/dev/null \
+           && [ "$new_token" = "$(uci -q get heizungpanel.main.stream_token)" ]; then
+        stream_token="$new_token"
+        logger -t heizungpanel "stream token generated (first boot or empty)"
+      else
+        # Revert only our own staged option: a token that failed to persist
+        # must not stay visible to the CGI's `uci get` (staged overlays it).
+        uci revert heizungpanel.main.stream_token 2>/dev/null || true
+        logger -t heizungpanel "stream token could not be persisted via uci; stream stays closed"
+      fi
+    fi
+  fi
+
+  config_get mqtt_host   main mqtt_host   "127.0.0.1"
+  config_get mqtt_port   main mqtt_port   "1883"
+  config_get mqtt_base   main mqtt_base   "heizungpanel"
+
+  local topic_raw="${mqtt_base}/raw"
+
+  logger -t heizungpanel "service start ($BUILD_TAG)"
+
+  if [ "$can_setup" = "1" ]; then
+    case "$can_if" in
+      can*|vcan*|slcan*) ;;
+      *)
+        logger -t heizungpanel "Refusing CAN setup on non-CAN interface: $can_if (set option can_setup '0' or can_if 'can0')"
+        return 1
+        ;;
+    esac
+
+    local lo_arg="listen-only off"
+    [ "$listen_only" = "1" ] && lo_arg="listen-only on"
+
+    if ! ip link show "$can_if" >/dev/null 2>&1; then
+      logger -t heizungpanel "CAN interface not found: $can_if"
+      return 1
+    fi
+
+    ip link set "$can_if" down >/dev/null 2>&1 || true
+    if ! ip link set "$can_if" type can bitrate "$can_bitrate" $lo_arg >/dev/null 2>&1; then
+      logger -t heizungpanel "CAN setup failed: $can_if bitrate $can_bitrate $lo_arg"
+      return 1
+    fi
+    if ! ip link set "$can_if" up >/dev/null 2>&1; then
+      logger -t heizungpanel "CAN bring-up failed: $can_if"
+      return 1
+    fi
+    logger -t heizungpanel "CAN setup ok: $can_if bitrate $can_bitrate ($lo_arg)"
+  fi
+
+  if [ "$publish_raw" = "1" ]; then
+    procd_open_instance raw
+    procd_set_param command /usr/libexec/heizungpanel/raw_bridge.sh "$can_if" "$mqtt_host" "$mqtt_port" "$topic_raw"
+    procd_set_param respawn 3600 5 5
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+  fi
+
+  local alarm_enabled
+  config_get alarm_enabled main alarm_enabled "0"
+  if [ "$publish_raw" = "1" ] && [ "$alarm_enabled" = "1" ]; then
+    procd_open_instance alarm
+    procd_set_param command /usr/libexec/heizungpanel/alarm_watchdog.sh "$mqtt_host" "$mqtt_port" "$topic_raw"
+    procd_set_param respawn 3600 5 0
+    procd_set_param stdout 1
+    procd_set_param stderr 1
+    procd_close_instance
+    logger -t heizungpanel "alarm watcher enabled (${topic_raw})"
+  fi
+
+  logger -t heizungpanel "MQTT publishing: raw=${publish_raw}:${topic_raw}"
+}
+
+service_triggers() {
+  procd_add_reload_trigger heizungpanel
+}
