@@ -1,0 +1,117 @@
+#!/bin/sh
+
+TOKEN_EXPECTED="$(uci -q get heizungpanel.main.stream_token)"
+MQTT_HOST="$(uci -q get heizungpanel.main.mqtt_host)"
+MQTT_PORT="$(uci -q get heizungpanel.main.mqtt_port)"
+MQTT_BASE="$(uci -q get heizungpanel.main.mqtt_base)"
+
+[ -n "$MQTT_HOST" ] || MQTT_HOST="127.0.0.1"
+[ -n "$MQTT_PORT" ] || MQTT_PORT="1883"
+[ -n "$MQTT_BASE" ] || MQTT_BASE="heizungpanel"
+
+TOPIC_RAW="${MQTT_BASE}/raw"
+
+SUB_PID=""
+FIFO_DIR=""
+FIFO_PATH=""
+SUB_DEAD=0
+
+cleanup() {
+  [ -n "$SUB_PID" ] && kill "$SUB_PID" >/dev/null 2>&1 || true
+  [ -n "$FIFO_DIR" ] && rm -rf "$FIFO_DIR" >/dev/null 2>&1 || true
+}
+
+trap cleanup EXIT
+trap 'cleanup; exit 0' INT TERM PIPE HUP
+
+qs_get() {
+  local key="$1"
+  local in="${QUERY_STRING:-}"
+  local part k v
+  local oldifs="$IFS"
+  IFS='&'
+  for part in $in; do
+    k="${part%%=*}"
+    v="${part#*=}"
+    [ "$k" = "$key" ] || continue
+    IFS="$oldifs"
+    printf '%s' "$v"
+    return 0
+  done
+  IFS="$oldifs"
+  return 1
+}
+
+http_error() {
+  echo "Status: $1"
+  echo "Content-Type: text/plain"
+  echo
+  echo "$2"
+  exit 0
+}
+
+TOKEN_GIVEN="$(qs_get token)"
+
+# Fail closed: a missing/empty configured secret or a non-matching token denies the stream.
+if [ -z "$TOKEN_EXPECTED" ] || [ -z "$TOKEN_GIVEN" ] || [ "$TOKEN_GIVEN" != "$TOKEN_EXPECTED" ]; then
+  http_error "403 Forbidden" "forbidden"
+fi
+
+FIFO_DIR="$(mktemp -d "${TMPDIR:-/tmp}/heizungpanel_stream.XXXXXX")" \
+  || http_error "500 Internal Server Error" "stream unavailable"
+chmod 700 "$FIFO_DIR" || http_error "500 Internal Server Error" "stream unavailable"
+FIFO_PATH="$FIFO_DIR/stream.fifo"
+mkfifo "$FIFO_PATH" || http_error "500 Internal Server Error" "stream unavailable"
+
+# -R suppresses retained broker messages; only fresh frames belong in the stream.
+mosquitto_sub -R -h "$MQTT_HOST" -p "$MQTT_PORT" -t "$TOPIC_RAW" 2>/dev/null > "$FIFO_PATH" &
+SUB_PID="$!"
+
+exec 3<"$FIFO_PATH" || http_error "500 Internal Server Error" "stream unavailable"
+
+echo "Content-Type: text/event-stream"
+echo "Cache-Control: no-store"
+echo "Connection: keep-alive"
+echo
+
+echo "event: hello"
+echo "data: stream-open"
+echo
+
+CR="$(printf '\r')"
+
+while true; do
+  # -n bounds a single read so an oversized MQTT line cannot grow memory unbounded.
+  if IFS= read -r -t 15 -n 4096 line <&3; then
+    # Embedded or trailing CR acts as an SSE line terminator in browsers;
+    # CR-bearing lines could inject event/data fields, so reject them whole.
+    case "$line" in *"$CR"*) continue ;; esac
+    [ -n "$line" ] || continue
+    printf 'data: %s\n\n' "$line" || break
+  else
+    # BusyBox read returns rc 1 for both timeout and EOF, so subscriber
+    # state decides: kill -0 can see an un-reaped zombie, hence the second
+    # probe after one sleep forces the reap. Once death is confirmed, keep
+    # draining frames the subscriber wrote before dying; the next failure
+    # after that is EOF and terminates the loop without a ping spin.
+    if [ "$SUB_DEAD" = "1" ]; then
+      break
+    fi
+    if kill -0 "$SUB_PID" 2>/dev/null; then
+      sleep 1
+      if kill -0 "$SUB_PID" 2>/dev/null; then
+        printf ': ping\n\n' || break
+      else
+        SUB_DEAD=1
+        continue
+      fi
+    else
+      SUB_DEAD=1
+      continue
+    fi
+  fi
+done
+
+exec 3<&-
+
+exit 0
