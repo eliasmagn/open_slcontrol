@@ -1,0 +1,35 @@
+# OpenWrt build artifacts
+build_dir/
+staging_dir/
+bin/
+dl/
+tmp/
+
+# Home Assistant add-on (separate deliverable, not part of the feed)
+homeassistant/
+
+# ImageBuilder workflow (contains device-specific configs)
+imagebuilder/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development artifacts
+*.pyc
+__pycache__/
+.venv/
+node_modules/
+*.egg-info/
+dist/
+build/
+*.coverage
+.pytest_cache/
+.ruff_cache/
