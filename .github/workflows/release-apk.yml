@@ -1,0 +1,48 @@
+name: Build and publish OpenWrt APK
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'etc/**'
+      - 'usr/**'
+      - 'www/**'
+      - 'package/luci-app-heizungpanel/Makefile'
+      - 'tools/build-apk.sh'
+      - 'tools/release-apk.sh'
+      - 'tools/device_ssh_deploy.sh'
+      - '.github/workflows/release-apk.yml'
+      - '.github/apk-publication-enabled'
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+    inputs:
+      retry:
+        description: Retry an unpublished failed/interrupted attempt
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: heizungpanel-apk-publication
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install build prerequisites
+        run: sudo apt-get update && sudo apt-get install -y build-essential curl jq zstd unzip rsync libncurses-dev
+      - name: Build once or promote verified draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          APK_RELEASE_EVENT: ${{ github.event_name }}
+          APK_RELEASE_RETRY: ${{ inputs.retry && 'true' || 'false' }}
+          APK_RELEASES_ENABLED: ${{ vars.APK_RELEASES_ENABLED }}
+          RELEASE_WORK: ${{ runner.temp }}/heizungpanel-release
+        run: sh tools/release-apk.sh
