@@ -63,6 +63,19 @@ verwendet. Keine Ad-hoc-Hexwerte im Markup.
 | LCD-Anzeige | `.l` Zeilen | aktiv / dim (Initial- und 0x320-81-Clear-Zustand) |
 | Lernassistent | native `.cbi-section`, `.cbi-value`, `.cbi-button`, `.alert-message` | bereit / Ruhephase / Pressfenster 1 / Pressfenster 2 / Vorschlag / abgelehnt / übernommen |
 | Beitrags-Export | beschriftete native Eingaben, Mapping-Checkboxen, `<pre>`-Vorschau | leer / Vorschau / lokaler Download; kein Upload-Zustand |
+| Zusatzseiten | vorhandene `.hp-key`-Sendetaste und natives `details` unter den Betriebsarten | read-only / sendebereit / Mapping fehlt / Senden läuft; sechs dokumentierte Seitengruppen |
+
+Layout Zusatzseiten: Auslöser unter den Betriebsarten, Hilfefenster bei genügend
+Platz rechts neben dem Panel. Bei schmalen Fenstern liegt die Hilfe unterhalb
+der sichtbaren Live-Anzeige über dem unteren Bedienbereich. Nur `.hp-help-body`
+scrollt; Fensterhöhe ist durch den Viewport begrenzt, Kopf und Schließen bleiben
+stehen. Öffnen vergrößert das Dokument nicht; Scrollketten zur Seite sind
+unterbunden. Escape schließt und stellt den Fokus ohne Seitensprung zum
+sichtbaren Auslöser oder andernfalls zur Live-Anzeige wieder her.
+Vorherige Ansichten räumen die Fenster-Listener auf. Keine Animationen.
+Primäraktion: genau eine V+Z-Betätigung. Prioritäten: Live-Anzeige, kontrollierte
+Navigation, aufklappbare Wirkungs-/Handbuchhinweise. Keine automatischen
+Mehrfachfolgen, vermeintlichen Seiten-LEDs oder Zusatzmenüs.
 
 ## 5. Bewegung / Motion
 
@@ -122,6 +135,21 @@ ab (Listener alter Durchgänge werden entfernt).
   bewusst so, da Abbild der Gerätetasten.
 
 ## 9. Akzeptierte Einschränkungen (accepted debt)
+
+### WPS-Wartungskonfiguration
+
+- Native LuCI-CBI-Felder und Standardbuttons, keine zusätzliche Farb-/Spacing-
+  oder Save-Oberfläche. Layout: einspaltiges Konfigurationsformular mit
+  Zustandsmeldung und Lernaktionen im bestehenden Tab-System.
+- Primäraktion: Muster anlernen / ersten Durchgang abschließen / Wiederholung
+  prüfen. Sekundäraktion: Lernen abbrechen beziehungsweise Zugang schließen.
+- Priorität: sichere Netzabgrenzung, erkannter Lernzustand, Zeit-/LED-Parameter.
+- Pflichtfelder: Aktivierung, Wartungsgeräte, Sequenz, Freigabe-/Nachlaufzeit,
+  relative und absolute Toleranz, LED-Auswahl und beide Lernphasen.
+- Keine Dekoration, separate Save-Buttons oder vermeintliche Interface-Zuordnung
+  von rpcd-Sitzungen. Status ist aria-live; Aktionen sind echte Buttons.
+- Gerätespezifische Tastenevents und LED-Farben benötigen zusätzlich Prüfung auf
+  dem Zielrouter. Eine Browser-Testumgebung ersetzt diese Hardwareprüfung nicht.
 
 - LCD-Zeilen sind für Screenreader nicht ausgezeichnet (paddierte
   Monospace-Leerzeichen); Statuszeilen tragen die Information.
