@@ -2,6 +2,7 @@
 'require view';
 'require form';
 'require fs';
+'require view.heizungpanel.access_options as accessOptions';
 
 var HEX4_RE = /^[0-9A-Fa-f]{4}$/;
 var HEX_TOKEN_RE = /^[0-9A-Fa-f]+$/;
@@ -16,13 +17,13 @@ var LEARNING_MAX_SEQUENCE = 16;
 function mappingDefinitions() {
   return [
     { key: 'mapping_z', command: 'z', tab: 'btn', label: _('Taste Z'), placeholder: 'FF7F' },
-    { key: 'mapping_minus', command: 'minus', tab: 'btn', label: _('Taste Minus'), placeholder: '' },
+    { key: 'mapping_minus', command: 'minus', tab: 'btn', label: _('Taste Minus'), placeholder: 'FFDF' },
     { key: 'mapping_quit', command: 'quit', tab: 'btn', label: _('Taste Quit'), placeholder: 'FFBF' },
-    { key: 'mapping_plus', command: 'plus', tab: 'btn', label: _('Taste Plus'), placeholder: 'FFDF' },
+    { key: 'mapping_plus', command: 'plus', tab: 'btn', label: _('Taste Plus'), placeholder: 'FFFD' },
     { key: 'mapping_v', command: 'v', tab: 'btn', label: _('Taste V'), placeholder: 'FFFB' },
-    { key: 'mapping_vz', command: 'vz', tab: 'btn', label: _('Taste V+Z'), placeholder: 'FF7B' },
-    { key: 'mapping_ein', command: 'ein', tab: 'btn', label: _('Taste Ein'), placeholder: '' },
-    { key: 'mapping_aus', command: 'aus', tab: 'btn', label: _('Taste Aus'), placeholder: '' },
+    { key: 'mapping_vz', command: 'vz', tab: 'btn', label: _('V+Z / nächste Zusatzseite'), placeholder: 'FF7B' },
+    { key: 'mapping_ein', command: 'ein', tab: 'btn', label: _('Taste Ein'), placeholder: 'FFEF' },
+    { key: 'mapping_aus', command: 'aus', tab: 'btn', label: _('Taste Aus'), placeholder: 'FFFE' },
     { key: 'mapping_dauer', command: 'dauer', tab: 'mode', label: _('Mode Dauer'), placeholder: '7FFF' },
     { key: 'mapping_uhr', command: 'uhr', tab: 'mode', label: _('Mode Uhr'), placeholder: 'BFFF' },
     { key: 'mapping_boiler', command: 'boiler', tab: 'mode', label: _('Mode Boiler'), placeholder: 'DFFF' },
@@ -804,6 +805,8 @@ return view.extend({
     var self = this;
     if (typeof self._learningDispose === 'function')
       self._learningDispose();
+    if (typeof self._accessDispose === 'function')
+      self._accessDispose();
 
     var m = new form.Map('heizungpanel', _('Heizungpanel – Konfiguration'),
       _('Diese Seite nutzt den normalen LuCI Save/Save & Apply-Flow und schreibt direkt nach UCI.'));
@@ -818,6 +821,7 @@ return view.extend({
     s.tab('mode', _('Betriebsarten-Mapping'));
     s.tab('learn', _('Lernen & Beitrag'));
     s.tab('alarm', _('Alarm'));
+    self._accessDispose = accessOptions.addOptions(s);
 
     var o;
     var streamTokenOption;
