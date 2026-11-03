@@ -2,6 +2,12 @@
 
 ## Abgeschlossen
 
+- [x] Referenz-Mappings aus der damaligen Sitzung konsistent übernommen: Ein `FFEF`, Aus `FFFE`, Minus `FFDF`, Plus `FFFD`, V+Z `FF7B`; Kollisionsschutz bleibt aktiv. Zusatzseiten-Button und Handbuchhinweise im Projekt ergänzt, kein CAN-Sendetest an der Anlage.
+
+- [x] Optionale WPS-/Ethernet-Wartung in Paket und Konfiguration integriert: zweimaliges Anlernen, Jitter-/Entprellung, rpcd-Sitzungsschutz, Nachlauf, manuelles Schließen, LED-Wiederherstellung und kurzlebige nftables-Freigabe. Standardmäßig deaktiviert; keine automatische Netztrennung.
+- [x] WPS-Prüfungen: Ablauf-/Grenztests und LED-Dateimodell, echte nftables-Netzsperre inklusive Dienstausfall im Container, Browser-Lerndurchlauf mit echtem Backend, APK-Bau und Payload-/Rechtevergleich.
+- [ ] WPS-Geräteabnahme: tatsächliche Taste und gewählte rote LED sowie native LuCI-Integration auf dem Zielrouter prüfen; ausschließlich ein separates Ethernet-Wartungsnetz auswählen. Bisher keine neue Sperre am Zielrouter aktiviert.
+
 - [x] RPC-ACL für LuCI-Konfigseite korrigiert: `uci/get`/`uci/set` auf `heizungpanel` für `luci-app-heizungpanel` freigegeben (Fix für `RPC call to uci/get failed with ubus code 6: Permission denied`).
 - [x] LuCI-Konfigseite: globalen Footer (**unten rechts Save / Save & Apply**) als einzigen Speichereinstieg verdrahtet; redundanten Formular-Button entfernt.
 - [x] LED-/Modus-Mapping aus `0x320 83xx` in UCI konfigurierbar gemacht (`led_map_83`, `led_power_ein_when_bit7_clear`).
