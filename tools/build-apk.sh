@@ -38,7 +38,7 @@ awk '
   }
   END { exit (sections != 1 || !readonly || unsafe) }
 ' "$SOURCE/etc/config/heizungpanel" || { echo 'Public defaults must be read-only and credential-free' >&2; exit 2; }
-for f in "$SOURCE/etc/init.d/heizungpanel" "$SOURCE"/usr/libexec/heizungpanel/*.sh "$SOURCE/www/cgi-bin/heizungpanel_stream" "$SOURCE/tools/device_ssh_deploy.sh"; do sh -n "$f"; done
+for f in "$SOURCE"/etc/init.d/* "$SOURCE"/etc/rc.wps/* "$SOURCE"/usr/libexec/heizungpanel/*.sh "$SOURCE/www/cgi-bin/heizungpanel_stream" "$SOURCE/tools/device_ssh_deploy.sh"; do sh -n "$f"; done
 for f in "$SOURCE"/www/luci-static/resources/view/heizungpanel/*.js; do node --check "$f"; done
 jq -e . "$SOURCE/usr/share/rpcd/acl.d/luci-app-heizungpanel.json" "$SOURCE/usr/share/luci/menu.d/luci-app-heizungpanel.json" >/dev/null
 
@@ -76,7 +76,7 @@ for rel in $FILES; do
   cmp -s "$SOURCE/$rel" "$EXTRACT/$rel" || { echo "APK content mismatch: $rel" >&2; exit 4; }
   case "$rel" in
     etc/config/*) mode=600 ;;
-    etc/init.d/*|usr/libexec/heizungpanel/*.sh|www/cgi-bin/*) mode=755 ;;
+    etc/init.d/*|etc/rc.wps/*|usr/libexec/heizungpanel/*.sh|www/cgi-bin/*) mode=755 ;;
     *) mode=644 ;;
   esac
   [ "$(stat -c %a "$EXTRACT/$rel")" = "$mode" ] || { echo "APK mode mismatch: $rel" >&2; exit 4; }
@@ -92,4 +92,4 @@ if [ "${1:-build}" = build ]; then
   commit=$(GIT_MASTER=1 git -C "$ROOT" rev-parse HEAD)
   jq -n --arg package_version "$VERSION-r$REVISION" --arg openwrt_version "$OPENWRT_VERSION" --arg source_commit "$commit" --arg sdk_sha256 "$SDK_SHA256" '{package_version:$package_version,openwrt_version:$openwrt_version,source_commit:$source_commit,sdk_sha256:$sdk_sha256}' > "$OUTPUT_DIR/BUILDINFO.json"
 fi
-echo 'APK metadata, all16 files, permissions, defaults and conffile verified'
+echo 'APK metadata, all payload files, permissions, defaults and conffile verified'

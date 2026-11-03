@@ -16,6 +16,9 @@
         "heizungpanel"
       ],
       "file": {
+        "/usr/libexec/heizungpanel/access_rpc.sh": [
+          "exec"
+        ],
         "/usr/libexec/heizungpanel/press.sh": [
           "exec"
         ],

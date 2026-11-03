@@ -99,8 +99,8 @@ run_ssh() {
   if [ "$USE_MUX" -eq 1 ] && [ -n "$MUX_CONTROL_PATH" ]; then
     set -- "$@" -o ControlMaster=auto -o ControlPersist=300 -o "ControlPath=$MUX_CONTROL_PATH"
   fi
-  set -- "$@" "$REMOTE" "$remote_cmd"
-  "$@"
+  set -- "$@" "$REMOTE" 'sh -s'
+  printf '%s\n' "$remote_cmd" | "$@"
 }
 
 run_scp() {
@@ -233,9 +233,17 @@ validate_remote_stage() {
 installed_files() {
   cat <<'EOF'
 etc/init.d/heizungpanel
+etc/init.d/heizungpanel-access
+etc/rc.wps/00-heizungpanel-access
 etc/config/heizungpanel
 usr/libexec/heizungpanel/raw_bridge.sh
 usr/libexec/heizungpanel/alarm_watchdog.sh
+usr/libexec/heizungpanel/access.sh
+usr/libexec/heizungpanel/access_rpc.sh
+usr/libexec/heizungpanel/access_config.sh
+usr/libexec/heizungpanel/access_firewall.sh
+usr/libexec/heizungpanel/access_sequence.awk
+usr/libexec/heizungpanel/access_sessions.uc
 usr/libexec/heizungpanel/telegram_json.uc
 usr/libexec/heizungpanel/press.sh
 usr/libexec/heizungpanel/config.sh
@@ -246,7 +254,9 @@ usr/libexec/heizungpanel/ha_bridge.sh
 usr/share/rpcd/acl.d/luci-app-heizungpanel.json
 usr/share/luci/menu.d/luci-app-heizungpanel.json
 www/luci-static/resources/view/heizungpanel/panel.js
+www/luci-static/resources/view/heizungpanel/special_pages.js
 www/luci-static/resources/view/heizungpanel/config.js
+www/luci-static/resources/view/heizungpanel/access_options.js
 www/cgi-bin/heizungpanel_stream
 EOF
 }
@@ -312,7 +322,7 @@ run_install() {
   for rel in $FILES; do
     [ "$rel" = "etc/config/heizungpanel" ] && continue
     case "$rel" in
-      etc/init.d/*|usr/libexec/heizungpanel/*.sh|www/cgi-bin/*) mode=755 ;;
+      etc/init.d/*|etc/rc.wps/*|usr/libexec/heizungpanel/*.sh|www/cgi-bin/*) mode=755 ;;
       *) mode=644 ;;
     esac
     INSTALL_CMD="${INSTALL_CMD}mkdir -p '/$(dirname "$rel")' && cp '$REMOTE_STAGE/$rel' '/$rel' && chmod $mode '/$rel' && cmp -s '$REMOTE_STAGE/$rel' '/$rel' && "
@@ -326,6 +336,7 @@ run_install() {
       /etc/init.d/uhttpd reload >/dev/null 2>&1 || true; \
       rm -rf /tmp/luci-indexcache /tmp/luci-modulecache >/dev/null 2>&1 || true; \
       /etc/init.d/heizungpanel enable >/dev/null 2>&1 || true; \
+      /etc/init.d/heizungpanel-access enable && /etc/init.d/heizungpanel-access restart && \
       CAN_SETUP=\$(uci -q get heizungpanel.main.can_setup || echo 1); \
       CAN_IF=\$(uci -q get heizungpanel.main.can_if || echo can0); \
       if [ \"\$CAN_SETUP\" = \"1\" ] && ! echo \"\$CAN_IF\" | grep -Eq '^(can|vcan|slcan)'; then \
@@ -346,6 +357,7 @@ run_uninstall() {
 
   setup_mux
   echo "[1/3] Stop and disable service"
+  run_ssh "/etc/init.d/heizungpanel-access stop && /etc/init.d/heizungpanel-access disable && /usr/libexec/heizungpanel/access_firewall.sh disable"
   run_ssh "if [ -x /etc/init.d/heizungpanel ]; then \
       /etc/init.d/heizungpanel stop && \
       /etc/init.d/heizungpanel disable; \

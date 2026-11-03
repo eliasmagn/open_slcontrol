@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-heizungpanel
 PKG_VERSION:=0.2.0
-PKG_RELEASE:=2
+PKG_RELEASE:=5
 
 PKG_LICENSE:=MIT
 PKG_MAINTAINER:=open_slcontrol <https://github.com/eliasmagn/open_slcontrol>
@@ -18,7 +18,7 @@ define Package/luci-app-heizungpanel
   CATEGORY:=LuCI
   SUBMENU:=3. Applications
   TITLE:=Heizungpanel - CAN-bus heating control panel (Lindner & Sommerauer)
-  DEPENDS:=+luci-base +rpcd +rpcd-mod-file +ucode +ucode-mod-fs +uclient-fetch +libustream-mbedtls +ca-bundle +mosquitto-client-nossl +kmod-can +kmod-can-raw +canutils-candump +canutils-cansend +uhttpd +uhttpd-mod-ubus +ip-full
+  DEPENDS:=+luci-base +rpcd +rpcd-mod-file +ucode +ucode-mod-fs +uclient-fetch +libustream-mbedtls +ca-bundle +mosquitto-client-nossl +kmod-can +kmod-can-raw +canutils-candump +canutils-cansend +uhttpd +uhttpd-mod-ubus +ip-full +nftables-json
   PKGARCH:=all
 endef
 
@@ -41,10 +41,17 @@ endef
 define Package/luci-app-heizungpanel/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) $(CURDIR)/../../etc/init.d/heizungpanel $(1)/etc/init.d/
+	$(INSTALL_BIN) $(CURDIR)/../../etc/init.d/heizungpanel-access $(1)/etc/init.d/
+	$(INSTALL_DIR) $(1)/etc/rc.wps
+	$(INSTALL_BIN) $(CURDIR)/../../etc/rc.wps/00-heizungpanel-access $(1)/etc/rc.wps/
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(CURDIR)/../../etc/config/heizungpanel $(1)/etc/config/heizungpanel
 	$(INSTALL_DIR) $(1)/usr/libexec/heizungpanel
 	$(INSTALL_BIN) $(CURDIR)/../../usr/libexec/heizungpanel/alarm_watchdog.sh \
+		$(CURDIR)/../../usr/libexec/heizungpanel/access.sh \
+		$(CURDIR)/../../usr/libexec/heizungpanel/access_rpc.sh \
+		$(CURDIR)/../../usr/libexec/heizungpanel/access_config.sh \
+		$(CURDIR)/../../usr/libexec/heizungpanel/access_firewall.sh \
 		$(CURDIR)/../../usr/libexec/heizungpanel/config.sh \
 		$(CURDIR)/../../usr/libexec/heizungpanel/config_get.sh \
 		$(CURDIR)/../../usr/libexec/heizungpanel/config_set.sh \
@@ -54,6 +61,8 @@ define Package/luci-app-heizungpanel/install
 		$(CURDIR)/../../usr/libexec/heizungpanel/set_mode.sh \
 		$(1)/usr/libexec/heizungpanel/
 	$(INSTALL_DATA) $(CURDIR)/../../usr/libexec/heizungpanel/telegram_json.uc $(1)/usr/libexec/heizungpanel/
+	$(INSTALL_DATA) $(CURDIR)/../../usr/libexec/heizungpanel/access_sequence.awk \
+		$(CURDIR)/../../usr/libexec/heizungpanel/access_sessions.uc $(1)/usr/libexec/heizungpanel/
 	$(INSTALL_DIR) $(1)/usr/share/rpcd/acl.d
 	$(INSTALL_DATA) $(CURDIR)/../../usr/share/rpcd/acl.d/luci-app-heizungpanel.json $(1)/usr/share/rpcd/acl.d/
 	$(INSTALL_DIR) $(1)/usr/share/luci/menu.d
@@ -62,7 +71,9 @@ define Package/luci-app-heizungpanel/install
 	$(INSTALL_BIN) $(CURDIR)/../../www/cgi-bin/heizungpanel_stream $(1)/www/cgi-bin/
 	$(INSTALL_DIR) $(1)/www/luci-static/resources/view/heizungpanel
 	$(INSTALL_DATA) $(CURDIR)/../../www/luci-static/resources/view/heizungpanel/config.js \
+		$(CURDIR)/../../www/luci-static/resources/view/heizungpanel/access_options.js \
 		$(CURDIR)/../../www/luci-static/resources/view/heizungpanel/panel.js \
+		$(CURDIR)/../../www/luci-static/resources/view/heizungpanel/special_pages.js \
 		$(1)/www/luci-static/resources/view/heizungpanel/
 endef
 
@@ -72,7 +83,18 @@ define Package/luci-app-heizungpanel/postinst
 	rm -f /tmp/luci-indexcache.*
 	rm -rf /tmp/luci-modulecache/
 	/etc/init.d/rpcd reload 2>/dev/null
+	/etc/init.d/heizungpanel-access enable
+	/etc/init.d/heizungpanel-access restart
 	exit 0
+}
+endef
+
+define Package/luci-app-heizungpanel/prerm
+#!/bin/sh
+[ -n "$${IPKG_INSTROOT}" ] || {
+	/etc/init.d/heizungpanel-access stop
+	/etc/init.d/heizungpanel-access disable
+	/usr/libexec/heizungpanel/access_firewall.sh disable
 }
 endef
 
