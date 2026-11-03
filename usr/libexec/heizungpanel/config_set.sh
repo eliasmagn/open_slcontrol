@@ -71,6 +71,15 @@ validate_kv() {
   local value="$2"
 
   case "$key" in
+    access_*) ACCESS_CHANGED=1 ;;
+    *) CORE_CHANGED=1 ;;
+  esac
+
+  case "$key" in
+    access_*)
+      . /usr/libexec/heizungpanel/access_config.sh
+      access_validate "$key" "$value" || fail "Invalid access setting: $key" 2
+      ;;
     can_if)
       case "$value" in
         can*|vcan*|slcan*) ;;
@@ -181,6 +190,9 @@ restore_read_only() {
   if ! "$SERVICE_SCRIPT" restart >/dev/null 2>&1; then
     restored=0
   fi
+  if [ "$ACCESS_CHANGED" = 1 ] && ! /etc/init.d/heizungpanel-access restart >/dev/null 2>&1; then
+    restored=0
+  fi
 
   logger -t heizungpanel "$reason; forced read-only rollback result=$restored"
   echo "$reason" >&2
@@ -205,7 +217,12 @@ apply_transaction() {
 
   stage_batch_file "$input" "$STAGING_DIR" || restore_read_only "Failed to stage isolated UCI changes"
   uci -q -t "$STAGING_DIR" commit heizungpanel || restore_read_only "Failed to commit isolated UCI changes"
-  "$SERVICE_SCRIPT" restart >/dev/null 2>&1 || restore_read_only "Committed config, but service restart failed"
+  if [ "$CORE_CHANGED" = 1 ]; then
+    "$SERVICE_SCRIPT" restart >/dev/null 2>&1 || restore_read_only "Committed config, but service restart failed"
+  fi
+  if [ "$ACCESS_CHANGED" = 1 ]; then
+    /etc/init.d/heizungpanel-access restart >/dev/null 2>&1 || restore_read_only "Committed config, but access restart failed"
+  fi
 }
 
 CONFIG_FILE='/etc/config/heizungpanel'
@@ -214,6 +231,8 @@ TRANSACTION_DIR=''
 STAGING_DIR=''
 FAILSAFE_DIR=''
 BACKUP_FILE=''
+ACCESS_CHANGED=0
+CORE_CHANGED=0
 batch_file="$(mktemp)" || fail "Failed to allocate temp file" 1
 trap 'rm -f "$batch_file"' EXIT INT TERM
 
