@@ -13,6 +13,7 @@ MAP_UHR_BOILER="$(uci -q get heizungpanel.main.mapping_uhr_boiler)"
 MAP_AUSSEN_REG="$(uci -q get heizungpanel.main.mapping_aussen_reg)"
 MAP_PRUEF="$(uci -q get heizungpanel.main.mapping_pruef)"
 MAP_HAND="$(uci -q get heizungpanel.main.mapping_hand)"
+MAP_VZ="$(uci -q get heizungpanel.main.mapping_vz)"
 
 case "$POLL_MS" in
   ''|*[!0-9]*) POLL_MS=500 ;;
@@ -28,7 +29,7 @@ fi
 [ "$PUBLISH_RAW" = "0" ] || PUBLISH_RAW=1
 [ "$LED_POWER_EIN_WHEN_BIT7_CLEAR" = "0" ] || LED_POWER_EIN_WHEN_BIT7_CLEAR=1
 
-printf '{"poll_interval_ms":%s,"write_mode":%s,"publish_raw":%s,"stream_token":"%s","led_map_83":"%s","led_power_ein_when_bit7_clear":%s,"mapping_dauer":"%s","mapping_uhr":"%s","mapping_boiler":"%s","mapping_uhr_boiler":"%s","mapping_aussen_reg":"%s","mapping_pruef":"%s","mapping_hand":"%s"}\n' \
+printf '{"poll_interval_ms":%s,"write_mode":%s,"publish_raw":%s,"stream_token":"%s","led_map_83":"%s","led_power_ein_when_bit7_clear":%s,"mapping_dauer":"%s","mapping_uhr":"%s","mapping_boiler":"%s","mapping_uhr_boiler":"%s","mapping_aussen_reg":"%s","mapping_pruef":"%s","mapping_hand":"%s","mapping_vz":"%s"}\n' \
   "$POLL_MS" \
   "$WRITE_MODE" \
   "$PUBLISH_RAW" \
@@ -41,4 +42,5 @@ printf '{"poll_interval_ms":%s,"write_mode":%s,"publish_raw":%s,"stream_token":"
   "${MAP_UHR_BOILER:-}" \
   "${MAP_AUSSEN_REG:-}" \
   "${MAP_PRUEF:-}" \
-  "${MAP_HAND:-}"
+  "${MAP_HAND:-}" \
+  "${MAP_VZ:-}"
