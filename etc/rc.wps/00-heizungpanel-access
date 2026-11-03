@@ -1,0 +1,10 @@
+#!/bin/sh
+enabled=$(uci -q get heizungpanel.main.access_enabled || echo 0)
+mode=$(awk '$1=="mode" {print $2}' /tmp/heizungpanel-access/state 2>/dev/null)
+case "$enabled:$mode" in
+    1:*|*:record|*:confirm|*:ready|*:error)
+        /usr/libexec/heizungpanel/access.sh button
+        exit 0
+        ;;
+esac
+exit 1
