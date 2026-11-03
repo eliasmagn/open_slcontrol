@@ -5,6 +5,71 @@ Lindner-&-Sommerauer-Heizung über den CAN-Bus.
 
 ## Funktionen
 
+### WPS / Ethernet-Wartung (optional, standardmäßig aus)
+
+Die Konfigurationsseite enthält einen Tab **WPS / Ethernet-Wartung**. Dort ein
+Muster mit vier bis sechzehn kurzen WPS-Betätigungen direkt am Router anlernen,
+denselben Rhythmus wiederholen und anschließend über den normalen LuCI-Footer
+speichern. Die Abstände sind zusätzlich als Millisekundenliste bearbeitbar.
+Relative Toleranz (5–40 %) und Mindesttoleranz (20–250 ms) sind konfigurierbar;
+Entprellung beträgt 120 ms. Das Lernfenster beträgt je Durchgang 60 Sekunden,
+einzelne Abstände dürfen höchstens zehn Sekunden dauern. Beim Lernen wird kein
+Zugang geöffnet und keine normale WPS-Anmeldung ausgelöst.
+
+**Zuerst anlernen, dann die Sperre aktivieren.** Benötigt wird ein bereits
+eingerichtetes, separates Ethernet-Wartungsnetz mit eigenem L3-Gerät, etwa
+`br-maint`. Bis zu acht Geräte sind möglich. Netzwerktopologie, IP-Adressen und
+DHCP-Konfiguration werden nicht automatisch verändert. WLAN-Geräte, Bridges
+mit konfiguriertem WLAN und Bridge-Mitglieder werden abgelehnt. Eine mit dem
+Sensor-WLAN gemeinsame `br-lan` darf nicht verwendet werden. Firewall-Flow-
+Offloading muss deaktiviert sein. Das normale Firewall-Regelwerk muss die
+Verwaltungsdienste im Wartungsnetz erlauben; die zusätzliche Sperre kann keine
+bestehende Firewall-Ablehnung aufheben.
+
+Bei aktivierter Funktion gilt für die ausgewählten Geräte:
+
+- Geschlossen: IPv4-/IPv6-Eingang zum Router gesperrt, auch bestehender Verkehr.
+- Geöffnet: nur TCP 22/80/443, DHCP UDP 67/547 und notwendige eingehende IPv6-
+  Nachbarschaftsnachrichten passieren die zusätzliche Sperre. MQTT bleibt zu.
+- Geroutete Weiterleitung in beide Richtungen bleibt gesperrt. ARP ist kein
+  IP-Port und wird durch diese inet-Regeln nicht abgeschaltet.
+- Sequenz öffnet für 30–3600 konfigurierbare Sekunden. Jede gültige LuCI-Sitzung
+  hält eine bereits geöffnete Freigabe offen, unabhängig vom Zugangsinterface.
+  Dafür wird rpcd nur abgefragt; der vorhandene Sitzungstimeout wird nicht
+  verlängert. Nach Logout/Timeout beginnt der volle konfigurierte Nachlauf.
+- Ein weiterer kurzer WPS-Druck oder **Zugang schließen** sperrt sofort,
+  unabhängig von LuCI-Sitzungen. Der letzte Druck der Öffnungssequenz schließt
+  nicht gleichzeitig. Neustart öffnet niemals automatisch.
+- Eine kurzlebige nftables-Freigabe wird vom Dienst erneuert. Bei dessen Ausfall
+  verfällt sie spätestens nach drei Sekunden; ein Dienstneustart beginnt
+  geschlossen. Die Sperre wird beim Boot vor den normalen Verwaltungsdiensten
+  eingerichtet. Firewall-Neuladen löscht die eigene Tabelle nicht.
+
+Eine vorhandene LED kann ausgewählt werden, vorzugsweise rot. Sie leuchtet bei
+Freigabe und blinkt beim Lernen. Trigger und Helligkeit werden anschließend
+wiederhergestellt. Ohne geeignete LED funktioniert die Sperre ebenfalls. Die
+Anzeige ist keine elektrische Funktionskontrolle des Routers.
+
+Die Sequenz ersetzt kein starkes Passwort beziehungsweise SSH-Schlüssel. Ein
+physisch zugänglicher Reset oder Failsafe kann die normale Betriebs-Firewall
+umgehen. Vor dem Aktivieren einen unabhängigen Wiederherstellungsweg vorsehen.
+Deaktivieren oder Deinstallieren der Funktion entfernt ihre Zusatzsperre und
+stellt die darunterliegende Firewall-Policy wieder her. Keine CAN-Sendefunktion
+ist mit dem WPS-Knopf verknüpft.
+
+Entwicklerprüfung: `sh tools/test_access.sh` prüft Rhythmus, Toleranz, langes
+Uptime-Zeitformat, Lernen, Timeout und manuelles Schließen ohne Routerzugriff.
+
+### Heizungsfunktionen
+
+Das Panel enthält **V+Z: nächste Zusatzseite** mit Hinweisen zu Verbrennung,
+Service, Fühlerabgleich, Hausanlage, Fehlerspeicher und Prüfparametern.
+Die Hilfe öffnet rechts neben dem Panel mit eigenem Scrollbereich; bei wenig
+Platz unterhalb der Live-Anzeige. Kopf und Schließen bleiben sichtbar, der
+Hilfetext verlängert die Seite nicht. Escape schließt das Hilfefenster.
+Ein Klick entspricht einer über UCI konfigurierten Betätigung, nicht einem
+absoluten Seitenaufruf. Belege und Handbuchstellen: [Panel-Befehle](docs/panel-commands.md).
+
 - **Live-Panel**: Zweizeiliges Display, Betriebsmodus und LEDs — ausschließlich
   aus frischen CAN-Frames (`0x320`), kein Snapshot, kein Fallback
 - **Schreibgeschützter Default**: Senden nur nach bewusster Aktivierung von
